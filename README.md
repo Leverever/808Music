@@ -2,7 +2,7 @@
 
 808Music is a music streaming web application made as a school project with my colleague Marko Dogan.
 
-## 🎯 Key Features  
+## Key Features  
 
 - **Music Streaming** – Users can listen to music from various genres and artists  
 - **Playlists & Albums** – Organize music into custom and collaborative playlists 
