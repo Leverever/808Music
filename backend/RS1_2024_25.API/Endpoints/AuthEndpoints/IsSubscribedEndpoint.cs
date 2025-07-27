@@ -11,7 +11,7 @@ namespace RS1_2024_25.API.Endpoints.UserEndpoints
         [HttpGet("api/IsSubscribed")]
         public override async Task<ActionResult> HandleAsync(int userId, CancellationToken cancellationToken = default)
         {
-            //return Ok(new { isSubscribed = true, message = "User is subscribed." });
+            return Ok(new { isSubscribed = true, message = "User is subscribed." });
             var user = await db.MyAppUsers
                                 .Include(u => u.Subscription)
                                 .FirstOrDefaultAsync(u => u.ID == userId, cancellationToken);

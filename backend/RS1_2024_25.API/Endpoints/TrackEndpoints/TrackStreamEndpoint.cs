@@ -21,11 +21,12 @@ namespace RS1_2024_25.API.Endpoints.TrackEndpoints
             }
             var user = await db.MyAppUsers.Include(u => u.Subscription)
                             .FirstOrDefaultAsync(u => u.ID == userId, cancellationToken);
-
+            /*
             if ((user.Subscription == null || user.Subscription.EndDate < DateTime.UtcNow) && (request.ArtistMode == null || !request.ArtistMode.Value))
             {
                 return Unauthorized(new { message = "Your subscription has expired or is not active." });
             }
+            */
             //TODO Check for active subscription
             
             Track? track = request.TrackId <= 0 ? await db.Tracks.FirstOrDefaultAsync(cancellationToken) : await cs.GetAsync<Track>($"track-{request.TrackId}", cancellationToken);
@@ -41,8 +42,15 @@ namespace RS1_2024_25.API.Endpoints.TrackEndpoints
             {
                 return Unauthorized();
             }
-
-            var stream = await fh.GetFileAsStreamAsync(Path.Combine(cfg["StaticFilePaths:Tracks"]!, track.TrackPath));
+            
+            //With file caching
+            var stream = await cs.GetStreamAsync($"track-file-{track.Id}", async () =>
+            {
+                return ((MemoryStream)(await fh.GetFileAsStreamAsync(Path.Combine(cfg["StaticFilePaths:Tracks"]!, track.TrackPath)))).ToArray();
+            }, cancellationToken);
+            
+            //Without caching the file
+            //var stream = await fh.GetFileAsStreamAsync(Path.Combine(cfg["StaticFilePaths:Tracks"]!, track.TrackPath));
             var file = File(stream, "audio/mpeg", enableRangeProcessing: true);
 
             return file;

@@ -12,11 +12,17 @@ namespace RS1_2024_25.API.Services
 
             string extension = Path.GetExtension(file.FileName);
 
-            string fileName = Path.GetRandomFileName() + extension;
+            string fileName = Path.GetRandomFileName() + DateTime.Now.ToString("yyyy-MM-dd_HH_mm") + extension;
             if (file.Length > maxFileSizeInBytes && maxFileSizeInBytes > 0 || file.Length <= 0)
             {
                 return string.Empty;
             }
+
+            if(!Directory.Exists(fullPath))
+            {
+                Directory.CreateDirectory(fullPath);
+            }
+
             using (var fs = new FileStream(Path.Combine(fullPath, fileName), FileMode.CreateNew, FileAccess.Write))
             {
                 await file.CopyToAsync(fs, cancellationToken);

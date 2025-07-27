@@ -19,7 +19,7 @@ namespace RS1_2024_25.API.Endpoints.NotificationEndpoints
             List<int> readNotiIds = await db.ReadNotifications.Where(rn => rn.MyAppUserId == userId).Select(rn => rn.NotificationId).ToListAsync(cancellationToken);
             List<int> artistIds = await db.Follows.Where(f => f.MyAppUserId == userId && f.WantsNotifications).Select(f => f.ArtistId).ToListAsync(cancellationToken);
 
-            var notis = await db.Notifications.Where(n => !readNotiIds.Contains(n.Id) && artistIds.Contains(n.ArtistId) && n.Sent && n.CreatedAt.AddDays(60) > DateTime.Now).OrderByDescending(n => n.CreatedAt).ToListAsync(cancellationToken);
+            var notis = await db.Notifications.Where(n => !readNotiIds.Contains(n.Id) && artistIds.Contains(n.ArtistId) && n.Sent && n.CreatedAt.AddDays(90) > DateTime.Now).OrderByDescending(n => n.CreatedAt).ToListAsync(cancellationToken);
 
             List<RichNotification> result = new List<RichNotification>();
             var preference = await db.MyAppUserPreferences.Where(p => p.MyAppUserId == userId).Select(p => p.NotificationTypePriority).FirstOrDefaultAsync(cancellationToken);
