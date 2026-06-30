@@ -8,6 +8,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using Xunit;
 using static ProductAddEndpoint;
 
@@ -33,8 +35,10 @@ namespace RS1_2024_25.Tests.Endpoints.Product
                 Directory.CreateDirectory(tempDirectory);
             }
 
-            string imagePath = @"C:\Users\Omen\808 Music\backend\RS1_2024_25.API\wwwroot\Images\Playlists\9fd183a7-c5a0-477c-b1a0-c3a2a1495c7b.png";
-            var photoBytes = File.ReadAllBytes(imagePath);
+            using var image = new Image<Rgba32>(1, 1);
+            using var imageStream = new MemoryStream();
+            await image.SaveAsPngAsync(imageStream);
+            var photoBytes = imageStream.ToArray();
 
             // Get a token for the user
             var user = _db.MyAppUsers.First();
