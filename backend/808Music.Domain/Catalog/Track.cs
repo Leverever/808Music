@@ -15,7 +15,7 @@ namespace _808Music.Domain.Catalog
         public int Streams { get; set; }
         public bool IsExplicit { get; set; }
         public string TrackPath { get; set; } = string.Empty;
-        public int AlbumId { get; set; }
+        public int? AlbumId { get; set; }
 
         [ForeignKey(nameof(AlbumId))]
         public Album? Album { get; set; }

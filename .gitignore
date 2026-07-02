@@ -307,3 +307,4 @@ __pycache__/
 #static files
 backend/RS1_2024_25.API/TrackFiles
 backend/RS1_2024_25.API/wwwroot/*/
+backend/.verify-build

@@ -35,7 +35,10 @@ public sealed class ManifestStemSeparationService : IStemSeparationService
 
         foreach (var stem in DefaultStems)
         {
-            var streamUri = await _mediaStorage.GetStreamUriAsync(trackId, stem, cancellationToken);
+            var streamUri = await _mediaStorage.CreateReadUrlAsync(
+                $"stems/{trackId:N}/{stem}.mp3",
+                TimeSpan.FromMinutes(10),
+                cancellationToken);
             stems.Add(new StemManifestItem(stem, "audio/mpeg", streamUri));
         }
 

@@ -7,7 +7,7 @@ using RS1_2024_25.API.Endpoints.ProductEndpoints;
 namespace RS1_2024_25.API.Data
 {
     public class ApplicationDbContext(
-        DbContextOptions options) : DbContext(options)
+        DbContextOptions<ApplicationDbContext> options) : DbContext(options)
     {
         public DbSet<City> Cities { get; set; }
         public DbSet<MyAuthenticationToken> MyAuthenticationTokens { get; set; }

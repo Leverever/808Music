@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using _808Music.Application;
 using _808Music.Infrastructure;
+using _808Music.Infrastructure.Persistence;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,7 @@ using static RS1_2024_25.API.Endpoints.CityEndpoints.ProductGetAllEndpoint;
 using FluentValidation;
 using RS1_2024_25.API.Data.Models.Auth;
 using FluentValidation.AspNetCore;
+using Amazon.S3;
 
 
 var config = new ConfigurationBuilder()
@@ -32,7 +34,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(config.GetConnectionString("db1")));
 
+builder.Services.AddDbContext<MusicDbContext>(options =>
+    options.UseSqlServer(config.GetConnectionString("db1"), sql =>
+    {
+        sql.MigrationsAssembly(typeof(MusicDbContext).Assembly.FullName);
+        sql.MigrationsHistoryTable("__EFMigrationsHistory_808MusicClean");
+    }));
 
+builder.Services.AddScoped<IApplicationDbContext>(sp =>
+    sp.GetRequiredService<MusicDbContext>());
 
 builder.Services.AddControllers();
 builder.Services.AddApiVersioning(options =>
@@ -162,7 +172,8 @@ builder.Services.AddHostedService<MyBackgroundService>();
 builder.Services.AddSingleton<IMyCacheService, MyRedisCacheService>();
 builder.Services.AddTransient<NotificationTransformerService>();
 builder.Services.AddApplicationServices();
-builder.Services.AddInfrastructureServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddEfCrudPersistence<MusicDbContext>();
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<MyAppUser>();

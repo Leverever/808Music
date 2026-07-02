@@ -2,13 +2,26 @@ namespace _808Music.Application.Abstractions;
 
 public interface IMediaStorage
 {
-    Task<MediaFileDescriptor?> GetTrackFileAsync(Guid trackId, CancellationToken cancellationToken = default);
+    Task<StoredMediaObject> UploadAsync(
+        UploadMediaObject request,
+        CancellationToken cancellationToken = default);
 
-    Task<Uri> GetStreamUriAsync(Guid trackId, string streamName, CancellationToken cancellationToken = default);
+    Task<Uri> CreateReadUrlAsync(
+        string objectKey,
+        TimeSpan expiresIn,
+        CancellationToken cancellationToken = default);
+
+    Task DeleteAsync(
+        string objectKey,
+        CancellationToken cancellationToken = default);
 }
 
-public sealed record MediaFileDescriptor(
-    Guid TrackId,
-    string StorageKey,
+public sealed record UploadMediaObject(
+    string ObjectKey,
+    Stream Content,
+    string ContentType);
+
+public sealed record StoredMediaObject(
+    string ObjectKey,
     string ContentType,
     long? SizeInBytes);

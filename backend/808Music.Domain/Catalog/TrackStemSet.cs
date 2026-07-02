@@ -10,7 +10,7 @@ namespace _808Music.Domain.Catalog
     {
         [Key]
         public Guid Id { get; private set; }
-        public Guid TrackId { get; private set; }
+        public int TrackId { get; private set; }
 
         public StemSetSource Source { get; private set; }
         public StemSetStatus Status { get; private set; }
@@ -32,7 +32,7 @@ namespace _808Music.Domain.Catalog
         private TrackStemSet() { } // EF Core
 
         public TrackStemSet(
-            Guid trackId,
+            int trackId,
             StemSetSource source,
             Guid? requestedByUserId,
             string? modelName,

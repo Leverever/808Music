@@ -9,6 +9,10 @@ namespace _808Music.Application
     public interface IApplicationDbContext
     {
         DbSet<Track> Tracks { get; }
+        DbSet<Album> Albums { get; }
+        DbSet<AlbumTrack> AlbumTracks { get; }
+        DbSet<ArtistTrack> ArtistTracks { get; }
+        DbSet<TrackGenre> TrackGenres { get; }
         DbSet<TrackStemSet> TrackStemSets { get; }
         DbSet<TrackStem> TrackStems { get; }
 
