@@ -12,11 +12,11 @@ namespace RS1_2024_25.API.Services
         private MailSettings ms = options.Value;
         public async Task Send(MailData data)
         {
-            var client = new SmtpClient(ms.Host,ms.Port)
+            var client = new SmtpClient(ms.Host, ms.Port)
             {
                 EnableSsl = ms.EnableSsl,
-                UseDefaultCredentials = ms.UseDefualtCredentials,
-                Credentials = new NetworkCredential(ms.Email,ms.Password)
+                UseDefaultCredentials = ms.UseDefaultCredentials,
+                Credentials = new NetworkCredential(ms.Email, ms.Password)
             };
 
             var msg = new MailMessage();

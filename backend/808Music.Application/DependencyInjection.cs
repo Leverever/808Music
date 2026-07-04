@@ -1,5 +1,6 @@
 using _808Music.Application.Ai;
 using _808Music.Application.Common.Crud.Contracts;
+using _808Music.Application.Playback;
 using _808Music.Application.Recommendations;
 using _808Music.Application.Stems;
 using _808Music.Application.Tracks;
@@ -30,8 +31,13 @@ public static class DependencyInjection
         services.AddScoped<IUpdateTrackMetadataHandler, UpdateTrackMetadataHandler>();
         services.AddScoped<IReplaceTrackMasterHandler, ReplaceTrackMasterHandler>();
         services.AddScoped<ITrackArtistAccessQuery, TrackArtistAccessQuery>();
+        services.AddScoped<IGetTrackPlaybackManifestHandler, GetTrackPlaybackManifestHandler>();
         services.AddScoped<ISeparateTrackStemsHandler, SeparateTrackStemsHandler>();
         services.AddScoped<IGetTrackStemsHandler, GetTrackStemsHandler>();
+        services.AddScoped<IUploadManualStemSetHandler, UploadManualStemSetHandler>();
+        services.AddScoped<IMarkStemSeparationProcessingHandler, MarkStemSeparationProcessingHandler>();
+        services.AddScoped<ICompleteStemSeparationHandler, CompleteStemSeparationHandler>();
+        services.AddScoped<IFailStemSeparationHandler, FailStemSeparationHandler>();
         services.AddScoped<IGenerateAiPlaylistHandler, GenerateAiPlaylistHandler>();
         services.AddCrudHandlersFromAssembly(typeof(DependencyInjection).Assembly);
 

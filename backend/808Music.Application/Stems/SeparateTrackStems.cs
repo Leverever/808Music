@@ -2,14 +2,14 @@ using _808Music.Application.Abstractions;
 
 namespace _808Music.Application.Stems;
 
-public sealed record SeparateTrackStemsCommand(Guid TrackId, string? RequestedByUserId);
+public sealed record SeparateTrackStemsCommand(int TrackId, string? RequestedByUserId);
 
 public sealed record SeparateTrackStemsResult(StemSeparationJob Job);
 
-public sealed record GetTrackStemsQuery(Guid TrackId, string? RequestedByUserId);
+public sealed record GetTrackStemsQuery(int TrackId, string? RequestedByUserId);
 
 public sealed record GetTrackStemsResult(
-    Guid TrackId,
+    int TrackId,
     IReadOnlyList<StemManifestItem> Stems);
 
 public interface ISeparateTrackStemsHandler

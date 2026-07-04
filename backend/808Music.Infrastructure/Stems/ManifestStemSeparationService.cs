@@ -14,7 +14,7 @@ public sealed class ManifestStemSeparationService : IStemSeparationService
     }
 
     public Task<StemSeparationJob> StartAsync(
-        Guid trackId,
+        int trackId,
         string? requestedByUserId,
         CancellationToken cancellationToken = default)
     {
@@ -28,7 +28,7 @@ public sealed class ManifestStemSeparationService : IStemSeparationService
     }
 
     public async Task<IReadOnlyList<StemManifestItem>> GetManifestAsync(
-        Guid trackId,
+        int trackId,
         CancellationToken cancellationToken = default)
     {
         var stems = new List<StemManifestItem>();
@@ -36,7 +36,7 @@ public sealed class ManifestStemSeparationService : IStemSeparationService
         foreach (var stem in DefaultStems)
         {
             var streamUri = await _mediaStorage.CreateReadUrlAsync(
-                $"stems/{trackId:N}/{stem}.mp3",
+                $"stems/{trackId}/{stem}.mp3",
                 TimeSpan.FromMinutes(10),
                 cancellationToken);
             stems.Add(new StemManifestItem(stem, "audio/mpeg", streamUri));

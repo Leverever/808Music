@@ -3,18 +3,18 @@ namespace _808Music.Application.Abstractions;
 public interface IStemSeparationService
 {
     Task<StemSeparationJob> StartAsync(
-        Guid trackId,
+        int trackId,
         string? requestedByUserId,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<StemManifestItem>> GetManifestAsync(
-        Guid trackId,
+        int trackId,
         CancellationToken cancellationToken = default);
 }
 
 public sealed record StemSeparationJob(
     Guid JobId,
-    Guid TrackId,
+    int TrackId,
     string Status,
     DateTimeOffset CreatedAt);
 

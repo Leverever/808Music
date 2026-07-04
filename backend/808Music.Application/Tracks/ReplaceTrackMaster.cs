@@ -8,7 +8,8 @@ public sealed record ReplaceTrackMasterCommand(
     int TrackId,
     string FileName,
     string ContentType,
-    Stream Content);
+    Stream Content,
+    string? RequestedByUserId);
 
 public sealed record ReplaceTrackMasterResult(
     int Id,
@@ -35,17 +36,20 @@ public sealed class ReplaceTrackMasterHandler : IReplaceTrackMasterHandler
     private readonly IAudioMetadataReader _audioMetadataReader;
     private readonly IRepository<Track, int> _trackRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IStemSeparationService _stemSeparationService;
 
     public ReplaceTrackMasterHandler(
         IMediaStorage mediaStorage,
         IAudioMetadataReader audioMetadataReader,
         IRepository<Track, int> trackRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IStemSeparationService stemSeparationService)
     {
         _mediaStorage = mediaStorage;
         _audioMetadataReader = audioMetadataReader;
         _trackRepository = trackRepository;
         _unitOfWork = unitOfWork;
+        _stemSeparationService = stemSeparationService;
     }
 
     public async Task<ReplaceTrackMasterResult?> Handle(
@@ -95,6 +99,10 @@ public sealed class ReplaceTrackMasterHandler : IReplaceTrackMasterHandler
             throw;
         }
 
+        await TryStartStemSeparationAsync(
+            track.Id,
+            command.RequestedByUserId);
+
         if (!string.IsNullOrWhiteSpace(oldObjectKey))
         {
             try
@@ -117,5 +125,22 @@ public sealed class ReplaceTrackMasterHandler : IReplaceTrackMasterHandler
         return duration <= TimeSpan.Zero
             ? 0
             : Math.Max(1, (int)Math.Round(duration.TotalSeconds, MidpointRounding.AwayFromZero));
+    }
+
+    private async Task TryStartStemSeparationAsync(
+        int trackId,
+        string? requestedByUserId)
+    {
+        try
+        {
+            await _stemSeparationService.StartAsync(
+                trackId,
+                requestedByUserId,
+                CancellationToken.None);
+        }
+        catch
+        {
+            // The master replacement succeeded. Stem separation can be retried manually if queueing fails.
+        }
     }
 }

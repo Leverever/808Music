@@ -11,7 +11,8 @@ public sealed record UploadTrackCommand(
     bool IsExplicit,
     string FileName,
     string ContentType,
-    Stream Content);
+    Stream Content,
+    string? RequestedByUserId);
 
 public sealed record UploadTrackResult(
     int Id,
@@ -43,6 +44,7 @@ public sealed class UploadTrackHandler : IUploadTrackHandler
     private readonly IRepository<Track, int> _trackRepository;
     private readonly IRepository<ArtistTrack, int> _artistTrackRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IStemSeparationService _stemSeparationService;
 
     public UploadTrackHandler(
         IMediaStorage mediaStorage,
@@ -50,7 +52,8 @@ public sealed class UploadTrackHandler : IUploadTrackHandler
         IRepository<Artist, int> artistRepository,
         IRepository<Track, int> trackRepository,
         IRepository<ArtistTrack, int> artistTrackRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IStemSeparationService stemSeparationService)
     {
         _mediaStorage = mediaStorage;
         _audioMetadataReader = audioMetadataReader;
@@ -58,6 +61,7 @@ public sealed class UploadTrackHandler : IUploadTrackHandler
         _trackRepository = trackRepository;
         _artistTrackRepository = artistTrackRepository;
         _unitOfWork = unitOfWork;
+        _stemSeparationService = stemSeparationService;
     }
 
     public async Task<UploadTrackResult> Handle(
@@ -92,9 +96,11 @@ public sealed class UploadTrackHandler : IUploadTrackHandler
                     : command.ContentType),
             cancellationToken);
 
+        Track track;
+
         try
         {
-            var track = new Track
+            track = new Track
             {
                 Title = command.Title.Trim(),
                 IsExplicit = command.IsExplicit,
@@ -115,19 +121,23 @@ public sealed class UploadTrackHandler : IUploadTrackHandler
             await _trackRepository.AddAsync(track, cancellationToken);
             await _artistTrackRepository.AddAsync(artistTrack, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            return new UploadTrackResult(
-                track.Id,
-                track.Title,
-                track.IsExplicit,
-                command.ArtistId,
-                track.TrackPath);
         }
         catch
         {
             await _mediaStorage.DeleteAsync(storedObject.ObjectKey, CancellationToken.None);
             throw;
         }
+
+        await TryStartStemSeparationAsync(
+            track.Id,
+            command.RequestedByUserId);
+
+        return new UploadTrackResult(
+            track.Id,
+            track.Title,
+            track.IsExplicit,
+            command.ArtistId,
+            track.TrackPath);
     }
 
     private static int ToWholeSeconds(TimeSpan duration)
@@ -135,5 +145,22 @@ public sealed class UploadTrackHandler : IUploadTrackHandler
         return duration <= TimeSpan.Zero
             ? 0
             : Math.Max(1, (int)Math.Round(duration.TotalSeconds, MidpointRounding.AwayFromZero));
+    }
+
+    private async Task TryStartStemSeparationAsync(
+        int trackId,
+        string? requestedByUserId)
+    {
+        try
+        {
+            await _stemSeparationService.StartAsync(
+                trackId,
+                requestedByUserId,
+                CancellationToken.None);
+        }
+        catch
+        {
+            // The master upload succeeded. Stem separation can be retried manually if queueing fails.
+        }
     }
 }

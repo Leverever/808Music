@@ -138,6 +138,14 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
             entity.Property(x => x.ModelVersion)
                 .HasMaxLength(100);
 
+            entity.Property(x => x.ProviderName)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.StemProfile)
+                .HasMaxLength(100)
+                .IsRequired();
+
             entity.Property(x => x.ErrorMessage)
                 .HasMaxLength(1_000);
 

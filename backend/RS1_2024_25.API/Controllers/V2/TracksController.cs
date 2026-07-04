@@ -78,7 +78,8 @@ public sealed class TracksController : ControllerBase
                 request.IsExplicit,
                 request.MasterFile.FileName,
                 request.MasterFile.ContentType,
-                stream);
+                stream,
+                GetCurrentUserId());
 
             var result = await _uploadTrackHandler.Handle(command, cancellationToken);
 
@@ -169,7 +170,8 @@ public sealed class TracksController : ControllerBase
                     trackId,
                     request.MasterFile.FileName,
                     request.MasterFile.ContentType,
-                    stream),
+                    stream,
+                    GetCurrentUserId()),
                 cancellationToken);
 
             return result is null ? NotFound() : Ok(result);

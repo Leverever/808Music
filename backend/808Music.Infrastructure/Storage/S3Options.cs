@@ -9,6 +9,7 @@ namespace _808Music.Infrastructure.Storage
         public const string SectionName = "S3";
 
         public string ServiceUrl { get; init; } = string.Empty;
+        public string PublicUrl { get; init; } = string.Empty;
         public string AccessKey { get; init; } = string.Empty;
         public string SecretKey { get; init; } = string.Empty;
         public string Bucket { get; init; } = string.Empty;

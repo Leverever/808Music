@@ -1,9 +1,12 @@
 using _808Music.Application.Abstractions;
+using _808Music.Application.Common.Messaging;
 using _808Music.Application.Common.Persistence;
 using _808Music.Application.Common.Search;
+using _808Music.Application.Stems;
 using _808Music.Domain.Static;
 using _808Music.Infrastructure.Ai;
 using _808Music.Infrastructure.Audio;
+using _808Music.Infrastructure.Messaging;
 using _808Music.Infrastructure.Persistence;
 using _808Music.Infrastructure.Persistence.Repositories;
 using _808Music.Infrastructure.Recommendations;
@@ -24,10 +27,16 @@ public static class DependencyInjection
         services.AddScoped<IAudioFeatureExtractor, DeterministicAudioFeatureExtractor>();
         services.AddScoped<IAudioMetadataReader, NAudioMetadataReader>();
         services.AddScoped<IRecommendationService, DeterministicRecommendationService>();
-        services.AddScoped<IStemSeparationService, ManifestStemSeparationService>();
+        services.AddScoped<IStemSeparationService, QueuedStemSeparationService>();
+        services.AddScoped<IStemSeparationJobQueue, StemSeparationJobQueue>();
+        services.AddScoped<IMessagePublisher, RabbitMqMessagePublisher>();
         services.AddScoped<IAiPlaylistGenerator, PromptPlaylistGenerator>();
+        services.Configure<RabbitMqOptions>(
+            configuration.GetSection(RabbitMqOptions.SectionName));
+        services.Configure<StemSeparationOptions>(
+            configuration.GetSection(StemSeparationOptions.SectionName));
         services.Configure<S3Options>(
-                    configuration.GetSection(S3Options.SectionName));
+            configuration.GetSection(S3Options.SectionName));
 
         services.AddSingleton<IAmazonS3>(sp =>
         {
@@ -37,7 +46,8 @@ public static class DependencyInjection
             {
                 ServiceURL = options.ServiceUrl,
                 ForcePathStyle = options.ForcePathStyle,
-                AuthenticationRegion = options.Region
+                AuthenticationRegion = options.Region,
+                UseHttp = IsHttpUrl(options.ServiceUrl)
             };
 
             return new AmazonS3Client(
@@ -49,6 +59,12 @@ public static class DependencyInjection
         services.AddScoped<IMediaStorage, S3MediaStorage>();
 
         return services;
+    }
+
+    private static bool IsHttpUrl(string url)
+    {
+        return Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+            uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase);
     }
 
      public static IServiceCollection AddEfCrudPersistence<TDbContext>(
