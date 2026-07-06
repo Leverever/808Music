@@ -1,10 +1,12 @@
 using _808Music.Application.Abstractions;
+using _808Music.Application.AudioAnalysis;
 using _808Music.Application.Common.Messaging;
 using _808Music.Application.Common.Persistence;
 using _808Music.Application.Common.Search;
 using _808Music.Application.Stems;
 using _808Music.Domain.Static;
 using _808Music.Infrastructure.Ai;
+using _808Music.Infrastructure.AudioAnalysis;
 using _808Music.Infrastructure.Audio;
 using _808Music.Infrastructure.Messaging;
 using _808Music.Infrastructure.Persistence;
@@ -25,6 +27,8 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IAudioFeatureExtractor, DeterministicAudioFeatureExtractor>();
+        services.AddScoped<IAudioAnalysisService, QueuedAudioAnalysisService>();
+        services.AddScoped<IAudioAnalysisJobQueue, AudioAnalysisJobQueue>();
         services.AddScoped<IAudioMetadataReader, NAudioMetadataReader>();
         services.AddScoped<IRecommendationService, DeterministicRecommendationService>();
         services.AddScoped<IStemSeparationService, QueuedStemSeparationService>();
@@ -35,6 +39,8 @@ public static class DependencyInjection
             configuration.GetSection(RabbitMqOptions.SectionName));
         services.Configure<StemSeparationOptions>(
             configuration.GetSection(StemSeparationOptions.SectionName));
+        services.Configure<AudioAnalysisOptions>(
+            configuration.GetSection(AudioAnalysisOptions.SectionName));
         services.Configure<S3Options>(
             configuration.GetSection(S3Options.SectionName));
 

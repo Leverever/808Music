@@ -15,6 +15,8 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
     public DbSet<AlbumTrack> AlbumTracks => Set<AlbumTrack>();
     public DbSet<ArtistTrack> ArtistTracks => Set<ArtistTrack>();
     public DbSet<TrackGenre> TrackGenres => Set<TrackGenre>();
+    public DbSet<TrackAudioAnalysis> TrackAudioAnalyses => Set<TrackAudioAnalysis>();
+    public DbSet<TrackAudioTag> TrackAudioTags => Set<TrackAudioTag>();
     public DbSet<TrackStemSet> TrackStemSets => Set<TrackStemSet>();
     public DbSet<TrackStem> TrackStems => Set<TrackStem>();
 
@@ -161,6 +163,72 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
 
             entity.Navigation(x => x.Stems)
                 .UsePropertyAccessMode(PropertyAccessMode.Field);
+        });
+
+        modelBuilder.Entity<TrackAudioAnalysis>(entity =>
+        {
+            entity.ToTable("TrackAudioAnalyses");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.ProviderName)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.ModelName)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.ModelVersion)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.EmbeddingModel)
+                .HasMaxLength(100);
+
+            entity.Property(x => x.EmbeddingJson)
+                .HasColumnType("nvarchar(max)");
+
+            entity.Property(x => x.ErrorMessage)
+                .HasMaxLength(1_000);
+
+            entity.HasOne<Track>()
+                .WithMany(x => x.AudioAnalyses)
+                .HasForeignKey(x => x.TrackId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(x => x.Tags)
+                .WithOne()
+                .HasForeignKey(x => x.TrackAudioAnalysisId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.TrackId);
+            entity.HasIndex(x => new { x.TrackId, x.IsActive });
+            entity.Navigation(x => x.Tags)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+        });
+
+        modelBuilder.Entity<TrackAudioTag>(entity =>
+        {
+            entity.ToTable("TrackAudioTags");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Namespace)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.Label)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.ModelName)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.Score)
+                .HasColumnType("decimal(9,6)");
+
+            entity.HasIndex(x => x.TrackAudioAnalysisId);
+            entity.HasIndex(x => new { x.Namespace, x.Label });
         });
 
         modelBuilder.Entity<TrackStem>(entity =>

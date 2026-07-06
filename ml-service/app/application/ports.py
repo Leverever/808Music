@@ -1,7 +1,12 @@
 from pathlib import Path
 from typing import Protocol
 
-from app.domain import CompletedStem, SeparatedStem, StemSeparationJob
+from app.domain import (
+    AudioAnalysisResult,
+    CompletedStem,
+    SeparatedStem,
+    StemSeparationJob,
+)
 
 
 class ObjectStoragePort(Protocol):
@@ -22,6 +27,11 @@ class StemSeparatorPort(Protocol):
         ...
 
 
+class AudioAnalyzerPort(Protocol):
+    def analyze(self, track_id: int, input_path: Path) -> AudioAnalysisResult:
+        ...
+
+
 class BackendStemCallbackPort(Protocol):
     def mark_processing(self, stem_set_id: str) -> None:
         ...
@@ -30,6 +40,17 @@ class BackendStemCallbackPort(Protocol):
         ...
 
     def mark_failed(self, stem_set_id: str, error_message: str) -> None:
+        ...
+
+
+class BackendAudioAnalysisCallbackPort(Protocol):
+    def mark_processing(self, analysis_id: str) -> None:
+        ...
+
+    def mark_complete(self, analysis_id: str, result: AudioAnalysisResult) -> None:
+        ...
+
+    def mark_failed(self, analysis_id: str, error_message: str) -> None:
         ...
 
 

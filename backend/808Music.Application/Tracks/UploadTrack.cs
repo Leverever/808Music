@@ -45,6 +45,7 @@ public sealed class UploadTrackHandler : IUploadTrackHandler
     private readonly IRepository<ArtistTrack, int> _artistTrackRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IStemSeparationService _stemSeparationService;
+    private readonly IAudioAnalysisService _audioAnalysisService;
 
     public UploadTrackHandler(
         IMediaStorage mediaStorage,
@@ -53,7 +54,8 @@ public sealed class UploadTrackHandler : IUploadTrackHandler
         IRepository<Track, int> trackRepository,
         IRepository<ArtistTrack, int> artistTrackRepository,
         IUnitOfWork unitOfWork,
-        IStemSeparationService stemSeparationService)
+        IStemSeparationService stemSeparationService,
+        IAudioAnalysisService audioAnalysisService)
     {
         _mediaStorage = mediaStorage;
         _audioMetadataReader = audioMetadataReader;
@@ -62,6 +64,7 @@ public sealed class UploadTrackHandler : IUploadTrackHandler
         _artistTrackRepository = artistTrackRepository;
         _unitOfWork = unitOfWork;
         _stemSeparationService = stemSeparationService;
+        _audioAnalysisService = audioAnalysisService;
     }
 
     public async Task<UploadTrackResult> Handle(
@@ -132,6 +135,10 @@ public sealed class UploadTrackHandler : IUploadTrackHandler
             track.Id,
             command.RequestedByUserId);
 
+        await TryStartAudioAnalysisAsync(
+            track.Id,
+            command.RequestedByUserId);
+
         return new UploadTrackResult(
             track.Id,
             track.Title,
@@ -161,6 +168,23 @@ public sealed class UploadTrackHandler : IUploadTrackHandler
         catch
         {
             // The master upload succeeded. Stem separation can be retried manually if queueing fails.
+        }
+    }
+
+    private async Task TryStartAudioAnalysisAsync(
+        int trackId,
+        string? requestedByUserId)
+    {
+        try
+        {
+            await _audioAnalysisService.StartAsync(
+                trackId,
+                requestedByUserId,
+                CancellationToken.None);
+        }
+        catch
+        {
+            // The master upload succeeded. Audio analysis can be retried manually if queueing fails.
         }
     }
 }

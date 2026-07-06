@@ -1,4 +1,5 @@
 using _808Music.Application.Ai;
+using _808Music.Application.AudioAnalysis;
 using _808Music.Application.Common.Crud.Contracts;
 using _808Music.Application.Playback;
 using _808Music.Application.Recommendations;
@@ -35,6 +36,10 @@ public static class DependencyInjection
         services.AddScoped<ISeparateTrackStemsHandler, SeparateTrackStemsHandler>();
         services.AddScoped<IGetTrackStemsHandler, GetTrackStemsHandler>();
         services.AddScoped<IUploadManualStemSetHandler, UploadManualStemSetHandler>();
+        services.AddScoped<IAnalyzeTrackAudioHandler, AnalyzeTrackAudioHandler>();
+        services.AddScoped<IMarkAudioAnalysisProcessingHandler, MarkAudioAnalysisProcessingHandler>();
+        services.AddScoped<ICompleteAudioAnalysisHandler, CompleteAudioAnalysisHandler>();
+        services.AddScoped<IFailAudioAnalysisHandler, FailAudioAnalysisHandler>();
         services.AddScoped<IMarkStemSeparationProcessingHandler, MarkStemSeparationProcessingHandler>();
         services.AddScoped<ICompleteStemSeparationHandler, CompleteStemSeparationHandler>();
         services.AddScoped<IFailStemSeparationHandler, FailStemSeparationHandler>();

@@ -237,6 +237,104 @@ namespace _808Music.Infrastructure.Persistence.Migrations
                     b.ToTable("TrackGenres", (string)null);
                 });
 
+            modelBuilder.Entity("_808Music.Domain.Catalog.TrackAudioAnalysis", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EmbeddingJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmbeddingModel")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModelName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ModelVersion")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ProviderName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TrackId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrackId");
+
+                    b.HasIndex("TrackId", "IsActive");
+
+                    b.ToTable("TrackAudioAnalyses", (string)null);
+                });
+
+            modelBuilder.Entity("_808Music.Domain.Catalog.TrackAudioTag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ModelName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Namespace")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("Score")
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<Guid>("TrackAudioAnalysisId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrackAudioAnalysisId");
+
+                    b.HasIndex("Namespace", "Label");
+
+                    b.ToTable("TrackAudioTags", (string)null);
+                });
+
             modelBuilder.Entity("_808Music.Domain.Catalog.TrackStem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -475,6 +573,24 @@ namespace _808Music.Infrastructure.Persistence.Migrations
                     b.Navigation("Track");
                 });
 
+            modelBuilder.Entity("_808Music.Domain.Catalog.TrackAudioAnalysis", b =>
+                {
+                    b.HasOne("_808Music.Domain.Catalog.Track", null)
+                        .WithMany("AudioAnalyses")
+                        .HasForeignKey("TrackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("_808Music.Domain.Catalog.TrackAudioTag", b =>
+                {
+                    b.HasOne("_808Music.Domain.Catalog.TrackAudioAnalysis", null)
+                        .WithMany("Tags")
+                        .HasForeignKey("TrackAudioAnalysisId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("_808Music.Domain.Catalog.TrackStem", b =>
                 {
                     b.HasOne("_808Music.Domain.Catalog.TrackStemSet", null)
@@ -495,7 +611,14 @@ namespace _808Music.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("_808Music.Domain.Catalog.Track", b =>
                 {
+                    b.Navigation("AudioAnalyses");
+
                     b.Navigation("StemSets");
+                });
+
+            modelBuilder.Entity("_808Music.Domain.Catalog.TrackAudioAnalysis", b =>
+                {
+                    b.Navigation("Tags");
                 });
 
             modelBuilder.Entity("_808Music.Domain.Catalog.TrackStemSet", b =>

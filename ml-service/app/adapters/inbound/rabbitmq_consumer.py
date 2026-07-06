@@ -1,7 +1,7 @@
 import json
 import logging
 import time
-from typing import Callable
+from typing import Any, Callable, TypeVar
 
 import pika
 
@@ -9,16 +9,19 @@ from app.config import Settings
 from app.domain import StemSeparationJob
 
 logger = logging.getLogger(__name__)
+TJob = TypeVar("TJob")
 
 
 class RabbitMqConsumer:
     def __init__(
         self,
         settings: Settings,
-        handle_job: Callable[[StemSeparationJob], None],
+        handle_job: Callable[[TJob], None],
+        parse_message: Callable[[dict[str, Any]], TJob] = StemSeparationJob.from_message,
     ) -> None:
         self._settings = settings
         self._handle_job = handle_job
+        self._parse_message = parse_message
 
     def start(self) -> None:
         while True:
@@ -61,7 +64,7 @@ class RabbitMqConsumer:
         def on_message(channel, method, properties, body: bytes) -> None:
             try:
                 payload = json.loads(body.decode("utf-8"))
-                job = StemSeparationJob.from_message(payload)
+                job = self._parse_message(payload)
                 self._handle_job(job)
                 channel.basic_ack(delivery_tag=method.delivery_tag)
             except Exception:

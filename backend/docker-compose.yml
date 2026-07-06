@@ -44,6 +44,41 @@ services:
     volumes:
       - ml-worker-work:/work
 
+  ml-audio-worker:
+    build:
+      context: ../ml-service
+    container_name: 808music-ml-audio-worker
+    depends_on:
+      - rabbitmq
+      - minio
+    environment:
+      WORKER_JOB_TYPE: audio-analysis
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: 808music
+      RABBITMQ_PASSWORD: 808music_dev_password
+      RABBITMQ_EXCHANGE: 808music
+      RABBITMQ_QUEUE: ml.audio.analysis
+      RABBITMQ_ROUTING_KEY: ml.audio.analyze
+      RABBITMQ_HEARTBEAT: 0
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_ACCESS_KEY: 808music
+      S3_SECRET_KEY: 808music_dev_password
+      S3_BUCKET: 808music-media
+      S3_REGION: eu-central-1
+      BACKEND_BASE_URL: http://host.docker.internal:7000
+      BACKEND_INTERNAL_API_KEY: dev-internal-api-key
+      WORKSPACE_ROOT: /work
+      ESSENTIA_MODEL_DIR: /models/essentia
+      ESSENTIA_AUTO_DOWNLOAD_MODELS: "true"
+      CUDA_VISIBLE_DEVICES: "-1"
+      TF_CPP_MIN_LOG_LEVEL: "2"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ml-worker-work:/work
+      - ml-worker-models:/models
+
   ml-worker-gpu:
     build:
       context: ../ml-service

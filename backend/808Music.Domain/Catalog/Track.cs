@@ -20,6 +20,7 @@ namespace _808Music.Domain.Catalog
         [ForeignKey(nameof(AlbumId))]
         public Album? Album { get; set; }
         public ICollection<TrackStemSet> StemSets { get; set; } = new List<TrackStemSet>();
+        public ICollection<TrackAudioAnalysis> AudioAnalyses { get; set; } = new List<TrackAudioAnalysis>();
         //public ICollection<TrackStream> TrackStreams { get; set; } = new List<TrackStream>();
         //public ICollection<PlaylistTracks> PlaylistTracks { get; set; } = new List<PlaylistTracks>();
     }
