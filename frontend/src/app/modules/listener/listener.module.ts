@@ -60,6 +60,7 @@ import { OrderListComponent } from './order-list/order-list.component';
 import { UserMonthlyStatsComponent } from './user-monthly-stats/user-monthly-stats.component';
 import { MonthlyStatsDialogComponent } from './monthly-stats-dialog/monthly-stats-dialog.component';
   import {MatDialogActions, MatDialogContent, MatDialogTitle} from '@angular/material/dialog';
+  import {MatSlideToggle} from '@angular/material/slide-toggle';
 
 
 @NgModule({
@@ -136,6 +137,7 @@ import { MonthlyStatsDialogComponent } from './monthly-stats-dialog/monthly-stat
     MatDialogActions,
     MatDialogContent,
     MatDialogTitle,
+    MatSlideToggle,
   ],
     exports: [
         ListenerHomeComponent

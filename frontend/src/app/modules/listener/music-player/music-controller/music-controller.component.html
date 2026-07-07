@@ -1,6 +1,7 @@
 <div class="music-controller">
-  <audio [src]="trackLocation + getTrackId() + '&Jwt='+jwt" id="player" (timeupdate)="setSliderValue($event)"
-         [autoplay]="playingState" (ended)="skipNext()"></audio>
+  <audio [src]="masterAudioSource" id="player" (timeupdate)="setSliderValue($event)"
+         [autoplay]="playingState && !stemModeActive" (ended)="skipNext()" (loadedmetadata)="restoreMasterAudioPosition()"
+         (error)="handleMasterPlaybackError()"></audio>
     <mat-slider min="0" [max]="track?.length" discrete class="seekable-slider" [displayWith]="secondsPipe.transform">
       <input matSliderThumb (valueChange)="setCurrentPlaybackTime($event)" [(value)]="currentPlaybackTime" (dragEnd)="userSetSlider($event)">
     </mat-slider>
@@ -14,7 +15,7 @@
   </div>
   <div class="control-bar">
     <button mat-icon-button (click)="setLoopState()"><mat-icon>
-      @if (!player?.loop)
+      @if (!isLooping)
       {
         repeat
       } @else {
@@ -42,10 +43,42 @@
     </mat-icon></button>
   </div>
   <div class="volume-slider">
-    <button mat-icon-button matTooltip="Mute" (click)="setVolume(0)"><mat-icon>volume_mute</mat-icon></button>
+    <button mat-icon-button [matTooltip]="masterVolume === 0 ? 'Unmute' : 'Mute'" (click)="toggleMute()"><mat-icon>{{ masterVolumeIcon }}</mat-icon></button>
     <mat-slider min="0" max="100" discrete class="volume">
-      <input matSliderThumb (dragEnd)="setVolume($event.value/100)" [value]="player!.volume*100">
+      <input matSliderThumb [value]="masterVolumePercent" (input)="setVolume(getVolumeSliderValue($event))">
     </mat-slider>
-    <button mat-icon-button matTooltip="Max volume" (click)="setVolume(1)"><mat-icon>volume_up</mat-icon></button>
+    <button mat-icon-button matTooltip="Stem mixer" [matMenuTriggerFor]="stemMenu">
+      <mat-icon>keyboard_arrow_up</mat-icon>
+    </button>
+
+    <mat-menu #stemMenu="matMenu" yPosition="above" class="stem-menu-panel">
+      <div class="stem-menu" (click)="$event.stopPropagation()">
+        <div class="stem-menu-header">
+          <div>
+            <h6>Separate stems</h6>
+            <p>{{ stemMenuStatusText }}</p>
+          </div>
+          <mat-slide-toggle
+            [checked]="stemModeRequested"
+            [disabled]="stemToggleDisabled"
+            (change)="setStemStreamingState($event)">
+          </mat-slide-toggle>
+        </div>
+
+        @if (stemModeRequested && hasAvailableStems) {
+          <div class="stem-mixer">
+            @for (stem of stemMixes; track stem.name) {
+              <div class="stem-row">
+                <span>{{ formatStemName(stem.name) }}</span>
+                <mat-slider min="0" max="100" discrete class="stem-volume">
+                  <input matSliderThumb [value]="getStemVolumePercent(stem.name)"
+                         (valueChange)="setStemVolume(stem.name, $event/100)">
+                </mat-slider>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </mat-menu>
   </div>
 </div>

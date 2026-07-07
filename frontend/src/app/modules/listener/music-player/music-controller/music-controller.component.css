@@ -50,6 +50,7 @@ mat-icon {
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 4px;
 }
 
 .volume {
@@ -59,4 +60,72 @@ mat-icon {
 
 .volume-slider mat-icon {
   font-size: 20px;
+}
+
+.volume-slider button {
+  flex: 0 0 40px;
+}
+
+::ng-deep .stem-menu-panel .mat-mdc-menu-content {
+  padding: 0;
+}
+
+.stem-menu {
+  width: fit-content;
+  box-sizing: border-box;
+  padding: 12px;
+  background-color: #2b2b2b;
+  color: #f5f5f5;
+}
+
+.stem-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+}
+
+.stem-menu-header h6,
+.stem-menu-header p {
+  display: block;
+  margin: 0;
+  width: 100%;
+}
+
+.stem-menu-header h6 {
+  font-size: 14px;
+}
+
+.stem-menu-header p {
+  color: #A9A9A9;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.stem-mixer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.stem-row {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+}
+
+.stem-row span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #dedede;
+  font-size: 12px;
+}
+
+.stem-volume {
+  width: 80%;
 }
