@@ -1,14 +1,20 @@
 using _808Music.Application.Abstractions;
 using _808Music.Application.AudioAnalysis;
+using _808Music.Application.AudioClustering;
 using _808Music.Application.Common.Messaging;
 using _808Music.Application.Common.Persistence;
+using _808Music.Application.Common.Scheduling;
 using _808Music.Application.Common.Search;
 using _808Music.Application.Stems;
 using _808Music.Domain.Static;
 using _808Music.Infrastructure.Ai;
 using _808Music.Infrastructure.AudioAnalysis;
 using _808Music.Infrastructure.Audio;
+using _808Music.Infrastructure.AudioClustering;
+using _808Music.Infrastructure.AutomaticPlaylists;
+using _808Music.Infrastructure.BackgroundTasks;
 using _808Music.Infrastructure.Messaging;
+using _808Music.Infrastructure.Personalization;
 using _808Music.Infrastructure.Persistence;
 using _808Music.Infrastructure.Persistence.Repositories;
 using _808Music.Infrastructure.Recommendations;
@@ -29,6 +35,14 @@ public static class DependencyInjection
         services.AddScoped<IAudioFeatureExtractor, DeterministicAudioFeatureExtractor>();
         services.AddScoped<IAudioAnalysisService, QueuedAudioAnalysisService>();
         services.AddScoped<IAudioAnalysisJobQueue, AudioAnalysisJobQueue>();
+        services.AddScoped<IAudioClusteringService, QueuedAudioClusteringService>();
+        services.AddScoped<IAudioClusteringJobQueue, AudioClusteringJobQueue>();
+        services.AddScoped<IAutomaticPlaylistGenerationService, PersonalizedAutomaticPlaylistGenerationService>();
+        services.AddScoped<IUserMusicProfileService, UserMusicProfileService>();
+        services.AddScoped<IPersonalizedRecommendationService, PersonalizedRecommendationService>();
+        services.AddScoped<IRecurringApplicationTask, AudioClusteringRecurringTask>();
+        services.AddScoped<IRecurringApplicationTask, DailyAutomaticPlaylistRecurringTask>();
+        services.AddScoped<IRecurringApplicationTask, DailyUserMusicProfileCacheRecurringTask>();
         services.AddScoped<IAudioMetadataReader, NAudioMetadataReader>();
         services.AddScoped<IRecommendationService, DeterministicRecommendationService>();
         services.AddScoped<IStemSeparationService, QueuedStemSeparationService>();
@@ -41,6 +55,14 @@ public static class DependencyInjection
             configuration.GetSection(StemSeparationOptions.SectionName));
         services.Configure<AudioAnalysisOptions>(
             configuration.GetSection(AudioAnalysisOptions.SectionName));
+        services.Configure<AudioClusteringOptions>(
+            configuration.GetSection(AudioClusteringOptions.SectionName));
+        services.Configure<AutomaticPlaylistOptions>(
+            configuration.GetSection(AutomaticPlaylistOptions.SectionName));
+        services.Configure<UserMusicProfileOptions>(
+            configuration.GetSection(UserMusicProfileOptions.SectionName));
+        services.Configure<PersonalizedRecommendationOptions>(
+            configuration.GetSection(PersonalizedRecommendationOptions.SectionName));
         services.Configure<S3Options>(
             configuration.GetSection(S3Options.SectionName));
 

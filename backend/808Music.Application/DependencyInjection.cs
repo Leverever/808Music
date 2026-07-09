@@ -1,6 +1,10 @@
 using _808Music.Application.Ai;
 using _808Music.Application.AudioAnalysis;
+using _808Music.Application.AudioClustering;
+using _808Music.Application.AutomaticPlaylists;
 using _808Music.Application.Common.Crud.Contracts;
+using _808Music.Application.Personalization;
+using _808Music.Application.PersonalizedPlaylists;
 using _808Music.Application.Playback;
 using _808Music.Application.Recommendations;
 using _808Music.Application.Stems;
@@ -28,6 +32,9 @@ public static class DependencyInjection
 
         services.AddScoped<IExtractTrackFeaturesHandler, ExtractTrackFeaturesHandler>();
         services.AddScoped<IGetTrackRecommendationsHandler, GetTrackRecommendationsHandler>();
+        services.AddScoped<IGetHomeRecommendationsHandler, GetHomeRecommendationsHandler>();
+        services.AddScoped<IGetTrackRadioHandler, GetTrackRadioHandler>();
+        services.AddScoped<IGetAutoplayRecommendationsHandler, GetAutoplayRecommendationsHandler>();
         services.AddScoped<IUploadTrackHandler, UploadTrackHandler>();
         services.AddScoped<IUpdateTrackMetadataHandler, UpdateTrackMetadataHandler>();
         services.AddScoped<IReplaceTrackMasterHandler, ReplaceTrackMasterHandler>();
@@ -40,6 +47,15 @@ public static class DependencyInjection
         services.AddScoped<IMarkAudioAnalysisProcessingHandler, MarkAudioAnalysisProcessingHandler>();
         services.AddScoped<ICompleteAudioAnalysisHandler, CompleteAudioAnalysisHandler>();
         services.AddScoped<IFailAudioAnalysisHandler, FailAudioAnalysisHandler>();
+        services.AddScoped<IRunAudioClusteringHandler, RunAudioClusteringHandler>();
+        services.AddScoped<IMarkAudioClusteringProcessingHandler, MarkAudioClusteringProcessingHandler>();
+        services.AddScoped<IGetAudioClusteringTracksHandler, GetAudioClusteringTracksHandler>();
+        services.AddScoped<ICompleteAudioClusteringHandler, CompleteAudioClusteringHandler>();
+        services.AddScoped<IFailAudioClusteringHandler, FailAudioClusteringHandler>();
+        services.AddScoped<IGenerateDailyAutomaticPlaylistsHandler, GenerateDailyAutomaticPlaylistsHandler>();
+        services.AddScoped<IRecordUserTrackInteractionHandler, RecordUserTrackInteractionHandler>();
+        services.AddScoped<IGetDailyPersonalizedPlaylistsHandler, GetDailyPersonalizedPlaylistsHandler>();
+        services.AddScoped<IGetPersonalizedPlaylistHandler, GetPersonalizedPlaylistHandler>();
         services.AddScoped<IMarkStemSeparationProcessingHandler, MarkStemSeparationProcessingHandler>();
         services.AddScoped<ICompleteStemSeparationHandler, CompleteStemSeparationHandler>();
         services.AddScoped<IFailStemSeparationHandler, FailStemSeparationHandler>();

@@ -17,6 +17,13 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
     public DbSet<TrackGenre> TrackGenres => Set<TrackGenre>();
     public DbSet<TrackAudioAnalysis> TrackAudioAnalyses => Set<TrackAudioAnalysis>();
     public DbSet<TrackAudioTag> TrackAudioTags => Set<TrackAudioTag>();
+    public DbSet<UserTrackInteraction> UserTrackInteractions => Set<UserTrackInteraction>();
+    public DbSet<UserMusicProfileCache> UserMusicProfileCaches => Set<UserMusicProfileCache>();
+    public DbSet<GeneratedPersonalizedPlaylist> GeneratedPersonalizedPlaylists => Set<GeneratedPersonalizedPlaylist>();
+    public DbSet<GeneratedPersonalizedPlaylistTrack> GeneratedPersonalizedPlaylistTracks => Set<GeneratedPersonalizedPlaylistTrack>();
+    public DbSet<AudioClusterRun> AudioClusterRuns => Set<AudioClusterRun>();
+    public DbSet<AudioCluster> AudioClusters => Set<AudioCluster>();
+    public DbSet<TrackClusterAssignment> TrackClusterAssignments => Set<TrackClusterAssignment>();
     public DbSet<TrackStemSet> TrackStemSets => Set<TrackStemSet>();
     public DbSet<TrackStem> TrackStems => Set<TrackStem>();
 
@@ -229,6 +236,223 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
 
             entity.HasIndex(x => x.TrackAudioAnalysisId);
             entity.HasIndex(x => new { x.Namespace, x.Label });
+        });
+
+        modelBuilder.Entity<UserTrackInteraction>(entity =>
+        {
+            entity.ToTable("UserTrackInteractions");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.ContextType)
+                .HasMaxLength(50);
+
+            entity.Property(x => x.ClientEventId)
+                .HasMaxLength(100);
+
+            entity.Property(x => x.CompletionRatio)
+                .HasColumnType("decimal(9,6)");
+
+            entity.HasOne<Track>()
+                .WithMany()
+                .HasForeignKey(x => x.TrackId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => new { x.UserId, x.OccurredAt });
+            entity.HasIndex(x => new { x.UserId, x.TrackId });
+            entity.HasIndex(x => new { x.TrackId, x.InteractionType });
+            entity.HasIndex(x => new { x.UserId, x.ClientEventId })
+                .IsUnique()
+                .HasFilter("[ClientEventId] IS NOT NULL");
+        });
+
+        modelBuilder.Entity<UserMusicProfileCache>(entity =>
+        {
+            entity.ToTable("UserMusicProfileCaches");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.ProfileDate)
+                .HasColumnType("date");
+
+            entity.Property(x => x.EmbeddingJson)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+
+            entity.Property(x => x.TagAffinitiesJson)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+
+            entity.Property(x => x.ClusterAffinitiesJson)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+
+            entity.Property(x => x.RecentTrackIdsJson)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+
+            entity.Property(x => x.FavoriteArtistIdsJson)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+
+            entity.Property(x => x.FavoriteAlbumIdsJson)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+
+            entity.HasIndex(x => new { x.UserId, x.ProfileDate })
+                .IsUnique();
+
+            entity.HasIndex(x => x.GeneratedAt);
+        });
+
+        modelBuilder.Entity<GeneratedPersonalizedPlaylist>(entity =>
+        {
+            entity.ToTable("GeneratedPersonalizedPlaylists");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.ThemeKey)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.Name)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(x => x.Description)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(x => x.PlaylistDate)
+                .HasColumnType("date");
+
+            entity.HasMany(x => x.Tracks)
+                .WithOne()
+                .HasForeignKey(x => x.PlaylistId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => new { x.UserId, x.ThemeKey, x.PlaylistDate })
+                .IsUnique();
+
+            entity.HasIndex(x => new { x.UserId, x.PlaylistDate });
+
+            entity.Navigation(x => x.Tracks)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+        });
+
+        modelBuilder.Entity<GeneratedPersonalizedPlaylistTrack>(entity =>
+        {
+            entity.ToTable("GeneratedPersonalizedPlaylistTracks");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Score)
+                .HasColumnType("decimal(9,6)");
+
+            entity.Property(x => x.Reason)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.HasOne<Track>()
+                .WithMany()
+                .HasForeignKey(x => x.TrackId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasIndex(x => new { x.PlaylistId, x.Position })
+                .IsUnique();
+
+            entity.HasIndex(x => new { x.PlaylistId, x.TrackId })
+                .IsUnique();
+
+            entity.HasIndex(x => x.TrackId);
+        });
+
+        modelBuilder.Entity<AudioClusterRun>(entity =>
+        {
+            entity.ToTable("AudioClusterRuns");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.AlgorithmName)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.EmbeddingSource)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.ParametersJson)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+
+            entity.Property(x => x.ErrorMessage)
+                .HasMaxLength(1_000);
+
+            entity.HasMany(x => x.Clusters)
+                .WithOne()
+                .HasForeignKey(x => x.ClusterRunId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.IsActive);
+            entity.HasIndex(x => new { x.AlgorithmName, x.EmbeddingSource, x.IsActive });
+            entity.Navigation(x => x.Clusters)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+        });
+
+        modelBuilder.Entity<AudioCluster>(entity =>
+        {
+            entity.ToTable("AudioClusters");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.ClusterKey)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.Name)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(x => x.TopTagsJson)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+
+            entity.HasMany(x => x.Assignments)
+                .WithOne()
+                .HasForeignKey(x => x.ClusterId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasIndex(x => x.ClusterRunId);
+            entity.HasIndex(x => new { x.ClusterRunId, x.ClusterKey })
+                .IsUnique();
+            entity.Navigation(x => x.Assignments)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+        });
+
+        modelBuilder.Entity<TrackClusterAssignment>(entity =>
+        {
+            entity.ToTable("TrackClusterAssignments");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.ClusterKey)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.DistanceToCenter)
+                .HasColumnType("decimal(18,9)");
+
+            entity.Property(x => x.MembershipScore)
+                .HasColumnType("decimal(9,6)");
+
+            entity.HasOne<Track>()
+                .WithMany()
+                .HasForeignKey(x => x.TrackId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne<AudioClusterRun>()
+                .WithMany()
+                .HasForeignKey(x => x.ClusterRunId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.ClusterRunId);
+            entity.HasIndex(x => x.ClusterId);
+            entity.HasIndex(x => x.TrackId);
+            entity.HasIndex(x => new { x.ClusterRunId, x.TrackId })
+                .IsUnique();
         });
 
         modelBuilder.Entity<TrackStem>(entity =>

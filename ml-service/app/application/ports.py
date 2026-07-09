@@ -3,6 +3,8 @@ from typing import Protocol
 
 from app.domain import (
     AudioAnalysisResult,
+    ClusterableTrack,
+    ClusteringResult,
     CompletedStem,
     SeparatedStem,
     StemSeparationJob,
@@ -32,6 +34,17 @@ class AudioAnalyzerPort(Protocol):
         ...
 
 
+class ClusteringAlgorithmPort(Protocol):
+    def cluster(
+        self,
+        cluster_run_id: str,
+        embedding_source: str,
+        tracks: list[ClusterableTrack],
+        parameters: dict[str, object],
+    ) -> ClusteringResult:
+        ...
+
+
 class BackendStemCallbackPort(Protocol):
     def mark_processing(self, stem_set_id: str) -> None:
         ...
@@ -51,6 +64,24 @@ class BackendAudioAnalysisCallbackPort(Protocol):
         ...
 
     def mark_failed(self, analysis_id: str, error_message: str) -> None:
+        ...
+
+
+class BackendAudioClusteringPort(Protocol):
+    def mark_processing(self, cluster_run_id: str) -> None:
+        ...
+
+    def fetch_tracks(
+        self,
+        cluster_run_id: str,
+        embedding_source: str,
+    ) -> list[ClusterableTrack]:
+        ...
+
+    def mark_complete(self, cluster_run_id: str, result: ClusteringResult) -> None:
+        ...
+
+    def mark_failed(self, cluster_run_id: str, error_message: str) -> None:
         ...
 
 

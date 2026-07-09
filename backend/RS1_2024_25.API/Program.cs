@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using _808Music.Application;
+using _808Music.Application.Abstractions;
 using _808Music.Infrastructure;
 using _808Music.Infrastructure.Persistence;
 using Asp.Versioning;
@@ -15,6 +16,7 @@ using RS1_2024_25.API.Helper.Auth;
 using RS1_2024_25.API.Hubs;
 using RS1_2024_25.API.Services;
 using RS1_2024_25.API.Services.Interfaces;
+using RS1_2024_25.API.Services.Recommendations;
 using System.Text;
 using static RS1_2024_25.API.Endpoints.CityEndpoints.ProductGetAllEndpoint;
 using FluentValidation;
@@ -168,7 +170,11 @@ builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Str
 builder.Services.AddTransient<IMyMailService, MailService>();
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection(nameof(MailSettings)));
 builder.Services.AddTransient<DeleteService>();
+builder.Services.AddScoped<ILegacyPlaylistRecommendationReader, LegacyPlaylistRecommendationReader>();
 builder.Services.AddHostedService<MyBackgroundService>();
+builder.Services.Configure<CleanArchitectureBackgroundServiceOptions>(
+    builder.Configuration.GetSection(CleanArchitectureBackgroundServiceOptions.SectionName));
+builder.Services.AddHostedService<CleanArchitectureBackgroundService>();
 builder.Services.AddSingleton<IMyCacheService, MyRedisCacheService>();
 builder.Services.AddTransient<NotificationTransformerService>();
 builder.Services.AddApplicationServices();

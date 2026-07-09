@@ -91,6 +91,30 @@ services:
       - ml-worker-work:/work
       - ml-worker-models:/models
 
+  ml-clustering-worker:
+    build:
+      context: ../ml-service
+    container_name: 808music-ml-clustering-worker
+    depends_on:
+      - rabbitmq
+    environment:
+      WORKER_JOB_TYPE: audio-clustering
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: 808music
+      RABBITMQ_PASSWORD: 808music_dev_password
+      RABBITMQ_EXCHANGE: 808music
+      RABBITMQ_QUEUE: ml.audio.clustering
+      RABBITMQ_ROUTING_KEY: ml.audio.cluster
+      RABBITMQ_HEARTBEAT: 0
+      BACKEND_BASE_URL: http://host.docker.internal:7000
+      BACKEND_INTERNAL_API_KEY: dev-internal-api-key
+      WORKSPACE_ROOT: /work
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ml-worker-work:/work
+
   ml-worker-gpu:
     build:
       context: ../ml-service

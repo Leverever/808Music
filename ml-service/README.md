@@ -14,6 +14,8 @@ The worker can also run the Essentia audio-analysis pipeline in a separate
 process. That pipeline consumes `ml.audio.analysis` jobs, downloads the master
 track, extracts Discogs-EffNet embeddings, runs MTG-Jamendo multi-label heads,
 and reports the result to `/api/internal/audio-analysis/{analysisId}/complete`.
+It can also run `audio-clustering` jobs with interchangeable clustering
+algorithms such as K-Means, HDBSCAN, and agglomerative clustering.
 
 The worker uses ports and adapters:
 
@@ -54,6 +56,28 @@ Then start the analysis worker:
 ```powershell
 docker compose -f backend/docker-compose.yml --profile analysis up --build rabbitmq minio minio-init ml-audio-worker
 ```
+
+For clustering, start the clustering worker:
+
+```powershell
+docker compose -f backend/docker-compose.yml --profile clustering up --build rabbitmq ml-clustering-worker
+```
+
+The clustering worker expects RabbitMQ messages shaped like:
+
+```json
+{
+  "clusterRunId": "run-guid",
+  "algorithmName": "kmeans",
+  "embeddingSource": "essentia",
+  "parameters": {
+    "nClusters": 12,
+    "randomState": 42
+  }
+}
+```
+
+Supported `algorithmName` values are `kmeans`, `hdbscan`, and `agglomerative`.
 
 GPU mode requires an NVIDIA GPU, a compatible host driver, and Docker GPU support.
 The worker uses the CUDA Dockerfile, installs CUDA-enabled PyTorch, and runs Demucs

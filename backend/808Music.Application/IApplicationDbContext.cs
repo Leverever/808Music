@@ -15,6 +15,13 @@ namespace _808Music.Application
         DbSet<TrackGenre> TrackGenres { get; }
         DbSet<TrackAudioAnalysis> TrackAudioAnalyses { get; }
         DbSet<TrackAudioTag> TrackAudioTags { get; }
+        DbSet<UserTrackInteraction> UserTrackInteractions { get; }
+        DbSet<UserMusicProfileCache> UserMusicProfileCaches { get; }
+        DbSet<GeneratedPersonalizedPlaylist> GeneratedPersonalizedPlaylists { get; }
+        DbSet<GeneratedPersonalizedPlaylistTrack> GeneratedPersonalizedPlaylistTracks { get; }
+        DbSet<AudioClusterRun> AudioClusterRuns { get; }
+        DbSet<AudioCluster> AudioClusters { get; }
+        DbSet<TrackClusterAssignment> TrackClusterAssignments { get; }
         DbSet<TrackStemSet> TrackStemSets { get; }
         DbSet<TrackStem> TrackStems { get; }
 
