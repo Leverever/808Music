@@ -11,17 +11,20 @@ public sealed class PersonalizedAutomaticPlaylistGenerationService : IAutomaticP
 {
     private readonly IApplicationDbContext _dbContext;
     private readonly IPersonalizedRecommendationService _recommendationService;
+    private readonly IPersonalizedPlaylistThemeProvider _themeProvider;
     private readonly AutomaticPlaylistOptions _options;
     private readonly ILogger<PersonalizedAutomaticPlaylistGenerationService> _logger;
 
     public PersonalizedAutomaticPlaylistGenerationService(
         IApplicationDbContext dbContext,
         IPersonalizedRecommendationService recommendationService,
+        IPersonalizedPlaylistThemeProvider themeProvider,
         IOptions<AutomaticPlaylistOptions> options,
         ILogger<PersonalizedAutomaticPlaylistGenerationService> logger)
     {
         _dbContext = dbContext;
         _recommendationService = recommendationService;
+        _themeProvider = themeProvider;
         _options = options.Value;
         _logger = logger;
     }
@@ -30,10 +33,10 @@ public sealed class PersonalizedAutomaticPlaylistGenerationService : IAutomaticP
         DateOnly playlistDate,
         CancellationToken cancellationToken = default)
     {
-        var themes = ResolveThemes();
+        var themes = await ResolveThemesAsync(cancellationToken);
         if (themes.Count == 0)
         {
-            _logger.LogWarning("No automatic playlist themes are configured.");
+            _logger.LogWarning("No active automatic playlist themes were found in the database.");
 
             return new AutomaticPlaylistGenerationResult(playlistDate, 0);
         }
@@ -111,7 +114,7 @@ public sealed class PersonalizedAutomaticPlaylistGenerationService : IAutomaticP
 
         if (playlist is not null)
         {
-            playlist.RefreshMetadata(theme.Name, theme.Description);
+            playlist.RefreshMetadata(theme.Id, theme.Name, theme.Description);
 
             var existingTrackCount = await _dbContext.GeneratedPersonalizedPlaylistTracks
                 .AsNoTracking()
@@ -128,6 +131,7 @@ public sealed class PersonalizedAutomaticPlaylistGenerationService : IAutomaticP
         {
             playlist = new GeneratedPersonalizedPlaylist(
                 userId,
+                theme.Id,
                 theme.ThemeKey,
                 theme.Name,
                 theme.Description,
@@ -177,7 +181,8 @@ public sealed class PersonalizedAutomaticPlaylistGenerationService : IAutomaticP
         return true;
     }
 
-    private IReadOnlyList<ThemeToGenerate> ResolveThemes()
+    private async Task<IReadOnlyList<ThemeToGenerate>> ResolveThemesAsync(
+        CancellationToken cancellationToken)
     {
         var defaultTrackCount = Math.Clamp(
             _options.DefaultTrackCount <= 0 ? 25 : _options.DefaultTrackCount,
@@ -185,26 +190,18 @@ public sealed class PersonalizedAutomaticPlaylistGenerationService : IAutomaticP
             Math.Max(1, _options.MaxTrackCount));
         var maxTrackCount = Math.Max(1, _options.MaxTrackCount);
 
-        return _options.Themes
-            .Where(x => !string.IsNullOrWhiteSpace(x.ThemeKey))
-            .GroupBy(x => x.ThemeKey.Trim(), StringComparer.OrdinalIgnoreCase)
-            .Select(group =>
-            {
-                var theme = group.First();
-                var themeKey = theme.ThemeKey.Trim();
-                var trackCount = theme.TrackCount <= 0
-                    ? defaultTrackCount
-                    : theme.TrackCount;
+        var themes = await _themeProvider.GetActiveThemesAsync(cancellationToken);
 
-                return new ThemeToGenerate(
-                    themeKey,
-                    string.IsNullOrWhiteSpace(theme.Name)
-                        ? CreateFallbackName(themeKey)
-                        : theme.Name.Trim(),
-                    theme.Description?.Trim() ?? string.Empty,
-                    Math.Clamp(trackCount, 1, maxTrackCount));
-            })
-            .OrderBy(x => x.ThemeKey)
+        return themes
+            .Select(theme => new ThemeToGenerate(
+                theme.Id,
+                theme.ThemeKey,
+                theme.Name,
+                theme.Description,
+                Math.Clamp(
+                    theme.TrackCount <= 0 ? defaultTrackCount : theme.TrackCount,
+                    1,
+                    maxTrackCount)))
             .ToArray();
     }
 
@@ -221,16 +218,8 @@ public sealed class PersonalizedAutomaticPlaylistGenerationService : IAutomaticP
             MidpointRounding.AwayFromZero);
     }
 
-    private static string CreateFallbackName(string themeKey)
-    {
-        return string.Join(
-            ' ',
-            themeKey
-                .Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(word => char.ToUpperInvariant(word[0]) + word[1..]));
-    }
-
     private sealed record ThemeToGenerate(
+        Guid Id,
         string ThemeKey,
         string Name,
         string Description,

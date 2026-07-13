@@ -14,3 +14,26 @@
   row-gap: 1vw;
   column-gap: 2vw;
 }
+
+.list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.list-heading h3 {
+  margin: 0;
+  font-weight: 500;
+}
+
+.play-all-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}

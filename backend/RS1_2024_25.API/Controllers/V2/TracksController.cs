@@ -14,11 +14,16 @@ namespace RS1_2024_25.API.Controllers.V2;
 [Produces("application/json")]
 public sealed class TracksController : ControllerBase
 {
+    private static readonly string[] MemberRoles =
+        ["Owner", "General Manager", "Streaming Manager", "Shop Manager", "Viewer"];
+
     private readonly IExtractTrackFeaturesHandler _extractTrackFeaturesHandler;
     private readonly IUploadTrackHandler _uploadTrackHandler;
     private readonly IUpdateTrackMetadataHandler _updateTrackMetadataHandler;
     private readonly IReplaceTrackMasterHandler _replaceTrackMasterHandler;
     private readonly ITrackArtistAccessQuery _trackArtistAccessQuery;
+    private readonly ITrackCatalogHandler _trackCatalogHandler;
+    private readonly ITrackStatisticsHandler _trackStatisticsHandler;
     private readonly TokenProvider _tokenProvider;
 
     public TracksController(
@@ -27,6 +32,8 @@ public sealed class TracksController : ControllerBase
         IUpdateTrackMetadataHandler updateTrackMetadataHandler,
         IReplaceTrackMasterHandler replaceTrackMasterHandler,
         ITrackArtistAccessQuery trackArtistAccessQuery,
+        ITrackCatalogHandler trackCatalogHandler,
+        ITrackStatisticsHandler trackStatisticsHandler,
         TokenProvider tokenProvider)
     {
         _extractTrackFeaturesHandler = extractTrackFeaturesHandler;
@@ -34,7 +41,124 @@ public sealed class TracksController : ControllerBase
         _updateTrackMetadataHandler = updateTrackMetadataHandler;
         _replaceTrackMasterHandler = replaceTrackMasterHandler;
         _trackArtistAccessQuery = trackArtistAccessQuery;
+        _trackCatalogHandler = trackCatalogHandler;
+        _trackStatisticsHandler = trackStatisticsHandler;
         _tokenProvider = tokenProvider;
+    }
+
+    [Authorize]
+    [HttpGet("{trackId:int}")]
+    [MapToApiVersion("2.0")]
+    public async Task<ActionResult<TrackDetailsResponse>> GetDetails(
+        int trackId,
+        CancellationToken cancellationToken)
+    {
+        var accessResult = await EnsureCanViewTrack(trackId, cancellationToken);
+        if (accessResult is not null)
+        {
+            return accessResult;
+        }
+
+        var result = await _trackCatalogHandler.GetDetails(trackId, cancellationToken);
+        return result is null ? NotFound() : Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet("{trackId:int}/statistics")]
+    [MapToApiVersion("2.0")]
+    public async Task<ActionResult<TrackStatisticsResponse>> GetStatistics(
+        int trackId,
+        [FromQuery] int days = 30,
+        CancellationToken cancellationToken = default)
+    {
+        var accessResult = await EnsureCanViewTrack(trackId, cancellationToken);
+        if (accessResult is not null)
+        {
+            return accessResult;
+        }
+
+        try
+        {
+            var result = await _trackStatisticsHandler.Get(trackId, days, cancellationToken);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpPut("{trackId:int}/featured-artists")]
+    [MapToApiVersion("2.0")]
+    public async Task<ActionResult<IReadOnlyList<TrackArtistResponse>>> ReplaceFeaturedArtists(
+        int trackId,
+        [FromBody] ReplaceFeaturedArtistsRequest request,
+        CancellationToken cancellationToken)
+    {
+        var accessResult = await EnsureCanManageTrack(trackId, cancellationToken);
+        if (accessResult is not null)
+        {
+            return accessResult;
+        }
+
+        try
+        {
+            var result = await _trackCatalogHandler.ReplaceFeaturedArtists(
+                trackId,
+                request.Artists
+                    .Select(x => new FeaturedArtistInput(x.ArtistId, x.ShowOnProfile))
+                    .ToList(),
+                cancellationToken);
+
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpPut("{trackId:int}/releases")]
+    [MapToApiVersion("2.0")]
+    public async Task<ActionResult<IReadOnlyList<TrackReleaseResponse>>> ReplaceReleases(
+        int trackId,
+        [FromBody] ReplaceTrackReleasesRequest request,
+        CancellationToken cancellationToken)
+    {
+        var accessResult = await EnsureCanManageTrack(trackId, cancellationToken);
+        if (accessResult is not null)
+        {
+            return accessResult;
+        }
+
+        try
+        {
+            var result = await _trackCatalogHandler.ReplaceReleases(
+                trackId,
+                request.Releases.Select(x => new TrackReleaseInput(
+                    x.ReleaseId,
+                    x.DiscNumber,
+                    x.TrackNumber,
+                    x.TitleOverride,
+                    x.IsPrimaryRelease)).ToList(),
+                cancellationToken);
+
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
     }
 
     [Authorize]
@@ -87,7 +211,7 @@ public sealed class TracksController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
-            return BadRequest(ex.Message);
+            return NotFound(ex.Message);
         }
         catch (InvalidOperationException ex)
         {
@@ -225,6 +349,26 @@ public sealed class TracksController : ControllerBase
             ["Owner", "General Manager", "Streaming Manager"]);
 
         return canManageTrack ? null : Forbid();
+    }
+
+    private async Task<ActionResult?> EnsureCanViewTrack(
+        int trackId,
+        CancellationToken cancellationToken)
+    {
+        var leadArtistId = await _trackArtistAccessQuery.GetLeadArtistId(trackId, cancellationToken);
+        if (leadArtistId is null)
+        {
+            return NotFound();
+        }
+
+        if (IsAdmin())
+        {
+            return null;
+        }
+
+        return _tokenProvider.AuthorizeUserArtist(Request, leadArtistId.Value, MemberRoles)
+            ? null
+            : Forbid();
     }
 
     private bool IsAdmin()

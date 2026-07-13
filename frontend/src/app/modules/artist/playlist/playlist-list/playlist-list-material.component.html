@@ -1,5 +1,25 @@
 <div class="base-page flex-page">
   <div class="select-page">
+    @if (dailyPlaylists.length > 0) {
+      <section class="daily-playlists-section">
+        <div class="title">
+          <h1 class="title-playlist">Made for you</h1>
+          <p>Personalized mixes refreshed every day</p>
+        </div>
+
+        <div class="daily-playlist-grid">
+          @for (playlist of dailyPlaylists; track playlist.id) {
+            <app-personalized-playlist-card
+              [playlist]="playlist"
+              [imageUrl]="mediaUrl(playlist.coverPath)"
+              (onClick)="openDailyPlaylist($event)"
+              (onPlayClick)="startDailyPlaylist($event)">
+            </app-personalized-playlist-card>
+          }
+        </div>
+      </section>
+    }
+
     <div class="title">
       <h1 class="title-playlist">Your playlists</h1>
     </div>
@@ -17,7 +37,6 @@
     </div>
 
     <div class="flex-container">
-
       <div class="row" *ngFor="let playlist of playlists || []">
         <app-playlist-card matTooltip="{{ playlist.title }}" matTooltipPosition="below" [title]="playlist.title"
                            [imageUrl]="MyConfig.media_address + playlist.coverPath"
@@ -32,6 +51,4 @@
       </div>
     </div>
   </div>
-
-
 </div>

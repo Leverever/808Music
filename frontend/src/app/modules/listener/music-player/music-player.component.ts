@@ -41,6 +41,7 @@ import {
   RemoveTrackFromPlaylistService
 } from '../../../endpoints/playlist-endpoints/delete-track-from-playlist-endpoint.service';
 import {IsOnPlaylistService} from '../../../endpoints/playlist-endpoints/is-song-on-playlist-endpoint.service';
+import {TrackInteractionService} from '../../../services/personalization/track-interaction.service';
 
 @Component({
   selector: 'app-music-player',
@@ -67,7 +68,8 @@ export class MusicPlayerComponent implements OnInit, OnDestroy {
               private router: Router, private addTrackToLikedSongsService : AddTrackToLikedSongsService,
               private isSubscribedService : IsSubscribedService, private getPlaylistsService: GetPlaylistsByUserIdEndpointService,
               private dialog : MatDialog,private snackBar : MatSnackBar, private isLikedSongService : IsLikedSongService,
-              private auth: MyUserAuthService, private playlistUpdateTracksService : PlaylistUpdateTracksService) {
+              private auth: MyUserAuthService, private playlistUpdateTracksService : PlaylistUpdateTracksService,
+              private interactions: TrackInteractionService) {
   }
 
   ngOnDestroy(): void {
@@ -277,6 +279,7 @@ export class MusicPlayerComponent implements OnInit, OnDestroy {
       this.addTrackToLikedSongsService.handleAsync(request).subscribe({
         next: () => {
           this.likedSongs.set(id!, false);
+          this.interactions.record(id!, 'Unliked', {contextType: this.getInteractionContext()});
           this.snackBar.open("Song removed from liked songs", "Dismiss", { duration: 3500 });
         },
         error: error => {
@@ -287,12 +290,34 @@ export class MusicPlayerComponent implements OnInit, OnDestroy {
       this.addTrackToLikedSongsService.handleAsync(request).subscribe({
         next: () => {
           this.likedSongs.set(id!, true);
+          this.interactions.record(id!, 'Liked', {contextType: this.getInteractionContext()});
           this.snackBar.open("Song added to liked songs", "Dismiss", { duration: 3500 });
         },
         error: error => {
           console.error('Error adding track:', error);
         },
       });
+    }
+  }
+
+  goToTrackRadio(): void {
+    if(this.track == null)
+    {
+      return;
+    }
+
+    this.router.navigate(['/listener/radio', this.track.id]);
+  }
+
+  private getInteractionContext() {
+    switch(this.musicPlayerService.getQueueType())
+    {
+      case 'autoplay': return 'Autoplay' as const;
+      case 'radio': return 'Radio' as const;
+      case 'playlist':
+      case 'personalized-playlist': return 'Playlist' as const;
+      case 'song': return 'Manual' as const;
+      default: return 'Playback' as const;
     }
   }
   initializePlaylistCheckboxes(trackId: number): void {

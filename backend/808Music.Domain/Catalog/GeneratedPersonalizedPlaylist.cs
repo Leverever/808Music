@@ -13,6 +13,7 @@ public class GeneratedPersonalizedPlaylist
 
     public GeneratedPersonalizedPlaylist(
         int userId,
+        Guid? themeId,
         string themeKey,
         string name,
         string description,
@@ -25,6 +26,7 @@ public class GeneratedPersonalizedPlaylist
         }
 
         UserId = userId;
+        ThemeId = themeId;
         ThemeKey = NormalizeRequired(themeKey, nameof(themeKey), 100);
         Name = NormalizeRequired(name, nameof(name), 200);
         Description = NormalizeOptional(description, 500);
@@ -34,6 +36,7 @@ public class GeneratedPersonalizedPlaylist
 
     public Guid Id { get; private set; } = Guid.NewGuid();
     public int UserId { get; private set; }
+    public Guid? ThemeId { get; private set; }
     public string ThemeKey { get; private set; }
     public string Name { get; private set; }
     public string Description { get; private set; }
@@ -41,8 +44,9 @@ public class GeneratedPersonalizedPlaylist
     public DateTime CreatedAt { get; private set; }
     public IReadOnlyCollection<GeneratedPersonalizedPlaylistTrack> Tracks => _tracks.AsReadOnly();
 
-    public void RefreshMetadata(string name, string description)
+    public void RefreshMetadata(Guid? themeId, string name, string description)
     {
+        ThemeId = themeId;
         Name = NormalizeRequired(name, nameof(name), 200);
         Description = NormalizeOptional(description, 500);
     }

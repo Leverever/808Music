@@ -31,12 +31,15 @@ import {
   MatDatepickerToggle, MatDateRangeInput, MatDateRangePicker
 } from '@angular/material/datepicker';
 import {MatOption, MatSelect} from '@angular/material/select';
+import {ReleaseTracksViewModule} from '../tracks/release-tracks-view.module';
+import {AlbumReleaseTracksComponent} from './album-release-tracks/album-release-tracks.component';
 
 
 @NgModule({
     declarations: [
         AlbumListMaterialComponent,
-        AlbumCreateOrEditComponent
+        AlbumCreateOrEditComponent,
+        AlbumReleaseTracksComponent
     ],
   imports: [
     CommonModule,
@@ -75,7 +78,8 @@ import {MatOption, MatSelect} from '@angular/material/select';
     MatIconAnchor,
     MatDateRangeInput,
     MatDateRangePicker,
-    MatPrefix
+    MatPrefix,
+    ReleaseTracksViewModule
   ],
     exports: [
         AlbumListMaterialComponent

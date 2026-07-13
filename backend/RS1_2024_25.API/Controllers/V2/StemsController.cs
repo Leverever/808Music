@@ -16,9 +16,13 @@ namespace RS1_2024_25.API.Controllers.V2;
 [Produces("application/json")]
 public sealed class StemsController : ControllerBase
 {
+    private static readonly string[] MemberRoles =
+        ["Owner", "General Manager", "Streaming Manager", "Shop Manager", "Viewer"];
+
     private readonly ISeparateTrackStemsHandler _separateTrackStemsHandler;
     private readonly IGetTrackStemsHandler _getTrackStemsHandler;
     private readonly IUploadManualStemSetHandler _uploadManualStemSetHandler;
+    private readonly IManageTrackStemSetsHandler _manageTrackStemSetsHandler;
     private readonly ITrackArtistAccessQuery _trackArtistAccessQuery;
     private readonly TokenProvider _tokenProvider;
 
@@ -26,12 +30,14 @@ public sealed class StemsController : ControllerBase
         ISeparateTrackStemsHandler separateTrackStemsHandler,
         IGetTrackStemsHandler getTrackStemsHandler,
         IUploadManualStemSetHandler uploadManualStemSetHandler,
+        IManageTrackStemSetsHandler manageTrackStemSetsHandler,
         ITrackArtistAccessQuery trackArtistAccessQuery,
         TokenProvider tokenProvider)
     {
         _separateTrackStemsHandler = separateTrackStemsHandler;
         _getTrackStemsHandler = getTrackStemsHandler;
         _uploadManualStemSetHandler = uploadManualStemSetHandler;
+        _manageTrackStemSetsHandler = manageTrackStemSetsHandler;
         _trackArtistAccessQuery = trackArtistAccessQuery;
         _tokenProvider = tokenProvider;
     }
@@ -67,7 +73,7 @@ public sealed class StemsController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(ex.Message);
+            return Conflict(ex.Message);
         }
     }
 
@@ -127,6 +133,7 @@ public sealed class StemsController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpGet]
     [MapToApiVersion("2.0")]
     public async Task<ActionResult<GetTrackStemsResult>> GetManifest(
@@ -138,10 +145,70 @@ public sealed class StemsController : ControllerBase
             return BadRequest("Track id is required.");
         }
 
+        var accessResult = await EnsureCanViewTrack(trackId, cancellationToken);
+        if (accessResult is not null)
+        {
+            return accessResult;
+        }
+
         var query = new GetTrackStemsQuery(trackId, GetCurrentUserId());
         var result = await _getTrackStemsHandler.Handle(query, cancellationToken);
 
         return Ok(result);
+    }
+
+    [Authorize]
+    [HttpPut("{stemSetId:guid}/activate")]
+    [MapToApiVersion("2.0")]
+    public async Task<ActionResult<TrackStemSetResult>> Activate(
+        int trackId,
+        Guid stemSetId,
+        CancellationToken cancellationToken)
+    {
+        var accessResult = await EnsureCanManageTrack(trackId, cancellationToken);
+        if (accessResult is not null)
+        {
+            return accessResult;
+        }
+
+        try
+        {
+            var result = await _manageTrackStemSetsHandler.Activate(
+                new ActivateTrackStemSetCommand(trackId, stemSetId),
+                cancellationToken);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpDelete("{stemSetId:guid}")]
+    [MapToApiVersion("2.0")]
+    public async Task<IActionResult> Delete(
+        int trackId,
+        Guid stemSetId,
+        CancellationToken cancellationToken)
+    {
+        var accessResult = await EnsureCanManageTrack(trackId, cancellationToken);
+        if (accessResult is not null)
+        {
+            return accessResult;
+        }
+
+        try
+        {
+            var deleted = await _manageTrackStemSetsHandler.Delete(
+                new DeleteTrackStemSetCommand(trackId, stemSetId),
+                cancellationToken);
+            return deleted ? NoContent() : NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
     }
 
     private string? GetCurrentUserId()
@@ -188,6 +255,26 @@ public sealed class StemsController : ControllerBase
             ["Owner", "General Manager", "Streaming Manager"]);
 
         return canManageTrack ? null : Forbid();
+    }
+
+    private async Task<ActionResult?> EnsureCanViewTrack(
+        int trackId,
+        CancellationToken cancellationToken)
+    {
+        var leadArtistId = await _trackArtistAccessQuery.GetLeadArtistId(trackId, cancellationToken);
+        if (leadArtistId is null)
+        {
+            return NotFound();
+        }
+
+        if (IsAdmin())
+        {
+            return null;
+        }
+
+        return _tokenProvider.AuthorizeUserArtist(Request, leadArtistId.Value, MemberRoles)
+            ? null
+            : Forbid();
     }
 
     private bool IsAdmin()

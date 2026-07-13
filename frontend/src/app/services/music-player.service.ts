@@ -2,6 +2,8 @@
 import {TrackGetResponse} from '../endpoints/track-endpoints/track-get-by-id-endpoint.service';
 import {Subject} from 'rxjs';
 import {TrackGetAllEndpointService} from '../endpoints/track-endpoints/track-get-all-endpoint.service';
+import {AutoplayRecommendationsEndpointService} from '../endpoints/personalization-endpoints/autoplay-recommendations-endpoint.service';
+import {RecommendationTrackMapper} from './personalization/recommendation-track.mapper';
 
 export interface QueueSource {
   display: string;
@@ -27,8 +29,14 @@ export class MusicPlayerService {
   private playStateChangeEvent = new Subject<boolean>();
   playStateChange = this.playStateChangeEvent.asObservable();
   private queueType = "";
+  private recentTrackIds: number[] = this.loadRecentTrackIds();
+  private autoplayRequestInFlight = false;
 
-  constructor(private trackGetAllEndpointService: TrackGetAllEndpointService,) {
+  constructor(
+    private trackGetAllEndpointService: TrackGetAllEndpointService,
+    private autoplayRecommendationsEndpoint: AutoplayRecommendationsEndpointService,
+    private recommendationTrackMapper: RecommendationTrackMapper
+  ) {
     let lastQueue = window.localStorage.getItem("queue");
     let playedIndexes = this.getCachedPlayedIndexes();
     if(lastQueue != null && lastQueue !== "")
@@ -42,6 +50,9 @@ export class MusicPlayerService {
       next: (e) => {
         window.localStorage.setItem("lastPlayedSong", JSON.stringify(e));
         window.localStorage.setItem("playedIndexes", JSON.stringify(this.playedIndexes));
+        this.recentTrackIds.push(e.id);
+        this.recentTrackIds = this.recentTrackIds.slice(-50);
+        window.localStorage.setItem("recentTrackIds", JSON.stringify(this.recentTrackIds));
       }
     })
 
@@ -201,12 +212,83 @@ export class MusicPlayerService {
   }
 
   private setAutoPlayQueue() {
+    if(this.autoplayRequestInFlight)
+    {
+      return;
+    }
+
+    const seedTrackIds = [...new Set(this.recentTrackIds.slice(-10))];
+    if(seedTrackIds.length === 0)
+    {
+      this.setFallbackAutoPlayQueue();
+      return;
+    }
+
+    this.autoplayRequestInFlight = true;
+    const excludedTrackIds = [...new Set([
+      ...this.recentTrackIds,
+      ...this.queue.map(track => track.id)
+    ])];
+
+    this.autoplayRecommendationsEndpoint.handleAsync({
+      seedTrackIds,
+      excludedTrackIds,
+      limit: 25
+    }).subscribe({
+      next: response => {
+        this.autoplayRequestInFlight = false;
+        const tracks = this.recommendationTrackMapper.toPlayerTracks(response.tracks);
+        if(tracks.length === 0)
+        {
+          this.setFallbackAutoPlayQueue();
+          return;
+        }
+
+        this.createQueue(
+          tracks,
+          {display: "Recommended Autoplay", value: "/listener/home"},
+          "autoplay");
+      },
+      error: error => {
+        console.warn("Personalized autoplay was unavailable; using catalog fallback.", error);
+        this.autoplayRequestInFlight = false;
+        this.setFallbackAutoPlayQueue();
+      }
+    });
+  }
+
+  private setFallbackAutoPlayQueue() {
+    if(this.autoplayRequestInFlight)
+    {
+      return;
+    }
+
+    this.autoplayRequestInFlight = true;
     let sortByStreams = Date.now()%2 == 0;
     this.trackGetAllEndpointService.handleAsync({title:"", isReleased: true, sortByStreams: sortByStreams, pageSize: 1000, pageNumber:1, }).subscribe({
       next: data => {
-        this.createQueue(data.dataItems, {display: sortByStreams ? "808 Popular - Autoplay" : "808 Fresh - Autoplay", value: "/listener/home"}, "autoplay")
-      }
+        this.autoplayRequestInFlight = false;
+        if(data.dataItems.length > 0)
+        {
+          this.createQueue(data.dataItems, {display: sortByStreams ? "808 Popular - Autoplay" : "808 Fresh - Autoplay", value: "/listener/home"}, "autoplay")
+        }
+      },
+      error: () => this.autoplayRequestInFlight = false
     });
+  }
+
+  private loadRecentTrackIds(): number[] {
+    try
+    {
+      const stored = JSON.parse(window.localStorage.getItem("recentTrackIds") ?? "[]");
+      return Array.isArray(stored)
+        ? stored.filter(value => Number.isInteger(value) && value > 0).slice(-50)
+        : [];
+    }
+    catch
+    {
+      return [];
+    }
   }
 
   setPlayState(state: boolean) {

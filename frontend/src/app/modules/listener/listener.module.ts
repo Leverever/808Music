@@ -15,7 +15,7 @@ import {MatTooltip} from '@angular/material/tooltip';
 import {MatFormField, MatInput} from "@angular/material/input";
 import {MatSlider, MatSliderThumb} from '@angular/material/slider';
 import { ReleaseViewComponent } from './release-view/release-view.component';
-import {TracksModule} from '../artist/tracks/tracks.module';
+import {ReleaseTracksViewModule} from '../artist/tracks/release-tracks-view.module';
 import { PlayTrackComponent } from './play-track/play-track.component';
 import {MatDivider} from '@angular/material/divider';
 import { ArtistPageComponent } from './artist-page/artist-page.component';
@@ -61,6 +61,8 @@ import { UserMonthlyStatsComponent } from './user-monthly-stats/user-monthly-sta
 import { MonthlyStatsDialogComponent } from './monthly-stats-dialog/monthly-stats-dialog.component';
   import {MatDialogActions, MatDialogContent, MatDialogTitle} from '@angular/material/dialog';
   import {MatSlideToggle} from '@angular/material/slide-toggle';
+import { PersonalizedPlaylistDetailComponent } from './personalized-playlist-detail/personalized-playlist-detail.component';
+import { RadioDetailComponent } from './radio-detail/radio-detail.component';
 
 
 @NgModule({
@@ -98,6 +100,8 @@ import { MonthlyStatsDialogComponent } from './monthly-stats-dialog/monthly-stat
         ArtistDialogComponent,
         UserMonthlyStatsComponent,
         MonthlyStatsDialogComponent,
+        PersonalizedPlaylistDetailComponent,
+        RadioDetailComponent,
     ],
   imports: [
     CommonModule,
@@ -111,7 +115,7 @@ import { MonthlyStatsDialogComponent } from './monthly-stats-dialog/monthly-stat
     MatButton,
     MatSlider,
     MatSliderThumb,
-    TracksModule,
+    ReleaseTracksViewModule,
     MatDivider,
     MatFabButton,
     MatTabGroup,

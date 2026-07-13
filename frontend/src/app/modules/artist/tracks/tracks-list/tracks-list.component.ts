@@ -225,7 +225,7 @@ export class TracksListComponent implements OnInit {
   editTrack(e: number) {
     if(this.artistMode)
     {
-      this.router.navigate(["edit",e], {relativeTo:this.route, queryParams: {albumId: this.album!.id}});
+      this.router.navigate(["/artist/tracks", e]);
     }
     else {
       this.tracksGetAllService.handleAsync({pageNumber: 1, pageSize: 100000, albumId: this.album!.id}).subscribe({
@@ -243,7 +243,7 @@ export class TracksListComponent implements OnInit {
   addNew() {
     if(this.artistMode)
     {
-      this.router.navigate(["create"], {relativeTo:this.route, queryParams: {albumId: this.album!.id}});
+      this.router.navigate(["/artist/tracks/create"]);
     }
     else {
       this.tracksGetAllService.handleAsync({pageNumber:1, pageSize:100000, albumId: this.album?.id}).subscribe({
@@ -266,7 +266,7 @@ export class TracksListComponent implements OnInit {
   homeCheck(url: string) {
     this.route.params.subscribe(params => {
       let id = params["id"];
-      if(url == "/artist/tracks/"+id)
+      if(url == "/artist/album/"+id+"/tracks")
       {
         this.reloadData();
         this.reloadTable = true;

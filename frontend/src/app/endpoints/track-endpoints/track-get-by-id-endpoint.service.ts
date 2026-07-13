@@ -23,7 +23,7 @@ export interface TrackGetResponse {
   coverPath: string;
   trackUserInfo : TrackUserInfoDto[];
   artists: ArtistTrackDto[];
-  albumId: number;
+  albumId: number | null;
 }
 
 @Injectable({

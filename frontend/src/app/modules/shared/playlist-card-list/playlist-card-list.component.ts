@@ -22,9 +22,8 @@ export class PlaylistCardListComponent implements OnInit {
   @Input() userId: number = 0;
   @Input() queryParams: Params | null = null;
   @Input() publicOnly = false;
+  @Input() playlists: PlaylistResponse[] | null = null;
   artistMode: boolean = false;
-
-  playlists: PlaylistResponse[] = [];
 
   @Output() deletedPlaylist = new EventEmitter<boolean>();
 
@@ -42,7 +41,7 @@ export class PlaylistCardListComponent implements OnInit {
       this.artistMode = true;
     }
 
-    if (this.userId) {
+    if (this.playlists === null && this.userId) {
       this.getPlaylistsByUserIdService.handleAsync(this.userId).subscribe({
         next: (data) => {
           if(this.publicOnly)
@@ -95,6 +94,20 @@ export class PlaylistCardListComponent implements OnInit {
   }
 
   protected readonly MyConfig = MyConfig;
+
+  getCoverUrl(path: string): string {
+    if(/^https?:\/\//i.test(path))
+    {
+      return path;
+    }
+
+    if(path.startsWith('/media/'))
+    {
+      return MyConfig.api_address + path;
+    }
+
+    return MyConfig.media_address + path.replace(/^\/+/, '');
+  }
 
   goToEditPlaylist($event: number) {
 

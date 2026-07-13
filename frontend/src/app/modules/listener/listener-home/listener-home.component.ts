@@ -1,14 +1,12 @@
 import {Component, OnInit} from '@angular/core';
 import {MyConfig} from '../../../my-config';
 import {Params, Router} from '@angular/router';
-import {TrackGetAllEndpointService} from '../../../endpoints/track-endpoints/track-get-all-endpoint.service';
 import {MusicPlayerService} from '../../../services/music-player.service';
 import {MyPagedList} from '../../../services/auth-services/dto/my-paged-list';
 import {
   AlbumGetAllEndpointService,
   AlbumGetAllResponse, AlbumPagedRequest
 } from '../../../endpoints/album-endpoints/album-get-all-endpoint.service';
-import {AlbumGetByIdEndpointService} from '../../../endpoints/album-endpoints/album-get-by-id-endpoint.service';
 import {
   ArtistGetAutocompleteEndpointService, UserArtistSearchRequest
 } from '../../../endpoints/artist-endpoints/artist-get-autocomplete-endpoint.service';
@@ -18,6 +16,13 @@ import {
   UpcomingEvent
 } from '../../../endpoints/user-artist-endpoints/event-get-upociming.service';
 import {animate, style, transition, trigger} from '@angular/animations';
+import {
+  HomeRecommendationsEndpointService,
+  HomeRecommendationsResponse
+} from '../../../endpoints/personalization-endpoints/home-recommendations-endpoint.service';
+import {RecommendationTrackMapper} from '../../../services/personalization/recommendation-track.mapper';
+import {PlaylistResponse} from '../../../endpoints/playlist-endpoints/get-playlist-by-user-endpoint.service';
+import {TrackGetResponse} from '../../../endpoints/track-endpoints/track-get-by-id-endpoint.service';
 
 @Component({
   selector: 'app-listener-home',
@@ -70,16 +75,26 @@ export class ListenerHomeComponent implements OnInit {
   events : UpcomingEvent [] = [];
   infinitePage = [1];
   currentSlide: number = 0;
+  homeRecommendations: HomeRecommendationsResponse | null = null;
+  homeRecommendationsLoading = true;
+  recommendedAlbums: MyPagedList<AlbumGetAllResponse> | null = null;
+  recommendedAlbumSubtitles: Record<number, string> = {};
+  recommendedArtists: ArtistSimpleDto[] | null = null;
+  recommendedArtistDescriptions: Record<number, string> = {};
+  recommendedPlaylists: PlaylistResponse[] | null = null;
+  recommendedTracks: TrackGetResponse[] = [];
   constructor(private router: Router,
-              private trackGetAllService: TrackGetAllEndpointService,
               private musicPlayerService: MusicPlayerService,
               private albumGetService: AlbumGetAllEndpointService,
               private artistGetService: ArtistGetAutocompleteEndpointService,
-              private eventGetUpcoming : EventGetUpcomingService) {
+              private eventGetUpcoming : EventGetUpcomingService,
+              private homeRecommendationsEndpoint: HomeRecommendationsEndpointService,
+              private recommendationTrackMapper: RecommendationTrackMapper) {
   }
 
   ngOnInit(): void {
     this.loadEvents();
+    this.loadHomeRecommendations();
     this.userId = this.getUserIdFromToken();
     let request: AlbumPagedRequest  = {pageNumber: 1, pageSize: 50, isReleased: true, title: ""};
       this.albumGetService.handleAsync(request).subscribe({
@@ -106,13 +121,131 @@ export class ListenerHomeComponent implements OnInit {
     })
     this.startAutoSlide();
   }
+
+  loadHomeRecommendations(): void {
+    this.homeRecommendationsLoading = true;
+    this.homeRecommendationsEndpoint.handleAsync().subscribe({
+      next: response => {
+        this.applyRecommendationCards(response);
+        this.homeRecommendations = response;
+        this.homeRecommendationsLoading = false;
+      },
+      error: error => {
+        console.warn('Personalized home recommendations are unavailable.', error);
+        this.homeRecommendationsLoading = false;
+      }
+    });
+  }
+
+  openDailyPlaylist(id: string): void {
+    this.router.navigate(['/listener/playlist/daily', id]);
+  }
+
+  playRecommendedTracks(startIndex = 0): void {
+    const recommendations = this.homeRecommendations?.recommendedTracks ?? [];
+    if(recommendations.length === 0)
+    {
+      return;
+    }
+
+    const tracks = this.recommendationTrackMapper.toPlayerTracks(recommendations);
+    const orderedTracks = [...tracks.slice(startIndex), ...tracks.slice(0, startIndex)];
+    this.musicPlayerService.createQueue(
+      orderedTracks,
+      {display: 'Recommended for you', value: '/listener/home'},
+      'recommendations');
+  }
+
+  mediaUrl(path: string): string {
+    const normalizedPath = this.normalizeMediaPath(path);
+    if(/^https?:\/\//i.test(normalizedPath))
+    {
+      return normalizedPath;
+    }
+
+    return `${MyConfig.api_address}${normalizedPath}`;
+  }
+
+  private applyRecommendationCards(response: HomeRecommendationsResponse): void {
+    const albums = response.recommendedAlbums.map(album => ({
+      id: album.albumId,
+      title: album.title,
+      coverArt: this.normalizeMediaPath(album.coverPath),
+      releaseDate: response.recommendationDate,
+      artist: album.artistName,
+      artistId: album.artistId,
+      type: 'Album',
+      trackCount: album.trackCount,
+      isHighlighted: false
+    }));
+    this.recommendedAlbums = this.toPagedList(albums);
+    this.recommendedAlbumSubtitles = response.recommendedAlbums.reduce<Record<number, string>>((descriptions, album) => {
+      descriptions[album.albumId] = album.reason;
+      return descriptions;
+    }, {});
+
+    this.recommendedArtists = response.recommendedArtists.map(artist => ({
+      id: artist.artistId,
+      name: artist.name,
+      pfpPath: this.normalizeMediaPath(artist.profilePhotoPath, '/media/Images/ArtistPfps/placeholder.png'),
+      role: '',
+      isFlaggedForDeletion: false,
+      deletionDate: ''
+    }));
+    this.recommendedArtistDescriptions = response.recommendedArtists.reduce<Record<number, string>>((descriptions, artist) => {
+      descriptions[artist.artistId] = artist.reason;
+      return descriptions;
+    }, {});
+
+    this.recommendedPlaylists = response.recommendedPlaylists.map(playlist => ({
+      id: playlist.playlistId,
+      title: playlist.title,
+      numOfTracks: playlist.trackCount,
+      isPublic: playlist.isPublic,
+      coverPath: this.normalizeMediaPath(playlist.coverPath),
+      username: playlist.ownerUsername ?? '808 Music',
+      isLikedSongs: false,
+      userId: playlist.ownerUserId ?? 0,
+      ownerUsername: playlist.ownerUsername ?? '808 Music',
+      isCollaborative: playlist.isCollaborative,
+      description: playlist.reason
+    }));
+    this.recommendedTracks = this.recommendationTrackMapper.toPlayerTracks(response.recommendedTracks);
+  }
+
+  private toPagedList<T>(dataItems: T[]): MyPagedList<T> {
+    return {
+      dataItems,
+      currentPage: 1,
+      totalPages: 1,
+      pageSize: dataItems.length,
+      totalCount: dataItems.length,
+      hasPrevious: false,
+      hasNext: false
+    };
+  }
+
+  private normalizeMediaPath(path: string, fallback = '/media/Images/playlist_placeholder.png'): string {
+    if(!path)
+    {
+      return fallback;
+    }
+
+    if(/^https?:\/\//i.test(path) || path.startsWith('/media/'))
+    {
+      return path;
+    }
+
+    return `/media/${path.replace(/^\/+/, '')}`;
+  }
   ngOnDestroy(): void {
     clearInterval(this.slideInterval);
   }
   loadEvents(): void {
     this.eventGetUpcoming.getUpcomingEvents().subscribe({
       next: (data) => {
-        this.events = data;
+        this.events = Array.isArray(data) ? data.filter(Boolean) : [];
+        this.currentSlide = 0;
         console.log(this.events);
       },
       error: (err) => {

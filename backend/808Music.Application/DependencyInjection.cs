@@ -7,6 +7,7 @@ using _808Music.Application.Personalization;
 using _808Music.Application.PersonalizedPlaylists;
 using _808Music.Application.Playback;
 using _808Music.Application.Recommendations;
+using _808Music.Application.Releases;
 using _808Music.Application.Stems;
 using _808Music.Application.Tracks;
 using AutoMapper;
@@ -36,6 +37,10 @@ public static class DependencyInjection
         services.AddScoped<IGetTrackRadioHandler, GetTrackRadioHandler>();
         services.AddScoped<IGetAutoplayRecommendationsHandler, GetAutoplayRecommendationsHandler>();
         services.AddScoped<IUploadTrackHandler, UploadTrackHandler>();
+        services.AddScoped<ITrackCatalogHandler, TrackCatalogHandler>();
+        services.AddScoped<ITrackCatalogSearchHandler, TrackCatalogSearchHandler>();
+        services.AddScoped<ITrackStatisticsHandler, TrackStatisticsHandler>();
+        services.AddScoped<IReleaseTrackHandler, ReleaseTrackHandler>();
         services.AddScoped<IUpdateTrackMetadataHandler, UpdateTrackMetadataHandler>();
         services.AddScoped<IReplaceTrackMasterHandler, ReplaceTrackMasterHandler>();
         services.AddScoped<ITrackArtistAccessQuery, TrackArtistAccessQuery>();
@@ -43,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<ISeparateTrackStemsHandler, SeparateTrackStemsHandler>();
         services.AddScoped<IGetTrackStemsHandler, GetTrackStemsHandler>();
         services.AddScoped<IUploadManualStemSetHandler, UploadManualStemSetHandler>();
+        services.AddScoped<IManageTrackStemSetsHandler, ManageTrackStemSetsHandler>();
         services.AddScoped<IAnalyzeTrackAudioHandler, AnalyzeTrackAudioHandler>();
         services.AddScoped<IMarkAudioAnalysisProcessingHandler, MarkAudioAnalysisProcessingHandler>();
         services.AddScoped<ICompleteAudioAnalysisHandler, CompleteAudioAnalysisHandler>();

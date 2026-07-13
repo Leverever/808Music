@@ -8,6 +8,7 @@ public sealed class UploadTrackRequest
     public int ArtistId { get; set; }
 
     [Required]
+    [StringLength(200, MinimumLength = 3)]
     public string Title { get; set; } = string.Empty;
 
     public bool IsExplicit { get; set; }

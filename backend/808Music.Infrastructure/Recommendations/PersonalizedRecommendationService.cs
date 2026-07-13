@@ -11,43 +11,17 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    private static readonly IReadOnlyDictionary<string, ThemeDefinition> Themes =
-        new Dictionary<string, ThemeDefinition>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["energetic-mix"] = new(
-                "Energetic Mix",
-                ["energetic", "energy", "upbeat", "dance", "electronic", "pop", "party", "club", "house", "edm"],
-                ["sad", "ambient", "acoustic", "calm", "sleep"]),
-            ["three-am-and-alone"] = new(
-                "3am and Alone Mix",
-                ["sad", "melancholic", "melancholy", "lonely", "night", "ambient", "downtempo", "chill", "piano", "acoustic"],
-                ["party", "dance", "gym", "workout", "club"]),
-            ["3am-and-alone"] = new(
-                "3am and Alone Mix",
-                ["sad", "melancholic", "melancholy", "lonely", "night", "ambient", "downtempo", "chill", "piano", "acoustic"],
-                ["party", "dance", "gym", "workout", "club"]),
-            ["late-night-drive"] = new(
-                "Late Night Drive Mix",
-                ["night", "drive", "chill", "electronic", "synth", "synthesizer", "pop", "rnb", "hiphop", "downtempo"],
-                ["workout", "gym", "aggressive"]),
-            ["sad-acoustic-night"] = new(
-                "Sad Acoustic Night Mix",
-                ["sad", "acoustic", "night", "piano", "guitar", "singer", "songwriter", "folk", "melancholic"],
-                ["party", "club", "dance", "edm"]),
-            ["gym-motivation"] = new(
-                "Gym Motivation Mix",
-                ["gym", "workout", "energetic", "energy", "aggressive", "hiphop", "trap", "rock", "electronic", "dance"],
-                ["sad", "ambient", "calm", "acoustic", "sleep"])
-        };
-
     private readonly IApplicationDbContext _dbContext;
+    private readonly IPersonalizedPlaylistThemeProvider _themeProvider;
     private readonly PersonalizedRecommendationOptions _options;
 
     public PersonalizedRecommendationService(
         IApplicationDbContext dbContext,
+        IPersonalizedPlaylistThemeProvider themeProvider,
         IOptions<PersonalizedRecommendationOptions> options)
     {
         _dbContext = dbContext;
+        _themeProvider = themeProvider;
         _options = options.Value;
     }
 
@@ -77,7 +51,9 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
             seedTagsByTrack,
             seedClustersByTrack,
             request.Intent);
-        var theme = ResolveTheme(request.ThemeKey);
+        var theme = string.IsNullOrWhiteSpace(request.ThemeKey)
+            ? null
+            : await _themeProvider.FindByKeyAsync(request.ThemeKey, cancellationToken);
         var candidateTrackIds = await LoadCandidateTrackIdsAsync(
             excludedTrackIds,
             profile,
@@ -171,7 +147,7 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
         IReadOnlySet<int> excludedTrackIds,
         CachedUserProfile profile,
         SeedContext seedContext,
-        ThemeDefinition? theme,
+        PersonalizedPlaylistThemeDefinition? theme,
         CancellationToken cancellationToken)
     {
         var maxCandidates = Math.Max(100, _options.MaxCandidateTracks);
@@ -304,7 +280,7 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
         IReadOnlySet<int> excludedTrackIds,
         CachedUserProfile profile,
         SeedContext seedContext,
-        ThemeDefinition? theme,
+        PersonalizedPlaylistThemeDefinition? theme,
         int take,
         CancellationToken cancellationToken)
     {
@@ -314,7 +290,9 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
                 .OrderByDescending(x => x.Value)
                 .Take(50)
                 .Select(x => x.Key))
-            .Concat(theme?.PositiveTags.Select(NormalizeTag) ?? [])
+            .Concat(theme?.PositiveLabels
+                .Where(x => x.Source == PersonalizedPlaylistThemeLabelSource.EssentiaTag)
+                .Select(x => NormalizeTag(x.Label)) ?? [])
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
@@ -636,7 +614,7 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
         PersonalizedRecommendationIntent intent,
         CachedUserProfile profile,
         SeedContext seedContext,
-        ThemeDefinition? theme,
+        PersonalizedPlaylistThemeDefinition? theme,
         TrackTags tags,
         TrackClusters clusters,
         ActiveAnalysis? analysis,
@@ -1066,43 +1044,55 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
             : 0;
     }
 
-    private static double CalculateThemeMatch(TrackTags tags, ThemeDefinition? theme)
+    private static double CalculateThemeMatch(
+        TrackTags tags,
+        PersonalizedPlaylistThemeDefinition? theme)
     {
         if (theme is null || tags.Values.Count == 0)
         {
             return 0;
         }
 
-        var positiveHints = theme.PositiveTags
-            .Select(NormalizeTag)
-            .Where(x => !string.IsNullOrWhiteSpace(x))
+        var positiveHints = theme.PositiveLabels
+            .Where(x => x.Source == PersonalizedPlaylistThemeLabelSource.EssentiaTag)
             .ToArray();
-        var negativeHints = theme.NegativeTags
-            .Select(NormalizeTag)
-            .Where(x => !string.IsNullOrWhiteSpace(x))
+        var negativeHints = theme.NegativeLabels
+            .Where(x => x.Source == PersonalizedPlaylistThemeLabelSource.EssentiaTag)
             .ToArray();
 
-        var positiveScore = AverageMatchingTagScore(tags, positiveHints);
-        var negativeScore = AverageMatchingTagScore(tags, negativeHints);
+        var positiveScore = WeightedAverageMatchingTagScore(tags, positiveHints);
+        var negativeScore = WeightedAverageMatchingTagScore(tags, negativeHints);
 
         return Clamp01(positiveScore - negativeScore * 0.6);
     }
 
-    private static double AverageMatchingTagScore(TrackTags tags, IReadOnlyCollection<string> hints)
+    private static double WeightedAverageMatchingTagScore(
+        TrackTags tags,
+        IReadOnlyCollection<PersonalizedPlaylistThemeLabelDefinition> hints)
     {
         if (hints.Count == 0)
         {
             return 0;
         }
 
-        var matches = tags.Values
-            .Where(tag => hints.Any(hint => TagsMatch(tag.Key, hint)))
-            .Select(tag => tag.Value.Score)
+        var matches = hints
+            .Select(hint => new
+            {
+                Weight = Math.Max(0, hint.Weight),
+                Score = tags.Values
+                    .Where(tag => TagsMatch(tag.Key, NormalizeTag(hint.Label)))
+                    .Select(tag => tag.Value.Score)
+                    .DefaultIfEmpty(0)
+                    .Max()
+            })
+            .Where(x => x.Weight > 0 && x.Score > 0)
             .ToArray();
 
         return matches.Length == 0
             ? 0
-            : Clamp01(matches.Average());
+            : Clamp01(
+                matches.Sum(x => x.Score * x.Weight) /
+                matches.Sum(x => x.Weight));
     }
 
     private static double CalculateFreshnessPopularity(
@@ -1120,7 +1110,7 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
         TrackTags tags,
         CachedUserProfile profile,
         SeedContext seedContext,
-        ThemeDefinition? theme,
+        PersonalizedPlaylistThemeDefinition? theme,
         int maxMatchedTags)
     {
         if (tags.Values.Count == 0)
@@ -1128,8 +1118,9 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
             return [];
         }
 
-        var themeHints = theme?.PositiveTags
-            .Select(NormalizeTag)
+        var themeHints = theme?.PositiveLabels
+            .Where(x => x.Source == PersonalizedPlaylistThemeLabelSource.EssentiaTag)
+            .Select(x => NormalizeTag(x.Label))
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
 
@@ -1150,7 +1141,7 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
         PersonalizedRecommendationIntent intent,
         IReadOnlyDictionary<string, double> sourceSignals,
         IReadOnlyList<string> matchedTags,
-        ThemeDefinition? theme)
+        PersonalizedPlaylistThemeDefinition? theme)
     {
         if (intent == PersonalizedRecommendationIntent.DailyThematicPlaylist &&
             theme is not null &&
@@ -1187,13 +1178,6 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
         }
 
         return "Catalog fallback for this recommendation intent.";
-    }
-
-    private static ThemeDefinition? ResolveTheme(string? themeKey)
-    {
-        return string.IsNullOrWhiteSpace(themeKey)
-            ? null
-            : Themes.GetValueOrDefault(themeKey.Trim());
     }
 
     private static double AverageAvailable(params double[] values)
@@ -1281,11 +1265,6 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
     {
         return Math.Round(Clamp01(value), 8, MidpointRounding.AwayFromZero);
     }
-
-    private sealed record ThemeDefinition(
-        string Name,
-        IReadOnlyList<string> PositiveTags,
-        IReadOnlyList<string> NegativeTags);
 
     private sealed record TrackProjection(
         int Id,

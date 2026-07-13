@@ -1,14 +1,77 @@
 <div class="artist-music-page" [@pageAnimation]>
+  @if (homeRecommendationsLoading) {
+    <div class="personalization-status">Loading your mixes...</div>
+  }
+
+  @if (homeRecommendations; as home) {
+    @if (home.dailyPersonalizedPlaylists.length > 0) {
+      <section class="personalization-section">
+        <div class="personalization-heading">
+          <h3>Made for you today</h3>
+          <span>{{ home.recommendationDate | date }}</span>
+        </div>
+        <div class="recommendation-grid">
+          @for (playlist of home.dailyPersonalizedPlaylists; track playlist.playlistId) {
+            <button class="recommendation-card" (click)="openDailyPlaylist(playlist.playlistId)">
+              <img [src]="mediaUrl(playlist.coverPath)" [alt]="playlist.name">
+              <strong>{{ playlist.name }}</strong>
+              <span>{{ playlist.description }}</span>
+              <small>{{ playlist.trackCount }} tracks</small>
+            </button>
+          }
+        </div>
+      </section>
+    }
+
+    @if (home.recommendedAlbums.length > 0) {
+      <app-album-card-list
+        title="Albums for you"
+        [albums]="recommendedAlbums"
+        [cardSubtitles]="recommendedAlbumSubtitles"
+        [showViewAll]="false">
+      </app-album-card-list>
+    }
+
+    @if (home.recommendedArtists.length > 0) {
+      <app-artist-big-card-list
+        title="Artists you may like"
+        [artists]="recommendedArtists"
+        [cardDescriptions]="recommendedArtistDescriptions"
+        [showViewAll]="false">
+      </app-artist-big-card-list>
+    }
+
+    @if (home.recommendedPlaylists.length > 0) {
+      <app-playlist-card-list
+        title="Playlists for you"
+        [playlists]="recommendedPlaylists">
+      </app-playlist-card-list>
+    }
+
+    @if (home.recommendedTracks.length > 0) {
+      <app-track-card-list
+        title="Tracks picked for you"
+        [tracks]="recommendedTracks"
+        [maxItems]="6"
+        [showPlayAll]="true"
+        [useCustomPlayHandler]="true"
+        (playAll)="playRecommendedTracks()"
+        (trackSelected)="playRecommendedTracks($event)">
+      </app-track-card-list>
+    }
+  }
+
   <h3 class="event-header">Events happening soon</h3>
+  @if (events[currentSlide]; as activeEvent) {
   <div class="event-carousel-container">
 
     <div class="carousel-wrapper">
       <button class="prev" (click)="prevSlide()">❮</button>
 
-      <div class="event-image" [ngStyle]="{'background-image': 'url(' + MyConfig.media_address + events[currentSlide].eventCover + ')'}">
+      <div class="event-image" [ngStyle]="{'background-image': 'url(' + MyConfig.media_address + activeEvent.eventCover + ')'}">
         <div class="gradient">
       <div class="event-info">
-          <h1 class="event-title">{{ events[currentSlide].eventTitle }}</h1>
+          <h1 class="event-title">{{ activeEvent.eventTitle }}</h1>
 
         <p class="event-informations">{{ events[currentSlide].artistName }} ◈ {{ events[currentSlide].city }}, {{ events[currentSlide].eventDate | date: 'shortDate' }}</p>
         </div></div>
@@ -25,7 +88,10 @@
            (click)="changeSlide(i)">
       </div>
     </div>
-
+  </div>
+  } @else {
+    <p class="event-empty-state">No events are scheduled right now.</p>
+  }
 
   @for (i of infinitePage; track i;) {
     <app-album-card-list title="Popular Releases" [albums]="popularAlbums" [queryParams]="popularParams"></app-album-card-list>
@@ -37,7 +103,6 @@
     <app-album-card-list title="Recent Releases" [albums]="recentAlbums" [queryParams]="recentParams"></app-album-card-list>
     <app-artist-big-card-list [artists]="mostStreamedArtists" [title]="'Most Streamed Artists'" [numberDescription]="'streams'" [queryParams]="mostStreamedArtistParams"></app-artist-big-card-list>
   }
-</div>
 
 <div infiniteScroll
      [infiniteScrollThrottle]="500"

@@ -96,8 +96,6 @@ public interface IGetHomeRecommendationsHandler
 public sealed class GetHomeRecommendationsHandler : IGetHomeRecommendationsHandler
 {
     private const int DefaultRecommendationCandidateCount = 100;
-    private const string DefaultPlaylistCoverPath = "/Images/playlist_placeholder.png";
-
     private readonly IApplicationDbContext _dbContext;
     private readonly IPersonalizedRecommendationService _recommendationService;
     private readonly ILegacyPlaylistRecommendationReader _legacyPlaylistRecommendationReader;
@@ -221,26 +219,65 @@ public sealed class GetHomeRecommendationsHandler : IGetHomeRecommendationsHandl
         var playlistIds = playlists
             .Select(x => x.PlaylistId)
             .ToArray();
-        var trackCounts = await _dbContext.GeneratedPersonalizedPlaylistTracks
+        var playlistTrackRows = await _dbContext.GeneratedPersonalizedPlaylistTracks
             .AsNoTracking()
             .Where(x => playlistIds.Contains(x.PlaylistId))
-            .GroupBy(x => x.PlaylistId)
-            .Select(x => new PlaylistTrackCountProjection(x.Key, x.Count()))
+            .Select(x => new DailyPlaylistTrackProjection(
+                x.PlaylistId,
+                x.TrackId,
+                x.Position))
             .ToListAsync(cancellationToken);
-        var trackCountsByPlaylist = trackCounts.ToDictionary(x => x.PlaylistId, x => x.TrackCount);
+        var trackCountsByPlaylist = playlistTrackRows
+            .GroupBy(x => x.PlaylistId)
+            .ToDictionary(x => x.Key, x => x.Count());
+        var firstTrackIdsByPlaylist = playlistTrackRows
+            .GroupBy(x => x.PlaylistId)
+            .ToDictionary(
+                x => x.Key,
+                x => x.OrderBy(track => track.Position).First().TrackId);
+        var firstTrackIds = firstTrackIdsByPlaylist.Values
+            .Distinct()
+            .ToArray();
+        var artistRows = await _dbContext.ArtistTracks
+            .AsNoTracking()
+            .Where(x => firstTrackIds.Contains(x.TrackId))
+            .Select(x => new DailyPlaylistArtistProjection(
+                x.TrackId,
+                x.ArtistId,
+                x.IsLead,
+                x.Artist != null ? x.Artist.ProfilePhotoPath : string.Empty))
+            .ToListAsync(cancellationToken);
+        var artistCoverPathsByTrack = artistRows
+            .GroupBy(x => x.TrackId)
+            .ToDictionary(
+                x => x.Key,
+                x => x
+                    .OrderByDescending(artist => artist.IsLead)
+                    .ThenBy(artist => artist.ArtistId)
+                    .Select(artist => FormatArtistProfilePhotoPath(artist.ProfilePhotoPath))
+                    .FirstOrDefault() ?? FormatArtistProfilePhotoPath(null));
 
         return playlists
-            .Select(x => new HomeDailyPlaylistRecommendation(
-                x.PlaylistId,
-                x.ThemeKey,
-                x.Name,
-                x.Description,
-                DefaultPlaylistCoverPath,
-                x.PlaylistDate,
-                x.CreatedAt,
-                trackCountsByPlaylist.GetValueOrDefault(x.PlaylistId),
-                1,
-                "Generated today from your recent listening."))
+            .Select(x =>
+            {
+                var coverPath = firstTrackIdsByPlaylist.TryGetValue(x.PlaylistId, out var firstTrackId)
+                    ? artistCoverPathsByTrack.GetValueOrDefault(
+                        firstTrackId,
+                        FormatArtistProfilePhotoPath(null))
+                    : FormatArtistProfilePhotoPath(null);
+
+                return new HomeDailyPlaylistRecommendation(
+                    x.PlaylistId,
+                    x.ThemeKey,
+                    x.Name,
+                    x.Description,
+                    coverPath,
+                    x.PlaylistDate,
+                    x.CreatedAt,
+                    trackCountsByPlaylist.GetValueOrDefault(x.PlaylistId),
+                    1,
+                    "Generated today from your recent listening.");
+            })
             .ToArray();
     }
 
@@ -536,9 +573,16 @@ public sealed class GetHomeRecommendationsHandler : IGetHomeRecommendationsHandl
         DateOnly PlaylistDate,
         DateTime CreatedAt);
 
-    private sealed record PlaylistTrackCountProjection(
+    private sealed record DailyPlaylistTrackProjection(
         Guid PlaylistId,
-        int TrackCount);
+        int TrackId,
+        int Position);
+
+    private sealed record DailyPlaylistArtistProjection(
+        int TrackId,
+        int ArtistId,
+        bool IsLead,
+        string ProfilePhotoPath);
 
     private sealed record TrackMetadataProjection(
         int TrackId,

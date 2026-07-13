@@ -9,16 +9,18 @@ public sealed class CleanArchitectureBackgroundService : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly CleanArchitectureBackgroundServiceOptions _options;
     private readonly ILogger<CleanArchitectureBackgroundService> _logger;
+    private readonly RecurringTaskExecutionCoordinator _executionCoordinator;
     private readonly Dictionary<string, DateTime> _nextRuns = new(StringComparer.OrdinalIgnoreCase);
-    private readonly HashSet<string> _runningTasks = new(StringComparer.OrdinalIgnoreCase);
 
     public CleanArchitectureBackgroundService(
         IServiceScopeFactory scopeFactory,
         IOptions<CleanArchitectureBackgroundServiceOptions> options,
+        RecurringTaskExecutionCoordinator executionCoordinator,
         ILogger<CleanArchitectureBackgroundService> logger)
     {
         _scopeFactory = scopeFactory;
         _options = options.Value;
+        _executionCoordinator = executionCoordinator;
         _logger = logger;
     }
 
@@ -72,7 +74,7 @@ public sealed class CleanArchitectureBackgroundService : BackgroundService
                         nextRun);
                 }
 
-                if (nextRun > now || !_runningTasks.Add(task.Name))
+                if (nextRun > now || !_executionCoordinator.TryBegin(task.Name))
                 {
                     continue;
                 }
@@ -94,7 +96,7 @@ public sealed class CleanArchitectureBackgroundService : BackgroundService
             {
                 if (startedTask)
                 {
-                    _runningTasks.Remove(task.Name);
+                    _executionCoordinator.End(task.Name);
                     TryScheduleNextRun(task);
                 }
             }

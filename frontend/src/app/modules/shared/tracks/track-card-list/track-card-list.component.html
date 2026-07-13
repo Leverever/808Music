@@ -1,10 +1,22 @@
 <div class="artist-music-page">
   <div>
-    <h3>{{ title }}</h3>
+    <div class="list-heading">
+      <h3>{{ title }}</h3>
+      @if (showPlayAll && tracks.length > 0) {
+        <button class="play-all-button" (click)="playAll.emit()">
+          <mat-icon>play_arrow</mat-icon>
+          Play all
+        </button>
+      }
+    </div>
     <div class="album-cards">
       @for (track of tracks; track track.id; let i = $index) {
-        @if (i < 4 && !artistMode || i < 8 && artistMode) {
-          <app-track-card [track]="track" [artistMode]="artistMode" class="card"></app-track-card>
+        @if (i < cardLimit) {
+          <app-track-card [track]="track"
+                          [artistMode]="artistMode"
+                          [useCustomPlayHandler]="useCustomPlayHandler"
+                          (playRequested)="trackSelected.emit(i)"
+                          class="card"></app-track-card>
         }
       }
     </div>

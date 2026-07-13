@@ -1,0 +1,55 @@
+<div class="tracks-page">
+  @if (loading) {
+    <div class="playlist-state">Loading song radio...</div>
+  } @else if (errorMessage) {
+    <div class="playlist-state error-state">
+      <p>{{ errorMessage }}</p>
+      <button (click)="goBack()">Go back</button>
+    </div>
+  } @else if (seedTrack) {
+    <div class="track-page-controls">
+      <button mat-icon-button class="go-back-button" (click)="goBack()" aria-label="Go back">
+        <mat-icon class="go-back-arrow">arrow_back</mat-icon>
+      </button>
+    </div>
+
+    <header class="playlist-info">
+      <div class="playlist-cover">
+        <img [src]="coverUrl()" [alt]="seedTrack.title + ' radio cover'">
+      </div>
+
+      <div class="playlist-details">
+        <p class="playlist-type">Song radio</p>
+        <h1 class="playlist-title">{{ seedTrack.title }} Radio</h1>
+        <p class="playlist-description">
+          A personalized station based on {{ seedTrack.title }} by {{ getSeedArtists() }}.
+        </p>
+        <div class="playlist-information">
+          <span class="ai-owner" matTooltip="Built from this song" matTooltipPosition="above">
+            <mat-icon>radio</mat-icon>
+          </span>
+          <p>{{ tracks.length }} songs, {{ getTotalTrackLength() }}</p>
+          <span class="separator">&bull;</span>
+          <p>Based on {{ seedTrack.title }}</p>
+        </div>
+      </div>
+    </header>
+
+    @if (tracks.length > 0) {
+      <app-tracks-table
+        [inArtistMode]="false"
+        [tracks]="tracks"
+        [allowPagination]="false"
+        [isPlaylist]="true"
+        [isCollaborative]="false"
+        [isUsersPlaylist]="false"
+        (onMainClick)="playTrack($event)"
+        (onCreateClick)="playAll()"
+      ></app-tracks-table>
+    } @else {
+      <div class="playlist-state empty-radio-state">
+        No radio recommendations are available for this song yet.
+      </div>
+    }
+  }
+</div>

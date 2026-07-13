@@ -17,8 +17,11 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
     public DbSet<TrackGenre> TrackGenres => Set<TrackGenre>();
     public DbSet<TrackAudioAnalysis> TrackAudioAnalyses => Set<TrackAudioAnalysis>();
     public DbSet<TrackAudioTag> TrackAudioTags => Set<TrackAudioTag>();
+    public DbSet<TrackMasterMigration> TrackMasterMigrations => Set<TrackMasterMigration>();
     public DbSet<UserTrackInteraction> UserTrackInteractions => Set<UserTrackInteraction>();
     public DbSet<UserMusicProfileCache> UserMusicProfileCaches => Set<UserMusicProfileCache>();
+    public DbSet<PersonalizedPlaylistTheme> PersonalizedPlaylistThemes => Set<PersonalizedPlaylistTheme>();
+    public DbSet<PersonalizedPlaylistThemeLabel> PersonalizedPlaylistThemeLabels => Set<PersonalizedPlaylistThemeLabel>();
     public DbSet<GeneratedPersonalizedPlaylist> GeneratedPersonalizedPlaylists => Set<GeneratedPersonalizedPlaylist>();
     public DbSet<GeneratedPersonalizedPlaylistTrack> GeneratedPersonalizedPlaylistTracks => Set<GeneratedPersonalizedPlaylistTrack>();
     public DbSet<AudioClusterRun> AudioClusterRuns => Set<AudioClusterRun>();
@@ -26,6 +29,7 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
     public DbSet<TrackClusterAssignment> TrackClusterAssignments => Set<TrackClusterAssignment>();
     public DbSet<TrackStemSet> TrackStemSets => Set<TrackStemSet>();
     public DbSet<TrackStem> TrackStems => Set<TrackStem>();
+    public DbSet<TrackStream> TrackStreams => Set<TrackStream>();
 
     public DbSet<Artist> Artists => Set<Artist>();
     public DbSet<AlbumType> AlbumTypes => Set<AlbumType>();
@@ -51,6 +55,42 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
                 .WithMany()
                 .HasForeignKey(x => x.AlbumId)
                 .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<TrackMasterMigration>(entity =>
+        {
+            entity.ToTable("TrackMasterMigrations");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.LegacyRelativePath)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(x => x.TargetObjectKey)
+                .HasMaxLength(500);
+
+            entity.Property(x => x.SourceChecksumSha256)
+                .HasMaxLength(64);
+
+            entity.Property(x => x.ContentType)
+                .HasMaxLength(100);
+
+            entity.Property(x => x.LastError)
+                .HasMaxLength(2_000);
+
+            entity.HasOne<Track>()
+                .WithMany()
+                .HasForeignKey(x => x.TrackId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.TrackId)
+                .IsUnique();
+
+            entity.HasIndex(x => new { x.Status, x.UpdatedAt });
+
+            entity.HasIndex(x => x.TargetObjectKey)
+                .IsUnique()
+                .HasFilter("[TargetObjectKey] IS NOT NULL");
         });
 
         modelBuilder.Entity<ArtistTrack>(entity =>
@@ -118,6 +158,13 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
 
             entity.HasIndex(x => new { x.AlbumId, x.DiscNumber, x.TrackNumber })
                 .IsUnique();
+
+            entity.HasIndex(x => new { x.AlbumId, x.TrackId })
+                .IsUnique();
+
+            entity.HasIndex(x => x.TrackId)
+                .IsUnique()
+                .HasFilter("[IsPrimaryRelease] = 1");
         });
 
         modelBuilder.Entity<TrackGenre>(entity =>
@@ -303,6 +350,53 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
             entity.HasIndex(x => x.GeneratedAt);
         });
 
+        modelBuilder.Entity<PersonalizedPlaylistTheme>(entity =>
+        {
+            entity.ToTable("PersonalizedPlaylistThemes");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.ThemeKey)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.Name)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(x => x.Description)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.HasMany(x => x.Labels)
+                .WithOne()
+                .HasForeignKey(x => x.ThemeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.ThemeKey)
+                .IsUnique();
+
+            entity.HasIndex(x => new { x.IsActive, x.SortOrder });
+
+            entity.Navigation(x => x.Labels)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+        });
+
+        modelBuilder.Entity<PersonalizedPlaylistThemeLabel>(entity =>
+        {
+            entity.ToTable("PersonalizedPlaylistThemeLabels");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Label)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.Weight)
+                .HasColumnType("decimal(9,4)");
+
+            entity.HasIndex(x => new { x.ThemeId, x.Polarity, x.Source, x.Label })
+                .IsUnique();
+        });
+
         modelBuilder.Entity<GeneratedPersonalizedPlaylist>(entity =>
         {
             entity.ToTable("GeneratedPersonalizedPlaylists");
@@ -323,6 +417,11 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
             entity.Property(x => x.PlaylistDate)
                 .HasColumnType("date");
 
+            entity.HasOne<PersonalizedPlaylistTheme>()
+                .WithMany()
+                .HasForeignKey(x => x.ThemeId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             entity.HasMany(x => x.Tracks)
                 .WithOne()
                 .HasForeignKey(x => x.PlaylistId)
@@ -332,6 +431,8 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
                 .IsUnique();
 
             entity.HasIndex(x => new { x.UserId, x.PlaylistDate });
+
+            entity.HasIndex(x => x.ThemeId);
 
             entity.Navigation(x => x.Tracks)
                 .UsePropertyAccessMode(PropertyAccessMode.Field);
@@ -473,6 +574,19 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
 
             entity.Property(x => x.ChecksumSha256)
                 .HasMaxLength(64);
+        });
+
+        modelBuilder.Entity<TrackStream>(entity =>
+        {
+            entity.ToTable("TrackStream", table => table.ExcludeFromMigrations());
+            entity.HasKey(x => x.Id);
+
+            entity.HasOne<Track>()
+                .WithMany()
+                .HasForeignKey(x => x.TrackId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasIndex(x => new { x.TrackId, x.StreamedAt });
         });
 
         modelBuilder.Entity<Artist>(entity =>

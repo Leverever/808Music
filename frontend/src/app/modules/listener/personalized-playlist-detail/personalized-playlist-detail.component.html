@@ -1,0 +1,47 @@
+<div class="tracks-page">
+  @if (loading) {
+    <div class="playlist-state">Loading daily playlist...</div>
+  } @else if (errorMessage) {
+    <div class="playlist-state error-state">
+      <p>{{ errorMessage }}</p>
+      <button (click)="goBack()">Back to playlists</button>
+    </div>
+  } @else if (playlist) {
+    <div class="track-page-controls">
+      <button mat-icon-button class="go-back-button" (click)="goBack()" aria-label="Go back">
+        <mat-icon class="go-back-arrow">arrow_back</mat-icon>
+      </button>
+    </div>
+
+    <header class="playlist-info">
+      <div class="playlist-cover">
+        <img [src]="playlistCoverUrl()" [alt]="playlist.name">
+      </div>
+
+      <div class="playlist-details">
+        <p class="playlist-type">Personalized daily playlist</p>
+        <h1 class="playlist-title">{{ playlist.name }}</h1>
+        <p class="playlist-description">{{ playlist.description }}</p>
+        <div class="playlist-information">
+          <span class="ai-owner" matTooltip="Generated for you" matTooltipPosition="above">
+            <mat-icon>auto_awesome</mat-icon>
+          </span>
+          <p>{{ playlist.tracks.length }} songs, {{ getTotalTrackLength() }}</p>
+          <span class="separator">&bull;</span>
+          <p>{{ playlist.playlistDate | date }}</p>
+        </div>
+      </div>
+    </header>
+
+    <app-tracks-table
+      [inArtistMode]="false"
+      [tracks]="tracks"
+      [allowPagination]="false"
+      [isPlaylist]="true"
+      [isCollaborative]="false"
+      [isUsersPlaylist]="false"
+      (onMainClick)="playTrack($event)"
+      (onCreateClick)="playAll()"
+    ></app-tracks-table>
+  }
+</div>

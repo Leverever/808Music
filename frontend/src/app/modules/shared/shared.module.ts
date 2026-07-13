@@ -251,6 +251,7 @@ import {LottieComponent} from 'ngx-lottie';
     AlbumCardListComponent,
     ArtistBigCardComponent,
     ArtistBigCardListComponent,
+    TrackCardListComponent,
     MessageContentCardComponent,
     PlaylistCardListComponent,
     SocialShareBottomSheetComponent,

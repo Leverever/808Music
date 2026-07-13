@@ -1,7 +1,7 @@
 @if (track) {
   <div class="track-card" (mouseover)="showPlayButton(true)" (mouseleave)="showPlayButton(false)" [ngStyle]="cardStyle">
     <div class="tc-content">
-      <div class="tc-thumbnail" [ngStyle]="{'background-image': 'url('+MyConfig.api_address+track.coverPath+')'}"></div>
+      <div class="tc-thumbnail" [ngStyle]="{'background-image': 'url('+getCoverUrl(track.coverPath)+')'}"></div>
       <div class="tc-info">
         <h6 (click)="goToTrack()">{{ track.title }}</h6>
         @if (!artistMode) {

@@ -23,6 +23,11 @@
   position: relative;
 }
 
+.search-bar > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
 .search-bar > div > mat-icon{
   position: absolute;
   left:10px;
@@ -34,4 +39,8 @@
   position: absolute;
   right:10px;
   top:6px;
+}
+:host {
+  display: block;
+  width: 100%;
 }

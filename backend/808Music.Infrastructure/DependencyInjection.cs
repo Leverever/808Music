@@ -6,6 +6,7 @@ using _808Music.Application.Common.Persistence;
 using _808Music.Application.Common.Scheduling;
 using _808Music.Application.Common.Search;
 using _808Music.Application.Stems;
+using _808Music.Application.Tracks;
 using _808Music.Domain.Static;
 using _808Music.Infrastructure.Ai;
 using _808Music.Infrastructure.AudioAnalysis;
@@ -20,6 +21,7 @@ using _808Music.Infrastructure.Persistence.Repositories;
 using _808Music.Infrastructure.Recommendations;
 using _808Music.Infrastructure.Stems;
 using _808Music.Infrastructure.Storage;
+using _808Music.Infrastructure.TrackMigration;
 using Amazon.S3;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -38,8 +40,10 @@ public static class DependencyInjection
         services.AddScoped<IAudioClusteringService, QueuedAudioClusteringService>();
         services.AddScoped<IAudioClusteringJobQueue, AudioClusteringJobQueue>();
         services.AddScoped<IAutomaticPlaylistGenerationService, PersonalizedAutomaticPlaylistGenerationService>();
+        services.AddScoped<IPersonalizedPlaylistThemeProvider, PersonalizedPlaylistThemeProvider>();
         services.AddScoped<IUserMusicProfileService, UserMusicProfileService>();
         services.AddScoped<IPersonalizedRecommendationService, PersonalizedRecommendationService>();
+        services.AddScoped<ILegacyTrackMasterMigrationService, LegacyTrackMasterMigrationService>();
         services.AddScoped<IRecurringApplicationTask, AudioClusteringRecurringTask>();
         services.AddScoped<IRecurringApplicationTask, DailyAutomaticPlaylistRecurringTask>();
         services.AddScoped<IRecurringApplicationTask, DailyUserMusicProfileCacheRecurringTask>();
@@ -63,6 +67,8 @@ public static class DependencyInjection
             configuration.GetSection(UserMusicProfileOptions.SectionName));
         services.Configure<PersonalizedRecommendationOptions>(
             configuration.GetSection(PersonalizedRecommendationOptions.SectionName));
+        services.Configure<LegacyTrackMigrationOptions>(
+            configuration.GetSection(LegacyTrackMigrationOptions.SectionName));
         services.Configure<S3Options>(
             configuration.GetSection(S3Options.SectionName));
 

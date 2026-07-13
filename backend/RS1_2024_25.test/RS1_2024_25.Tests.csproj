@@ -39,4 +39,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RS1_2024_25.API\_808Music.Api.csproj" />
+  </ItemGroup>
+
 </Project>

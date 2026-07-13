@@ -7,11 +7,13 @@
     <div class="album-cards">
       @for (artist of artists; track artist.id; let i = $index) {
         @if (i < 6) {
-          <app-artist-big-card [artist]="artist" [numberDescription]="numberDescription"></app-artist-big-card>
+          <app-artist-big-card [artist]="artist"
+                               [numberDescription]="numberDescription"
+                               [description]="cardDescriptions[artist.id]"></app-artist-big-card>
         }
       }
       @if (artists != null) {
-        @if (artists.length >= 6) {
+        @if (showViewAll && artists.length >= 6) {
           <div class="view-all" (click)="viewAll(false)">...</div>
         }
       }

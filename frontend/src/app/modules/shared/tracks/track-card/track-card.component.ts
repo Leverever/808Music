@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {ArtistTrackDto, TrackGetResponse} from '../../../../endpoints/track-endpoints/track-get-by-id-endpoint.service';
 import {ArtistSimpleDto} from '../../../../services/auth-services/dto/artist-dto';
 import {Router} from '@angular/router';
@@ -14,6 +14,8 @@ import {Subscription} from 'rxjs';
 export class TrackCardComponent implements AfterViewInit, OnInit, OnDestroy {
   @Input() track : TrackGetResponse | null = null;
   @Input() artistMode : boolean = false;
+  @Input() useCustomPlayHandler: boolean = false;
+  @Output() playRequested = new EventEmitter<void>();
 
   playBtnSyle = {
     'display': 'none',
@@ -90,7 +92,17 @@ export class TrackCardComponent implements AfterViewInit, OnInit, OnDestroy {
       this.router.navigate([`/artist/tracks/${this.track?.albumId}/edit/${this.track?.id}?albumId=${this.track?.albumId}`]);
     }
     else {
+      if(this.useCustomPlayHandler)
+      {
+        this.playRequested.emit();
+        return;
+      }
+
       this.musicPlayerService.createQueue([this.track!], {display: this.track!.title, value: "/listener/release/"+this.track!.albumId});
     }
+  }
+
+  getCoverUrl(path: string): string {
+    return /^https?:\/\//i.test(path) ? path : MyConfig.api_address + path;
   }
 }

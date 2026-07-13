@@ -1,6 +1,6 @@
 <div class="music-controller">
   <audio [src]="masterAudioSource" id="player" (timeupdate)="setSliderValue($event)"
-         [autoplay]="playingState && !stemModeActive" (ended)="skipNext()" (loadedmetadata)="restoreMasterAudioPosition()"
+         [autoplay]="playingState && !stemModeActive" (ended)="handleTrackEnded()" (loadedmetadata)="restoreMasterAudioPosition()"
          (error)="handleMasterPlaybackError()"></audio>
     <mat-slider min="0" [max]="track?.length" discrete class="seekable-slider" [displayWith]="secondsPipe.transform">
       <input matSliderThumb (valueChange)="setCurrentPlaybackTime($event)" [(value)]="currentPlaybackTime" (dragEnd)="userSetSlider($event)">

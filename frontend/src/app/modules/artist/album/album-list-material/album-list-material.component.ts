@@ -341,7 +341,7 @@ export class AlbumListMaterialComponent implements OnInit {
   checkoutTracks(e: number) {
     if(this.hasControls)
     {
-      this.router.navigate(["/artist/tracks/", e])
+      this.router.navigate(["/artist/album", e, "tracks"])
     }
     else {
       this.router.navigate(["/listener/release/", e])

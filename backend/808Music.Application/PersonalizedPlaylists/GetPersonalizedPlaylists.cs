@@ -15,6 +15,7 @@ public sealed record GeneratedPersonalizedPlaylistSummary(
     string ThemeKey,
     string Name,
     string Description,
+    string CoverPath,
     DateOnly PlaylistDate,
     DateTime CreatedAt,
     int TrackCount);
@@ -28,6 +29,7 @@ public sealed record GetPersonalizedPlaylistResult(
     string ThemeKey,
     string Name,
     string Description,
+    string CoverPath,
     DateOnly PlaylistDate,
     DateTime CreatedAt,
     IReadOnlyList<GeneratedPersonalizedPlaylistTrackItem> Tracks);
@@ -105,25 +107,65 @@ public sealed class GetDailyPersonalizedPlaylistsHandler : IGetDailyPersonalized
         var playlistIds = playlists
             .Select(x => x.Id)
             .ToArray();
-        var trackCounts = await _dbContext.GeneratedPersonalizedPlaylistTracks
+        var playlistTrackRows = await _dbContext.GeneratedPersonalizedPlaylistTracks
             .AsNoTracking()
             .Where(x => playlistIds.Contains(x.PlaylistId))
-            .GroupBy(x => x.PlaylistId)
-            .Select(x => new PlaylistTrackCountProjection(x.Key, x.Count()))
+            .Select(x => new PlaylistTrackSummaryProjection(
+                x.PlaylistId,
+                x.TrackId,
+                x.Position))
             .ToListAsync(cancellationToken);
-        var trackCountsByPlaylist = trackCounts.ToDictionary(x => x.PlaylistId, x => x.TrackCount);
+        var trackCountsByPlaylist = playlistTrackRows
+            .GroupBy(x => x.PlaylistId)
+            .ToDictionary(x => x.Key, x => x.Count());
+        var firstTrackIdsByPlaylist = playlistTrackRows
+            .GroupBy(x => x.PlaylistId)
+            .ToDictionary(
+                x => x.Key,
+                x => x.OrderBy(track => track.Position).First().TrackId);
+        var firstTrackIds = firstTrackIdsByPlaylist.Values
+            .Distinct()
+            .ToArray();
+        var artistRows = await _dbContext.ArtistTracks
+            .AsNoTracking()
+            .Where(x => firstTrackIds.Contains(x.TrackId))
+            .Select(x => new FirstTrackArtistProjection(
+                x.TrackId,
+                x.ArtistId,
+                x.IsLead,
+                x.Artist != null ? x.Artist.ProfilePhotoPath : string.Empty))
+            .ToListAsync(cancellationToken);
+        var artistCoverPathsByTrack = artistRows
+            .GroupBy(x => x.TrackId)
+            .ToDictionary(
+                x => x.Key,
+                x => x
+                    .OrderByDescending(artist => artist.IsLead)
+                    .ThenBy(artist => artist.ArtistId)
+                    .Select(artist => FormatArtistProfilePhotoPath(artist.ProfilePhotoPath))
+                    .FirstOrDefault() ?? FormatArtistProfilePhotoPath(null));
 
         return new GetDailyPersonalizedPlaylistsResult(
             query.PlaylistDate,
             playlists
-                .Select(x => new GeneratedPersonalizedPlaylistSummary(
-                    x.Id,
-                    x.ThemeKey,
-                    x.Name,
-                    x.Description,
-                    x.PlaylistDate,
-                    x.CreatedAt,
-                    trackCountsByPlaylist.GetValueOrDefault(x.Id)))
+                .Select(x =>
+                {
+                    var coverPath = firstTrackIdsByPlaylist.TryGetValue(x.Id, out var firstTrackId)
+                        ? artistCoverPathsByTrack.GetValueOrDefault(
+                            firstTrackId,
+                            FormatArtistProfilePhotoPath(null))
+                        : FormatArtistProfilePhotoPath(null);
+
+                    return new GeneratedPersonalizedPlaylistSummary(
+                        x.Id,
+                        x.ThemeKey,
+                        x.Name,
+                        x.Description,
+                        coverPath,
+                        x.PlaylistDate,
+                        x.CreatedAt,
+                        trackCountsByPlaylist.GetValueOrDefault(x.Id));
+                })
                 .ToArray());
     }
 
@@ -135,9 +177,23 @@ public sealed class GetDailyPersonalizedPlaylistsHandler : IGetDailyPersonalized
         DateOnly PlaylistDate,
         DateTime CreatedAt);
 
-    private sealed record PlaylistTrackCountProjection(
+    private static string FormatArtistProfilePhotoPath(string? profilePhotoPath)
+    {
+        return string.IsNullOrWhiteSpace(profilePhotoPath)
+            ? "/media/Images/ArtistPfps/placeholder.png"
+            : $"/media/Images/ArtistPfps/{profilePhotoPath}";
+    }
+
+    private sealed record PlaylistTrackSummaryProjection(
         Guid PlaylistId,
-        int TrackCount);
+        int TrackId,
+        int Position);
+
+    private sealed record FirstTrackArtistProjection(
+        int TrackId,
+        int ArtistId,
+        bool IsLead,
+        string ProfilePhotoPath);
 }
 
 public sealed class GetPersonalizedPlaylistHandler : IGetPersonalizedPlaylistHandler
@@ -198,6 +254,7 @@ public sealed class GetPersonalizedPlaylistHandler : IGetPersonalizedPlaylistHan
                 playlist.ThemeKey,
                 playlist.Name,
                 playlist.Description,
+                FormatArtistProfilePhotoPath(null),
                 playlist.PlaylistDate,
                 playlist.CreatedAt,
                 []);
@@ -231,12 +288,17 @@ public sealed class GetPersonalizedPlaylistHandler : IGetPersonalizedPlaylistHan
                     x.Reason);
             })
             .ToArray();
+        var firstTrackId = playlistTrackRows[0].TrackId;
+        var coverPath = artistsByTrack
+            .GetValueOrDefault(firstTrackId, [])
+            .FirstOrDefault()?.ProfilePhotoPath ?? FormatArtistProfilePhotoPath(null);
 
         return new GetPersonalizedPlaylistResult(
             playlist.Id,
             playlist.ThemeKey,
             playlist.Name,
             playlist.Description,
+            coverPath,
             playlist.PlaylistDate,
             playlist.CreatedAt,
             tracks);
@@ -284,7 +346,7 @@ public sealed class GetPersonalizedPlaylistHandler : IGetPersonalizedPlaylistHan
                 x => x.Key,
                 x => (IReadOnlyList<GeneratedPersonalizedPlaylistTrackArtist>)x
                     .OrderByDescending(artist => artist.IsLead)
-                    .ThenBy(artist => artist.Name)
+                    .ThenBy(artist => artist.ArtistId)
                     .Select(artist => new GeneratedPersonalizedPlaylistTrackArtist(
                         artist.ArtistId,
                         artist.Name,

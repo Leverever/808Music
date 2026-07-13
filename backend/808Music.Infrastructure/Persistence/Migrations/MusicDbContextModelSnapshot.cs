@@ -137,7 +137,12 @@ namespace _808Music.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TrackId");
+                    b.HasIndex("TrackId")
+                        .IsUnique()
+                        .HasFilter("[IsPrimaryRelease] = 1");
+
+                    b.HasIndex("AlbumId", "TrackId")
+                        .IsUnique();
 
                     b.HasIndex("AlbumId", "DiscNumber", "TrackNumber")
                         .IsUnique();
@@ -286,6 +291,9 @@ namespace _808Music.Infrastructure.Persistence.Migrations
                     b.Property<DateOnly>("PlaylistDate")
                         .HasColumnType("date");
 
+                    b.Property<Guid?>("ThemeId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("ThemeKey")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -295,6 +303,8 @@ namespace _808Music.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ThemeId");
 
                     b.HasIndex("UserId", "PlaylistDate");
 
@@ -338,6 +348,83 @@ namespace _808Music.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("GeneratedPersonalizedPlaylistTracks", (string)null);
+                });
+
+            modelBuilder.Entity("_808Music.Domain.Catalog.PersonalizedPlaylistTheme", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ThemeKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("TrackCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ThemeKey")
+                        .IsUnique();
+
+                    b.HasIndex("IsActive", "SortOrder");
+
+                    b.ToTable("PersonalizedPlaylistThemes", (string)null);
+                });
+
+            modelBuilder.Entity("_808Music.Domain.Catalog.PersonalizedPlaylistThemeLabel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Polarity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ThemeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Weight")
+                        .HasColumnType("decimal(9,4)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ThemeId", "Polarity", "Source", "Label")
+                        .IsUnique();
+
+                    b.ToTable("PersonalizedPlaylistThemeLabels", (string)null);
                 });
 
             modelBuilder.Entity("_808Music.Domain.Catalog.Track", b =>
@@ -542,6 +629,77 @@ namespace _808Music.Infrastructure.Persistence.Migrations
                     b.HasIndex("TrackId");
 
                     b.ToTable("TrackGenres", (string)null);
+                });
+
+            modelBuilder.Entity("_808Music.Domain.Catalog.TrackMasterMigration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("AnalysisId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime?>("LegacyDeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LegacyRelativePath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("SourceChecksumSha256")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<long?>("SourceSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("StemSetId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TargetObjectKey")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("TrackId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TargetObjectKey")
+                        .IsUnique()
+                        .HasFilter("[TargetObjectKey] IS NOT NULL");
+
+                    b.HasIndex("TrackId")
+                        .IsUnique();
+
+                    b.HasIndex("Status", "UpdatedAt");
+
+                    b.ToTable("TrackMasterMigrations", (string)null);
                 });
 
             modelBuilder.Entity("_808Music.Domain.Catalog.TrackStem", b =>
@@ -870,6 +1028,14 @@ namespace _808Music.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("_808Music.Domain.Catalog.GeneratedPersonalizedPlaylist", b =>
+                {
+                    b.HasOne("_808Music.Domain.Catalog.PersonalizedPlaylistTheme", null)
+                        .WithMany()
+                        .HasForeignKey("ThemeId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
             modelBuilder.Entity("_808Music.Domain.Catalog.GeneratedPersonalizedPlaylistTrack", b =>
                 {
                     b.HasOne("_808Music.Domain.Catalog.GeneratedPersonalizedPlaylist", null)
@@ -882,6 +1048,15 @@ namespace _808Music.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("TrackId")
                         .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("_808Music.Domain.Catalog.PersonalizedPlaylistThemeLabel", b =>
+                {
+                    b.HasOne("_808Music.Domain.Catalog.PersonalizedPlaylistTheme", null)
+                        .WithMany("Labels")
+                        .HasForeignKey("ThemeId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -952,6 +1127,15 @@ namespace _808Music.Infrastructure.Persistence.Migrations
                     b.Navigation("Track");
                 });
 
+            modelBuilder.Entity("_808Music.Domain.Catalog.TrackMasterMigration", b =>
+                {
+                    b.HasOne("_808Music.Domain.Catalog.Track", null)
+                        .WithMany()
+                        .HasForeignKey("TrackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("_808Music.Domain.Catalog.TrackStem", b =>
                 {
                     b.HasOne("_808Music.Domain.Catalog.TrackStemSet", null)
@@ -992,6 +1176,11 @@ namespace _808Music.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("_808Music.Domain.Catalog.GeneratedPersonalizedPlaylist", b =>
                 {
                     b.Navigation("Tracks");
+                });
+
+            modelBuilder.Entity("_808Music.Domain.Catalog.PersonalizedPlaylistTheme", b =>
+                {
+                    b.Navigation("Labels");
                 });
 
             modelBuilder.Entity("_808Music.Domain.Catalog.Track", b =>

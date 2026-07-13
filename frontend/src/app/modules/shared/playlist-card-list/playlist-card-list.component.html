@@ -7,10 +7,11 @@
         @if (i < 6 && !artistMode || i < 8 && artistMode) {
           <app-playlist-card
             [title]="playlist.title"
-            [imageUrl]="MyConfig.media_address + playlist.coverPath"
+            [imageUrl]="getCoverUrl(playlist.coverPath)"
             [id]="playlist.id"
             [tooltip]="playlist.title"
             [username]="playlist.ownerUsername"
+            [subtitle]="playlist.description ?? ''"
             (onClick)="goToPlaylist($event)"
             (onEdit)="goToEditPlaylist($event)"
             (onDelete)="deletePlaylist($event)"

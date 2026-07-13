@@ -34,6 +34,7 @@ import {MatBottomSheet} from '@angular/material/bottom-sheet';
 import {ShareBottomSheetComponent} from '../bottom-sheets/share-bottom-sheet/share-bottom-sheet.component';
 import {MusicPlayerService} from '../../../services/music-player.service';
 import {AddTrackToLikedSongsService} from '../../../endpoints/playlist-endpoints/add-to-liked-songs-endpoint';
+import {TrackInteractionService} from '../../../services/personalization/track-interaction.service';
 import {IsLikedSongService} from '../../../endpoints/playlist-endpoints/is-liked-song-endpoint.service';
 import {
   GetPlaylistsByUserIdEndpointService
@@ -129,6 +130,7 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
               private playlistTracksService: PlaylistTracksGetEndpointService,
               private isOnPlaylist: IsOnPlaylistService,
               private removeFromPlaylist: RemoveTrackFromPlaylistService,
+              private interactions: TrackInteractionService,
               private artistHandler: ArtistHandlerService,
               private cdRef: ChangeDetectorRef,
   ) {
@@ -394,6 +396,7 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
       this.addTrackToLikedSongsService.handleAsync(request).subscribe({
         next: () => {
           this.likedSongs.set(id, false);
+          this.interactions.record(id, 'Unliked', {contextType: 'Playback'});
           this.snackBar.open("Song removed from liked songs", "Dismiss", {duration: 3500});
         },
         error: error => {
@@ -404,6 +407,7 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
       this.addTrackToLikedSongsService.handleAsync(request).subscribe({
         next: () => {
           this.likedSongs.set(id, true);
+          this.interactions.record(id, 'Liked', {contextType: 'Playback'});
           this.snackBar.open("Song added to liked songs", "Dismiss", {duration: 3500});
         },
         error: error => {

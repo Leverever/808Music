@@ -11,6 +11,10 @@ public interface IMediaStorage
         TimeSpan expiresIn,
         CancellationToken cancellationToken = default);
 
+    Task<MediaObjectMetadata?> GetMetadataAsync(
+        string objectKey,
+        CancellationToken cancellationToken = default);
+
     Task DeleteAsync(
         string objectKey,
         CancellationToken cancellationToken = default);
@@ -19,9 +23,16 @@ public interface IMediaStorage
 public sealed record UploadMediaObject(
     string ObjectKey,
     Stream Content,
-    string ContentType);
+    string ContentType,
+    IReadOnlyDictionary<string, string>? Metadata = null);
 
 public sealed record StoredMediaObject(
     string ObjectKey,
     string ContentType,
     long? SizeInBytes);
+
+public sealed record MediaObjectMetadata(
+    string ObjectKey,
+    string ContentType,
+    long SizeInBytes,
+    IReadOnlyDictionary<string, string> Metadata);

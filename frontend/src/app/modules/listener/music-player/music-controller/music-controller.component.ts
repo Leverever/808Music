@@ -12,6 +12,8 @@ import {
   TrackPlaybackManifestResponse
 } from '../../../../endpoints/track-endpoints/track-playback-manifest-endpoint.service';
 import {MatSlideToggleChange} from '@angular/material/slide-toggle';
+import {PlaybackInteractionTrackerService} from '../../../../services/personalization/playback-interaction-tracker.service';
+import {TrackInteractionContext} from '../../../../endpoints/personalization-endpoints/track-interaction-endpoint.service';
 
 interface StemMix {
   name: string;
@@ -78,7 +80,8 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
   constructor(private musicPlayerService: MusicPlayerService,
               private httpClient : HttpClient,
               private auth: MyUserAuthService,
-              private playbackManifestEndpoint: TrackPlaybackManifestEndpointService) {
+              private playbackManifestEndpoint: TrackPlaybackManifestEndpointService,
+              private playbackInteractionTracker: PlaybackInteractionTrackerService) {
   }
 
   ngOnInit(): void {
@@ -102,6 +105,10 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
 
       if(this.track != null)
       {
+        this.playbackInteractionTracker.beginTrack(
+          this.track.id,
+          this.track.length * 1000,
+          this.getInteractionContext());
         this.initializeMediaSession();
         this.updateMediaSessionMetadata();
         this.loadPlaybackForTrack(this.track.id, false);
@@ -109,6 +116,11 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
 
       this.musicPlayerService.trackEvent.subscribe({
         next: value => {
+          this.playbackInteractionTracker.beginTrack(
+            value.id,
+            value.length * 1000,
+            this.getInteractionContext(),
+            true);
           this.track = value;
           this.streamCounted = false;
           this.streamedSec = 0;
@@ -176,6 +188,7 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
     }
 
     this.clearMediaSession();
+    this.playbackInteractionTracker.playbackPaused();
     this.teardownStemPlayers();
     void this.audioContext?.close();
   }
@@ -269,6 +282,7 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
     {
       this.playingState = false;
       this.pauseAllAudio();
+      this.playbackInteractionTracker.playbackPaused();
     }
 
     this.updateMediaSessionPlaybackState();
@@ -359,6 +373,18 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
       this.seekTo(0);
       return;
     }
+
+    this.playbackInteractionTracker.skipTrack();
+
+    this.advanceQueue();
+  }
+
+  handleTrackEnded() {
+    this.playbackInteractionTracker.completeTrack();
+    this.advanceQueue();
+  }
+
+  private advanceQueue() {
 
     if(this.playingState)
     {
@@ -615,7 +641,7 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
           this.setSliderValue();
           this.syncStemPlayers();
         };
-        player.endedHandler = () => this.skipNext();
+        player.endedHandler = () => this.handleTrackEnded();
         audio.addEventListener("timeupdate", player.timeUpdateHandler);
         audio.addEventListener("ended", player.endedHandler);
       }
@@ -661,8 +687,10 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
     }
 
     audioElements.forEach(audio => this.restoreAudioPosition(audio));
+    const trackId = this.track?.id;
     this.resumeAudioContext()
       .then(() => Promise.all(audioElements.map(audio => audio.play())))
+      .then(() => this.playbackInteractionTracker.playbackStarted(trackId))
       .catch((error: Error) => {
         console.log(error);
       });
@@ -736,6 +764,18 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
     }
 
     return this.player;
+  }
+
+  private getInteractionContext(): TrackInteractionContext {
+    switch(this.musicPlayerService.getQueueType())
+    {
+      case 'autoplay': return 'Autoplay';
+      case 'radio': return 'Radio';
+      case 'playlist':
+      case 'personalized-playlist': return 'Playlist';
+      case 'song': return 'Manual';
+      default: return 'Playback';
+    }
   }
 
   private getActiveCurrentTime() {

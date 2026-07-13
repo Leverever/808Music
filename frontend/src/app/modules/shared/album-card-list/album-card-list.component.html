@@ -5,8 +5,8 @@
       @for (album of albums?.dataItems; track album.id; let i = $index) {
         @if (i < 6 && !artistMode || i < 8 && artistMode) {
         <app-album-card [title]="album.title"
-                        [subtitle]="album.type + ' • ' + getYear(album.releaseDate)"
-                        [imageUrl]="MyConfig.api_address+album.coverArt"
+                        [subtitle]="getSubtitle(album)"
+                        [imageUrl]="getImageUrl(album.coverArt)"
                         [id]="album.id"
                         [tooltip]="album.title"
                         [artistId]="album.artistId"
@@ -22,7 +22,7 @@
         }
       }
       @if (albums != null) {
-        @if (albums.dataItems.length >= 6 && !artistMode) {
+        @if (showViewAll && albums.dataItems.length >= 6 && !artistMode) {
           <div class="view-all" (click)="viewAll(false)">...</div>
         }
       }

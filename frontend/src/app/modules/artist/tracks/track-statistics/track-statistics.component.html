@@ -1,0 +1,33 @@
+<div class="statistics-page">
+  <header>
+    <button mat-icon-button (click)="goBack()"><mat-icon>arrow_back</mat-icon></button>
+    <div><p>TRACK ANALYTICS</p><h1>Performance</h1></div>
+  </header>
+
+  <nav class="range-picker" aria-label="Statistics period">
+    @for (range of ranges; track range) {
+      <button mat-stroked-button [class.active]="selectedDays === range" (click)="load(range)">{{ range === 365 ? '1 year' : range + ' days' }}</button>
+    }
+  </nav>
+
+  @if (loading) {
+    <div class="state"><mat-spinner diameter="48"></mat-spinner><p>Loading statistics…</p></div>
+  } @else if (errorMessage || !statistics) {
+    <div class="state error"><mat-icon>error_outline</mat-icon><p>{{ errorMessage }}</p><button mat-button (click)="load(selectedDays)">Try again</button></div>
+  } @else {
+    <section class="metric-grid">
+      <article><mat-icon>play_circle</mat-icon><span>All-time streams</span><strong>{{ statistics.allTimeStreams | number }}</strong></article>
+      <article><mat-icon>schedule</mat-icon><span>Estimated streamed time</span><strong>{{ estimatedHours | number:'1.0-1' }}h</strong></article>
+      <article><mat-icon>person</mat-icon><span>Identified listeners</span><strong>{{ statistics.allTimeUniqueListeners | number }}</strong></article>
+      <article><mat-icon>date_range</mat-icon><span>Streams in period</span><strong>{{ statistics.periodStreams | number }}</strong></article>
+      <article><mat-icon>groups</mat-icon><span>Listeners in period</span><strong>{{ statistics.periodUniqueListeners | number }}</strong></article>
+    </section>
+
+    <section class="chart-card">
+      <div><p>DAILY TREND</p><h2>Streams over {{ selectedDays }} days</h2></div>
+      <div class="chart-wrap"><canvas #streamsChart></canvas></div>
+    </section>
+
+    <p class="estimate-note"><mat-icon>info</mat-icon> Streamed time is estimated from track duration × recorded stream count. Anonymous streams are excluded from unique-listener totals.</p>
+  }
+</div>

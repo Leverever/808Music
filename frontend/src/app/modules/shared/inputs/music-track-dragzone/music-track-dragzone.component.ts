@@ -5,8 +5,15 @@ import {ControlValueAccessor, FormControl} from '@angular/forms';
 
 const ALLOWED_FILE_TYPES = [
   'audio/mpeg',
-  //'audio/wav',
+  'audio/wav',
+  'audio/x-wav',
+  'audio/flac',
+  'audio/x-flac',
+  'audio/mp4',
+  'audio/x-m4a'
 ];
+
+const ALLOWED_FILE_EXTENSIONS = ['.mp3', '.wav', '.flac', '.m4a'];
 
 @Component({
   selector: 'app-music-track-dragzone',
@@ -32,18 +39,25 @@ export class MusicTrackDragzoneComponent implements OnChanges, OnInit {
   inputElement: HTMLInputElement | null = null;
 
   selectFile(e: any) {
-    if (this.allowedFileTypes.indexOf((e.target.files[0] as File).type) === -1) {
+    const selectedFile = e.target.files?.[0] as File | undefined;
+    if (!selectedFile) return;
+
+    const normalizedName = selectedFile.name.toLowerCase();
+    const isAllowed = this.allowedFileTypes.includes(selectedFile.type) ||
+      ALLOWED_FILE_EXTENSIONS.some(extension => normalizedName.endsWith(extension));
+    if (!isAllowed) {
       alert('File type is not allowed.');
       return;
     }
 
-    this.file = e.target.files[0] as File;
+    this.file = selectedFile;
 
     this.fileUrl = URL.createObjectURL(this.file);
     this.imageEmit.emit(this.file);
   }
 
   removeFile() {
+    if (this.fileUrl) URL.revokeObjectURL(this.fileUrl);
     this.fileUrl = "";
     this.file = null;
     if(this.inputElement){

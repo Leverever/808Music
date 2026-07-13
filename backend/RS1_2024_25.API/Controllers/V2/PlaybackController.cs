@@ -96,7 +96,7 @@ public sealed class PlaybackController : ControllerBase
             var canManageTrack = _tokenProvider.AuthorizeUserArtist(
                 Request,
                 leadArtistId.Value,
-                ["Owner", "General Manager", "Streaming Manager"]);
+                ["Owner", "General Manager", "Streaming Manager", "Shop Manager", "Viewer"]);
 
             return canManageTrack ? null : Forbid();
         }

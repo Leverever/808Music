@@ -2,6 +2,7 @@ using _808Music.Application.Abstractions;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.Extensions.Options;
+using System.Net;
 
 namespace _808Music.Infrastructure.Storage;
 
@@ -22,13 +23,20 @@ public sealed class S3MediaStorage : IMediaStorage
         UploadMediaObject request,
         CancellationToken cancellationToken = default)
     {
-        await _s3.PutObjectAsync(new PutObjectRequest
+        var putRequest = new PutObjectRequest
         {
             BucketName = _options.Bucket,
             Key = request.ObjectKey,
             InputStream = request.Content,
             ContentType = request.ContentType
-        }, cancellationToken);
+        };
+
+        foreach (var item in request.Metadata ?? new Dictionary<string, string>())
+        {
+            putRequest.Metadata[item.Key] = item.Value;
+        }
+
+        await _s3.PutObjectAsync(putRequest, cancellationToken);
 
         return new StoredMediaObject(
             request.ObjectKey,
@@ -56,6 +64,44 @@ public sealed class S3MediaStorage : IMediaStorage
     public Task DeleteAsync(string objectKey, CancellationToken cancellationToken = default)
     {
         return _s3.DeleteObjectAsync(_options.Bucket, objectKey, cancellationToken);
+    }
+
+    public async Task<MediaObjectMetadata?> GetMetadataAsync(
+        string objectKey,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await _s3.GetObjectMetadataAsync(
+                _options.Bucket,
+                objectKey,
+                cancellationToken);
+            var metadata = response.Metadata.Keys
+                .ToDictionary(
+                    NormalizeMetadataKey,
+                    key => response.Metadata[key],
+                    StringComparer.OrdinalIgnoreCase);
+
+            return new MediaObjectMetadata(
+                objectKey,
+                response.Headers.ContentType ?? "application/octet-stream",
+                response.Headers.ContentLength,
+                metadata);
+        }
+        catch (AmazonS3Exception ex) when (
+            ex.StatusCode == HttpStatusCode.NotFound ||
+            string.Equals(ex.ErrorCode, "NoSuchKey", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+    }
+
+    private static string NormalizeMetadataKey(string key)
+    {
+        const string prefix = "x-amz-meta-";
+        return key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+            ? key[prefix.Length..]
+            : key;
     }
 
     private static IAmazonS3 CreatePublicS3Client(S3Options options)

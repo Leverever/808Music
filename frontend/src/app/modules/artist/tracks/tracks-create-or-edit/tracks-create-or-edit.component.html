@@ -1,108 +1,38 @@
-<div class="tracks-base-page">
-  <div class="tracks-dual-controls">
-    <button mat-icon-button (click)="emitCancel()">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
-    @if (oldTrack != null) {
-      <h1>Edit Song</h1>
-    } @else {
-      <h1>Create Song</h1>
+<section class="create-track">
+  <header>
+    <button mat-icon-button (click)="cancel()" aria-label="Close create track"><mat-icon>close</mat-icon></button>
+    <div><p>NEW MASTER</p><h2>Create track</h2></div>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <app-music-track-dragzone
+      [title]="'Master track'"
+      (imageEmit)="setTrackFile($event)">
+    </app-music-track-dragzone>
+    @if (form.controls.masterFile.touched && form.controls.masterFile.invalid) {
+      <span class="field-error">Select an MP3, WAV, FLAC or M4A master file.</span>
     }
-  </div>
-  @if (oldTrack != null) {
-    <div class="player">
-      <div class="dual-controls">
-        <h6>Current song file</h6>
-        <button mat-icon-button (click)="downloadTrack()" matTooltip="Download track" matTooltipPosition="right">
-          <mat-icon>download</mat-icon>
-        </button>
-      </div>
-      <audio controls
-             [src]="MyConfig.api_address + '/api/TrackStreamEndpoint?trackId=' + oldTrack.id + '&jwt=' + jwt + '&artistMode=true'"></audio>
-    </div>
-  }
 
-  <form [formGroup]="trackForm">
-    <div [ngStyle]="this.trackForm.get('trackFile')?.value != undefined ? {'margin-bottom': '19vh'} : {}">
-      @if (oldTrack) {
-        <h6>New song file</h6>
-      } @else {
-        <h6>Song file*</h6>
-      }
-      <app-music-track-dragzone [title]="'Song'" (imageEmit)="setTrackFile($event)"
-                                [ngStyle]="newTrack?.trackFile != undefined ? {'margin-bottom': '15vh'} : {}"></app-music-track-dragzone>
+    <mat-form-field appearance="outline">
+      <mat-label>Title</mat-label>
+      <input matInput formControlName="title" maxlength="200" placeholder="Track title">
+      @if (form.controls.title.hasError('minlength')) { <mat-error>Use at least 3 characters.</mat-error> }
+      @if (form.controls.title.hasError('required')) { <mat-error>Title is required.</mat-error> }
+    </mat-form-field>
+
+    <div class="explicit-row">
+      <div><strong>Explicit</strong><span>Mark content containing explicit language.</span></div>
+      <mat-slide-toggle formControlName="isExplicit" aria-label="Explicit track"></mat-slide-toggle>
     </div>
 
-    <div>
-      @if (oldTrack != null) {
-        <app-my-mat-input name="title"
-                          title="Title*"
-                          [placeholder]="'Enter song title'"
-                          formControlName="title"
-                          [initialValue]="oldTrack!.title">
-        </app-my-mat-input>
-      } @else {
-        <app-my-mat-input name="title"
-                          title="Title*"
-                          [placeholder]="'Enter song title'"
-                          formControlName="title">
-        </app-my-mat-input>
-      }
-      @if (trackForm.get('title')?.hasError('minlength')) {
-        <p class="error">Title minimum length is 3</p>
-      }
-    </div>
+    @if (errorMessage) { <div class="error-banner"><mat-icon>error_outline</mat-icon>{{ errorMessage }}</div> }
 
-    <div class="tracks-explicit-control">
-      <div class="tracks-dual-controls">
-        <h6>Explicit</h6>
-        <mat-icon>explicit</mat-icon>
-      </div>
-      <mat-slide-toggle formControlName="isExplicit"></mat-slide-toggle>
-    </div>
-
-    @if (oldTrack != null) {
-      <div>
-        <app-my-mat-artist-autocomplete [trackId]="oldTrack.id" (onSelected)="addArtist($event)">
-        </app-my-mat-artist-autocomplete>
-        @if (this.selectedArtists.length > 0) {
-          <div class="flex-options">
-            <h6>Featured artists</h6>
-            @for (a of selectedArtists; track a.id) {
-              <app-artist-small-card [interactive]="true" [artist]="a"
-                                     (onRemove)="removeArtist(a)"></app-artist-small-card>
-            }
-          </div>
-        }
-      </div>
-
-    } @else {
-      <app-my-mat-artist-autocomplete (onSelected)="addArtist($event)">
-      </app-my-mat-artist-autocomplete>
-      @if (selectedArtists.length > 0) {
-        <div class="flex-options">
-          <h6>Featured artists</h6>
-          @for (a of selectedArtists; track a.id) {
-            <app-artist-small-card [interactive]="true" [artist]="a"
-                                   (onRemove)="removeArtist(a)"></app-artist-small-card>
-          }
-        </div>
-      }
-    }
+    <footer>
+      <button mat-button type="button" (click)="cancel()">Cancel</button>
+      <button mat-flat-button type="submit" [disabled]="saving">
+        @if (saving) { <mat-spinner diameter="20"></mat-spinner> } @else { <mat-icon>upload</mat-icon> }
+        {{ saving ? 'Uploading…' : 'Create track' }}
+      </button>
+    </footer>
   </form>
-  <div class="controls">
-    <button mat-button (click)="emitCancel()">
-      Cancel
-    </button>
-    <button mat-flat-button type="submit" (click)="createTrack()" [disabled]="!trackForm.valid">
-      @if (oldTrack?.id) {
-        Update
-      } @else {
-        Create
-      }
-    </button>
-  </div>
-  @if (!trackForm.valid) {
-    <p class="hint">Fill out required fields marked with *</p>
-  }
-</div>
+</section>

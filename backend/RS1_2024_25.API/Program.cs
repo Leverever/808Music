@@ -166,6 +166,7 @@ builder.Services.AddStackExchangeRedisCache(opt =>
 builder.Services.AddTransient<MyAuthService>();
 builder.Services.AddTransient<IMyFileHandler,FileHandler>();
 builder.Services.AddTransient<TokenProvider>();
+builder.Services.AddSingleton<RecurringTaskExecutionCoordinator>();
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("StripeSettings"));
 builder.Services.AddTransient<IMyMailService, MailService>();
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection(nameof(MailSettings)));

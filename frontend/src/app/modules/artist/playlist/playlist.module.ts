@@ -22,10 +22,11 @@ import { AddCollaboratorComponent } from './add-collaborator/add-collaborator.co
 import {ListenerModule} from '../../listener/listener.module';
 import { CollaboratorListDialogComponent } from './tracks-page/collaborator-list-dialog/collaborator-list-dialog.component';
 import {MatDivider} from "@angular/material/divider";
+import {PersonalizedPlaylistCardComponent} from './playlist-list/personalized-playlist-card.component';
 
 
 @NgModule({
-    declarations: [PlaylistListMaterialComponent, PlaylistCreateOrEditComponent, TracksPageComponent, PlaylistUpdateDialogComponent, PlaylistCreateDialogComponent, AddCollaboratorDialogComponent, AddCollaboratorComponent, CollaboratorListDialogComponent],
+    declarations: [PlaylistListMaterialComponent, PersonalizedPlaylistCardComponent, PlaylistCreateOrEditComponent, TracksPageComponent, PlaylistUpdateDialogComponent, PlaylistCreateDialogComponent, AddCollaboratorDialogComponent, AddCollaboratorComponent, CollaboratorListDialogComponent],
     exports: [
         TracksPageComponent
     ],

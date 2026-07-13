@@ -1,6 +1,7 @@
 using _808Music.Application.Abstractions;
 using _808Music.Application.Common.Persistence;
 using _808Music.Domain.Catalog;
+using Microsoft.EntityFrameworkCore;
 
 namespace _808Music.Application.Tracks;
 
@@ -38,6 +39,7 @@ public sealed class ReplaceTrackMasterHandler : IReplaceTrackMasterHandler
     private readonly IUnitOfWork _unitOfWork;
     private readonly IStemSeparationService _stemSeparationService;
     private readonly IAudioAnalysisService _audioAnalysisService;
+    private readonly IApplicationDbContext _dbContext;
 
     public ReplaceTrackMasterHandler(
         IMediaStorage mediaStorage,
@@ -45,7 +47,8 @@ public sealed class ReplaceTrackMasterHandler : IReplaceTrackMasterHandler
         IRepository<Track, int> trackRepository,
         IUnitOfWork unitOfWork,
         IStemSeparationService stemSeparationService,
-        IAudioAnalysisService audioAnalysisService)
+        IAudioAnalysisService audioAnalysisService,
+        IApplicationDbContext dbContext)
     {
         _mediaStorage = mediaStorage;
         _audioMetadataReader = audioMetadataReader;
@@ -53,6 +56,7 @@ public sealed class ReplaceTrackMasterHandler : IReplaceTrackMasterHandler
         _unitOfWork = unitOfWork;
         _stemSeparationService = stemSeparationService;
         _audioAnalysisService = audioAnalysisService;
+        _dbContext = dbContext;
     }
 
     public async Task<ReplaceTrackMasterResult?> Handle(
@@ -90,8 +94,16 @@ public sealed class ReplaceTrackMasterHandler : IReplaceTrackMasterHandler
 
         try
         {
+            var activeStemSets = await _dbContext.TrackStemSets
+                .Where(x => x.TrackId == track.Id && x.IsActive)
+                .ToListAsync(cancellationToken);
+
             track.TrackPath = storedObject.ObjectKey;
             track.Length = ToWholeSeconds(metadata.Duration);
+            foreach (var stemSet in activeStemSets)
+            {
+                stemSet.Deactivate();
+            }
 
             _trackRepository.Update(track);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
