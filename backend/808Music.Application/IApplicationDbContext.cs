@@ -1,5 +1,6 @@
 ﻿using _808Music.Domain.Catalog;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -29,6 +30,8 @@ namespace _808Music.Application
         DbSet<TrackStemSet> TrackStemSets { get; }
         DbSet<TrackStem> TrackStems { get; }
         DbSet<TrackStream> TrackStreams { get; }
+
+        DatabaseFacade Database { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }

@@ -182,52 +182,15 @@ p{
   font-weight: 700;
 }
 
-.personalization-heading span,
-.recommendation-card span,
-.recommendation-card small {
+.personalization-heading span {
   color: rgba(255, 255, 255, 0.66);
 }
 
-.recommendation-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 14px;
-}
-
-.recommendation-card {
-  min-width: 0;
-  padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  background: #1b1b1b;
-  color: white;
-  text-align: left;
-  cursor: pointer;
-}
-
-.recommendation-card:hover {
-  background: #252525;
-}
-
-.recommendation-card img {
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-  border-radius: 6px;
-  margin-bottom: 8px;
-}
-
-.recommendation-card strong,
-.recommendation-card span,
-.recommendation-card small {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.recommendation-card span {
-  min-height: 40px;
-  margin: 4px 0;
+.daily-playlist-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 20px;
 }
 
 .personalization-status {

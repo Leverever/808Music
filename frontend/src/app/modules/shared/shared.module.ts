@@ -97,6 +97,10 @@ import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {CartUpdateService} from './shopping-cart/shopping-cart.service';
 import {TranslatePipe} from "@ngx-translate/core";
 import {LottieComponent} from 'ngx-lottie';
+import {CdkDrag, CdkDragHandle, CdkDropList} from '@angular/cdk/drag-drop';
+import {
+  PersonalizedPlaylistCardComponent
+} from './personalized-playlist-card/personalized-playlist-card.component';
 
 @NgModule({
   declarations: [
@@ -105,6 +109,7 @@ import {LottieComponent} from 'ngx-lottie';
     ConfirmDialogComponent,
     InfoDialogComponent,
     AlbumCardComponent,
+    PersonalizedPlaylistCardComponent,
     MyMatInputComponent,
     TextInputDialogComponent,
     TracksTableComponent,
@@ -217,6 +222,9 @@ import {LottieComponent} from 'ngx-lottie';
         TranslatePipe,
         LottieComponent,
         MatListItem,
+        CdkDropList,
+        CdkDrag,
+        CdkDragHandle,
     ],
 
   exports: [
@@ -226,6 +234,7 @@ import {LottieComponent} from 'ngx-lottie';
     ReactiveFormsModule,
     ArtistPicDragzoneComponent,
     AlbumCardComponent,
+    PersonalizedPlaylistCardComponent,
     TracksTableComponent,
     ArtistSmallCardComponent,
     SearchBarComponent,

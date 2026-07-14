@@ -45,6 +45,16 @@ export interface ReleaseTrackPagedResponse {
   hasNextPage: boolean;
 }
 
+export interface ReleaseTrackPositionRequest {
+  trackId: number;
+  discNumber: number;
+  trackNumber: number;
+}
+
+export interface ReorderReleaseTracksRequest {
+  tracks: ReleaseTrackPositionRequest[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -61,6 +71,16 @@ export class ReleaseTracksEndpointService {
     return this.httpClient.get<ReleaseTrackPagedResponse>(
       `${this.baseUrl}/${releaseId}/tracks`,
       {params: buildHttpParams(request)}
+    );
+  }
+
+  reorder(
+    releaseId: number,
+    request: ReorderReleaseTracksRequest
+  ): Observable<void> {
+    return this.httpClient.put<void>(
+      `${this.baseUrl}/${releaseId}/tracks/order`,
+      request
     );
   }
 }

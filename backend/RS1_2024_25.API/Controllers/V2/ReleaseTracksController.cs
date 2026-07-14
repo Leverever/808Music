@@ -133,6 +133,40 @@ public sealed class ReleaseTracksController : ControllerBase
         }
     }
 
+    [HttpPut("order")]
+    [MapToApiVersion("2.0")]
+    public async Task<IActionResult> Reorder(
+        int releaseId,
+        [FromBody] ReorderReleaseTracksRequest request,
+        CancellationToken cancellationToken)
+    {
+        var accessResult = await EnsureCanManageRelease(releaseId, cancellationToken);
+        if (accessResult is not null)
+        {
+            return accessResult;
+        }
+
+        try
+        {
+            var reordered = await _handler.Reorder(
+                new ReorderReleaseTracksCommand(
+                    releaseId,
+                    request.Tracks
+                        .Select(x => new ReleaseTrackPosition(
+                            x.TrackId,
+                            x.DiscNumber,
+                            x.TrackNumber))
+                        .ToList()),
+                cancellationToken);
+
+            return reordered ? NoContent() : NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
+    }
+
     [HttpDelete("{trackId:int}")]
     [MapToApiVersion("2.0")]
     public async Task<IActionResult> Delete(

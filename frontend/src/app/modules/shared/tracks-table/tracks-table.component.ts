@@ -56,6 +56,16 @@ import {ArtistHandlerService} from '../../../services/artist-handler.service';
 import {Subscription} from 'rxjs';
 import {Router} from '@angular/router';
 import {AnimationOptions} from 'ngx-lottie';
+import {CdkDragDrop, moveItemInArray, transferArrayItem} from '@angular/cdk/drag-drop';
+import {
+  ReleaseTracksEndpointService
+} from '../../../endpoints/release-track-endpoints/release-tracks-endpoint.service';
+
+interface TrackDiscGroup {
+  discNumber: number;
+  tracks: TrackWithPositionDto[];
+  dropListId: string;
+}
 
 @Component({
   selector: 'app-tracks-table',
@@ -92,6 +102,12 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
   shouldDisplayControls = false;
   isShuffled = false;
   @Input() allowPagination = true;
+  @Input() groupAlbumDiscs = false;
+  @Input() manageAlbumOrder = false;
+
+  discGroups: TrackDiscGroup[] = [];
+  isSavingOrder = false;
+  reorderUnavailable = false;
 
   @ViewChild(MatSort) sort!: MatSort;
   playlistTrackMap: Map<number, Map<number, boolean>> = new Map();
@@ -133,6 +149,7 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
               private interactions: TrackInteractionService,
               private artistHandler: ArtistHandlerService,
               private cdRef: ChangeDetectorRef,
+              private releaseTracksService: ReleaseTracksEndpointService,
   ) {
 
   }
@@ -156,17 +173,215 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
     if (this.inArtistMode) {
       this.artist = this.artistHandler.getSelectedArtist();
     }
+    this.configureDisplayedColumns();
     this.cdRef.detectChanges();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.isCollaborative)
-      this.displayedColumns = ["position", "main-control", "title", "addedby", "artist-controls", "duration", "streams", "add-to-playlist-controls"];
+    this.configureDisplayedColumns();
 
     if (this.reload) {
       console.log("changes");
       this.reloadData();
     }
+  }
+
+  get showAlbumOrderControls(): boolean {
+    return this.manageAlbumOrder && this.artist != null && this.artist.role !== "Viewer";
+  }
+
+  get canReorder(): boolean {
+    return this.showAlbumOrderControls
+      && !this.isSavingOrder
+      && !this.reorderUnavailable
+      && !this.isOrderFiltered;
+  }
+
+  get hasMultipleDiscs(): boolean {
+    return this.discGroups.length > 1;
+  }
+
+  get discDropListIds(): string[] {
+    return this.discGroups.map(group => group.dropListId);
+  }
+
+  get tableDiscGroups(): TrackDiscGroup[] {
+    if (this.groupAlbumDiscs) {
+      return this.discGroups;
+    }
+    return [{discNumber: 1, tracks: this.tracksDto, dropListId: "tracks-table"}];
+  }
+
+  get isOrderFiltered(): boolean {
+    return !!this.pagedRequest.title?.trim();
+  }
+
+  get hasEmptyDisc(): boolean {
+    return this.discGroups.some(group => group.tracks.length === 0);
+  }
+
+  get orderHelpText(): string {
+    if (this.isSavingOrder) {
+      return "Saving track order...";
+    }
+    if (this.reorderUnavailable) {
+      return "This release is too large to reorder in this view.";
+    }
+    if (this.isOrderFiltered) {
+      return "Clear the search to reorder tracks.";
+    }
+    return "Drag tracks to change their position or move them between discs.";
+  }
+
+  addDisc(): void {
+    if (!this.canReorder || this.discGroups.some(group => group.tracks.length === 0)) {
+      return;
+    }
+
+    const discNumber = Math.max(0, ...this.discGroups.map(group => group.discNumber)) + 1;
+    this.discGroups = [
+      ...this.discGroups,
+      {
+        discNumber,
+        tracks: [],
+        dropListId: `album-disc-${discNumber}`
+      }
+    ];
+  }
+
+  removeEmptyDisc(discNumber: number): void {
+    const group = this.discGroups.find(candidate => candidate.discNumber === discNumber);
+    if (!group || group.tracks.length > 0 || this.isSavingOrder) {
+      return;
+    }
+    this.discGroups = this.discGroups.filter(candidate => candidate !== group);
+  }
+
+  dropTrack(event: CdkDragDrop<TrackWithPositionDto[]>): void {
+    if (!this.canReorder || event.previousIndex === event.currentIndex
+      && event.previousContainer === event.container) {
+      return;
+    }
+
+    const previousGroups = this.discGroups.map(group => ({
+      ...group,
+      tracks: group.tracks.map(track => ({...track}))
+    }));
+
+    if (event.previousContainer === event.container) {
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    } else {
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex
+      );
+    }
+
+    this.discGroups = this.discGroups.filter(group => group.tracks.length > 0);
+    this.normalizeDiscPositions();
+    this.persistTrackOrder(previousGroups);
+  }
+
+  private configureDisplayedColumns(): void {
+    const columns = ["position", "main-control", "title"];
+    if (this.isCollaborative) {
+      columns.push("addedby");
+    }
+    columns.push("artist-controls", "duration", "streams", "add-to-playlist-controls");
+    if (this.manageAlbumOrder && this.artist != null && this.artist.role !== "Viewer") {
+      columns.unshift("reorder");
+    }
+    this.displayedColumns = columns;
+  }
+
+  private rebuildDiscGroups(): void {
+    if (!this.groupAlbumDiscs) {
+      this.discGroups = [];
+      return;
+    }
+
+    const groups = new Map<number, TrackWithPositionDto[]>();
+    for (const track of this.tracksDto) {
+      const discNumber = track.discNumber ?? 1;
+      const group = groups.get(discNumber) ?? [];
+      group.push(track);
+      groups.set(discNumber, group);
+    }
+
+    if (groups.size === 0) {
+      groups.set(1, []);
+    }
+
+    this.discGroups = [...groups.entries()]
+      .sort(([firstDisc], [secondDisc]) => firstDisc - secondDisc)
+      .map(([discNumber, tracks]) => ({
+        discNumber,
+        tracks: tracks
+          .sort((first, second) =>
+            (first.trackNumber ?? first.position) - (second.trackNumber ?? second.position))
+          .map((track, index) => ({...track, position: index + 1})),
+        dropListId: `album-disc-${discNumber}`
+      }));
+  }
+
+  private normalizeDiscPositions(): void {
+    this.discGroups = this.discGroups.map((group, discIndex) => {
+      const discNumber = discIndex + 1;
+      return {
+        discNumber,
+        dropListId: `album-disc-${discNumber}`,
+        tracks: group.tracks.map((track, trackIndex) => ({
+          ...track,
+          discNumber,
+          trackNumber: trackIndex + 1,
+          position: trackIndex + 1
+        }))
+      };
+    });
+    this.tracksDto = this.discGroups.flatMap(group => group.tracks);
+    this.tracks = this.tracksDto;
+    this.dataSource.data = this.tracksDto;
+  }
+
+  private persistTrackOrder(previousGroups: TrackDiscGroup[]): void {
+    const releaseId = this.pagedRequest.albumId;
+    if (releaseId == null) {
+      this.restoreDiscGroups(previousGroups);
+      this.snackBar.open("The release could not be identified.", "Dismiss", {duration: 3500});
+      return;
+    }
+
+    this.isSavingOrder = true;
+    this.releaseTracksService.reorder(releaseId, {
+      tracks: this.discGroups.flatMap(group => group.tracks.map(track => ({
+        trackId: track.id,
+        discNumber: group.discNumber,
+        trackNumber: track.trackNumber ?? track.position
+      })))
+    }).subscribe({
+      next: () => {
+        this.isSavingOrder = false;
+        this.reloadData();
+        this.snackBar.open("Track order saved.", "Dismiss", {duration: 2500});
+      },
+      error: (error: HttpErrorResponse) => {
+        this.isSavingOrder = false;
+        this.restoreDiscGroups(previousGroups);
+        const message = typeof error.error === "string" && error.error.trim()
+          ? error.error
+          : "Track order could not be saved. Your previous order has been restored.";
+        this.snackBar.open(message, "Dismiss", {duration: 5000});
+      }
+    });
+  }
+
+  private restoreDiscGroups(groups: TrackDiscGroup[]): void {
+    this.discGroups = groups;
+    this.tracksDto = groups.flatMap(group => group.tracks);
+    this.tracks = this.tracksDto;
+    this.dataSource.data = this.tracksDto;
   }
 
   getLikeIcon(id: number): string {
@@ -176,7 +391,11 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
   reloadData() {
     this.reload = false;
 
-    this.getAllTracksService.handleAsync(this.pagedRequest).subscribe({
+    const request = this.groupAlbumDiscs
+      ? {...this.pagedRequest, pageNumber: 1, pageSize: 500}
+      : this.pagedRequest;
+
+    this.getAllTracksService.handleAsync(request).subscribe({
       next: data => {
 
         this.pagedResponse = data;
@@ -185,9 +404,11 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
         }
         this.tracksDto = this.tracks.map((track, index) => ({
           ...track,
-          position: index + 1,
+          position: track.trackNumber ?? index + 1,
         }));
         this.dataSource.data = this.tracksDto;
+        this.reorderUnavailable = this.manageAlbumOrder && data.totalCount > this.tracksDto.length;
+        this.rebuildDiscGroups();
 
         this.likedSongs.clear();
 
@@ -200,8 +421,10 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
           });
         });
 
-        this.isPlayingThisAlbum = this.musicPlayerService.getLastPlayedSong()?.albumId == this.tracks[0].albumId && this.musicPlayerService.getQueueType() === "album"
-          || this.musicPlayerService.getLastPlayedSong()?.albumId == this.playlistId && this.musicPlayerService.getQueueType() === "playlist";
+        this.isPlayingThisAlbum = this.tracks.length > 0 && (
+          this.musicPlayerService.getLastPlayedSong()?.albumId == this.tracks[0].albumId && this.musicPlayerService.getQueueType() === "album"
+          || this.musicPlayerService.getLastPlayedSong()?.albumId == this.playlistId && this.musicPlayerService.getQueueType() === "playlist"
+        );
       },
       error: error => {
         console.error('Error reloading data:', error);
@@ -240,8 +463,10 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
     this.state$ = this.musicPlayerService.playStateChange.subscribe(state => this.playingState = state);
     this.trackChange$ = this.musicPlayerService.trackEvent.subscribe(track => {
       this.currentTrack = track;
-      this.isPlayingThisAlbum = this.musicPlayerService.getLastPlayedSong()?.albumId == this.tracks[0].albumId && this.musicPlayerService.getQueueType() === "album"
-        || this.musicPlayerService.getLastPlayedSong()?.albumId == this.playlistId && this.musicPlayerService.getQueueType() === "playlist"});
+      this.isPlayingThisAlbum = this.tracks.length > 0 && (
+        this.musicPlayerService.getLastPlayedSong()?.albumId == this.tracks[0].albumId && this.musicPlayerService.getQueueType() === "album"
+        || this.musicPlayerService.getLastPlayedSong()?.albumId == this.playlistId && this.musicPlayerService.getQueueType() === "playlist"
+      )});
 
     this.musicPlayerService.shuffleToggled.subscribe({
       next: data => {
@@ -251,7 +476,8 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
   }
 
   getPosition(id: number) {
-    return (this.tracksDto.find(x => x.id === id))?.position.toString();
+    const track = this.tracksDto.find(x => x.id === id);
+    return track?.position.toString();
   }
 
   getArtists(id: number) {

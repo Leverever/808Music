@@ -195,6 +195,96 @@ public sealed class ReleaseTrackHandlerTests
         Assert.True(result.HasNextPage);
     }
 
+    [Fact]
+    public async Task ReorderChangesTrackAndDiscNumbersInOneRequest()
+    {
+        await using var dbContext = CreateDbContext();
+        var (release, firstTrack) = await SeedCatalog(dbContext);
+        var secondTrack = new Track { Title = "Second", TrackPath = "tracks/second.mp3" };
+        var thirdTrack = new Track { Title = "Third", TrackPath = "tracks/third.mp3" };
+        dbContext.Tracks.AddRange(secondTrack, thirdTrack);
+        dbContext.ArtistTracks.AddRange(
+            new ArtistTrack
+            {
+                ArtistId = release.ArtistId,
+                Track = secondTrack,
+                IsLead = true,
+                ShowOnProfile = true
+            },
+            new ArtistTrack
+            {
+                ArtistId = release.ArtistId,
+                Track = thirdTrack,
+                IsLead = true,
+                ShowOnProfile = true
+            });
+        await dbContext.SaveChangesAsync();
+
+        var handler = new ReleaseTrackHandler(dbContext);
+        await handler.Create(new CreateReleaseTrackCommand(
+            release.Id, firstTrack.Id, 1, 1, null, true));
+        await handler.Create(new CreateReleaseTrackCommand(
+            release.Id, secondTrack.Id, 1, 2, null, true));
+        await handler.Create(new CreateReleaseTrackCommand(
+            release.Id, thirdTrack.Id, 1, 3, null, true));
+
+        var reordered = await handler.Reorder(new ReorderReleaseTracksCommand(
+            release.Id,
+            [
+                new ReleaseTrackPosition(thirdTrack.Id, 1, 1),
+                new ReleaseTrackPosition(firstTrack.Id, 1, 2),
+                new ReleaseTrackPosition(secondTrack.Id, 2, 1)
+            ]));
+
+        Assert.True(reordered);
+        var positions = await dbContext.AlbumTracks
+            .Where(x => x.AlbumId == release.Id)
+            .ToDictionaryAsync(x => x.TrackId);
+        Assert.Equal((1, 1), (positions[thirdTrack.Id].DiscNumber, positions[thirdTrack.Id].TrackNumber));
+        Assert.Equal((1, 2), (positions[firstTrack.Id].DiscNumber, positions[firstTrack.Id].TrackNumber));
+        Assert.Equal((2, 1), (positions[secondTrack.Id].DiscNumber, positions[secondTrack.Id].TrackNumber));
+    }
+
+    [Fact]
+    public async Task ReorderMaterializesLegacyAssociationsAndRejectsPartialRequests()
+    {
+        await using var dbContext = CreateDbContext();
+        var (release, firstTrack) = await SeedCatalog(dbContext);
+        firstTrack.AlbumId = release.Id;
+        var secondTrack = new Track
+        {
+            Title = "Second",
+            TrackPath = "tracks/second.mp3",
+            AlbumId = release.Id
+        };
+        dbContext.Tracks.Add(secondTrack);
+        dbContext.ArtistTracks.Add(new ArtistTrack
+        {
+            ArtistId = release.ArtistId,
+            Track = secondTrack,
+            IsLead = true,
+            ShowOnProfile = true
+        });
+        await dbContext.SaveChangesAsync();
+        var handler = new ReleaseTrackHandler(dbContext);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => handler.Reorder(
+            new ReorderReleaseTracksCommand(
+                release.Id,
+                [new ReleaseTrackPosition(firstTrack.Id, 1, 1)])));
+
+        var reordered = await handler.Reorder(new ReorderReleaseTracksCommand(
+            release.Id,
+            [
+                new ReleaseTrackPosition(secondTrack.Id, 1, 1),
+                new ReleaseTrackPosition(firstTrack.Id, 2, 1)
+            ]));
+
+        Assert.True(reordered);
+        Assert.Equal(2, await dbContext.AlbumTracks.CountAsync());
+        Assert.All(dbContext.AlbumTracks, association => Assert.True(association.IsPrimaryRelease));
+    }
+
     private static MusicDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<MusicDbContext>()

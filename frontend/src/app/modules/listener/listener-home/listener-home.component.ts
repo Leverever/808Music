@@ -23,6 +23,11 @@ import {
 import {RecommendationTrackMapper} from '../../../services/personalization/recommendation-track.mapper';
 import {PlaylistResponse} from '../../../endpoints/playlist-endpoints/get-playlist-by-user-endpoint.service';
 import {TrackGetResponse} from '../../../endpoints/track-endpoints/track-get-by-id-endpoint.service';
+import {
+  PersonalizedPlaylistSummary,
+  PersonalizedPlaylistsEndpointService
+} from '../../../endpoints/personalization-endpoints/personalized-playlists-endpoint.service';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-listener-home',
@@ -83,13 +88,16 @@ export class ListenerHomeComponent implements OnInit {
   recommendedArtistDescriptions: Record<number, string> = {};
   recommendedPlaylists: PlaylistResponse[] | null = null;
   recommendedTracks: TrackGetResponse[] = [];
+  dailyPlaylists: PersonalizedPlaylistSummary[] = [];
   constructor(private router: Router,
               private musicPlayerService: MusicPlayerService,
               private albumGetService: AlbumGetAllEndpointService,
               private artistGetService: ArtistGetAutocompleteEndpointService,
               private eventGetUpcoming : EventGetUpcomingService,
               private homeRecommendationsEndpoint: HomeRecommendationsEndpointService,
-              private recommendationTrackMapper: RecommendationTrackMapper) {
+              private recommendationTrackMapper: RecommendationTrackMapper,
+              private personalizedPlaylistsEndpoint: PersonalizedPlaylistsEndpointService,
+              private snackBar: MatSnackBar) {
   }
 
   ngOnInit(): void {
@@ -141,6 +149,28 @@ export class ListenerHomeComponent implements OnInit {
     this.router.navigate(['/listener/playlist/daily', id]);
   }
 
+  startDailyPlaylist(id: string): void {
+    this.personalizedPlaylistsEndpoint.getById(id).subscribe({
+      next: playlist => {
+        const tracks = this.recommendationTrackMapper.toPlayerTracks(playlist.tracks);
+        if(tracks.length === 0)
+        {
+          this.snackBar.open('This daily playlist has no songs yet.', '', {duration: 2000});
+          return;
+        }
+
+        this.musicPlayerService.createQueue(
+          tracks,
+          {
+            display: `${playlist.name} - Daily Mix`,
+            value: `/listener/playlist/daily/${playlist.id}`
+          },
+          'personalized-playlist');
+      },
+      error: error => console.error('Could not start daily playlist.', error)
+    });
+  }
+
   playRecommendedTracks(startIndex = 0): void {
     const recommendations = this.homeRecommendations?.recommendedTracks ?? [];
     if(recommendations.length === 0)
@@ -167,6 +197,17 @@ export class ListenerHomeComponent implements OnInit {
   }
 
   private applyRecommendationCards(response: HomeRecommendationsResponse): void {
+    this.dailyPlaylists = response.dailyPersonalizedPlaylists.map(playlist => ({
+      id: playlist.playlistId,
+      themeKey: playlist.themeKey,
+      name: playlist.name,
+      description: playlist.description,
+      coverPath: playlist.coverPath,
+      playlistDate: playlist.playlistDate,
+      createdAt: playlist.createdAt,
+      trackCount: playlist.trackCount
+    }));
+
     const albums = response.recommendedAlbums.map(album => ({
       id: album.albumId,
       title: album.title,

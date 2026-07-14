@@ -47,11 +47,6 @@ table p {
 
 
 }
-song-information{
-  display:flex;
-  flex-direction: column;
-  justify-content: center;
-}
 .track-artists {
   color: #A9A9A9;
   font-style: italic;
@@ -60,11 +55,6 @@ song-information{
   gap: 3px;
 
 }
-.song-information
-{
-
-}
-
 .tracks-explicit-icon {
   font-size: 17px;
   height: 15px;
@@ -75,11 +65,6 @@ song-information{
 .mat-mdc-row .mat-mdc-cell {
   border: none;
 }
-.song-row{
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
 .mat-mdc-row:hover .mat-mdc-cell {
   border-color: currentColor;
   background-color: #4D3D50;
@@ -88,6 +73,7 @@ song-information{
 .mat-column-main-control {
   padding: 0;
   width: 1vw;
+  text-align: center;
 }
 
 .mat-column-main-control mat-icon{
@@ -99,11 +85,6 @@ song-information{
   width: 3vw;
   color: #A9A9A9;
   text-align: center;
-}
-
-.mat-column-main-control {
-  text-align: center;
-
 }
 
 .dropdown-stuff {
@@ -128,20 +109,6 @@ song-information{
   margin-left: auto;
 }
 
-.dropdown-stuff:hover{
-}
-.dropdown-menu {
-  display: block;
-  position: absolute;
-  min-width: 50vw;
-  max-height: 300px;
-  overflow-y: auto;
-  z-index: 1000;
-  background-color: #4D3D50;
-  padding: 10px;
-  color: white;
-}
-
 .mat-column-artist-controls {
   padding: 0;
   width: 7vw;
@@ -156,6 +123,19 @@ song-information{
   display: flex;
   justify-content: space-between;
   padding-right: 5px;
+}
+
+.album-order-toolbar app-search-bar {
+  flex: 0 1 640px;
+  width: min(640px, 55vw);
+}
+
+.album-order-toolbar .controls {
+  flex-shrink:0;
+}
+
+.add-disc-button {
+  white-space:nowrap;
 }
 
 .controls {
@@ -191,6 +171,105 @@ song-information{
 .x30 {
   display: flex;
   justify-content: center;
+}
+
+.order-help {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  margin: -7px 4px 10px;
+  color: #cfc3cc;
+  font-size: 13px;
+}
+
+.order-help mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  color: #e692f8;
+}
+
+.disc-table {
+  display: block;
+  width: 100%;
+}
+
+.disc-table table {
+  width: 100%;
+}
+
+.disc-table-multiple {
+  margin-top: 18px;
+  border: 1px solid #514951;
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.disc-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 0 12px 0 16px;
+  background: #282428;
+}
+
+.disc-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.disc-heading h3 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.disc-heading span {
+  color: #a9a9a9;
+  font-size: 13px;
+}
+
+.mat-column-reorder {
+  width: 46px;
+  padding: 0;
+  text-align: center;
+}
+
+.drag-handle {
+  cursor: grab;
+  color: #cfc3cc;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.empty-disc-drop-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 90px;
+  border-top: 1px dashed #766b76;
+  color: #bdb2bd;
+}
+
+.cdk-drag-preview {
+  display: table;
+  box-sizing: border-box;
+  background: #4d3d50;
+  box-shadow: 0 8px 22px #0008;
+}
+
+.cdk-drag-placeholder {
+  opacity: .2;
+}
+
+.cdk-drag-animating,
+.disc-table.cdk-drop-list-dragging .mat-mdc-row:not(.cdk-drag-placeholder) {
+  transition: transform 180ms cubic-bezier(0, 0, .2, 1);
 }
 
 

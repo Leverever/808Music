@@ -10,14 +10,14 @@
           <h3>Made for you today</h3>
           <span>{{ home.recommendationDate | date }}</span>
         </div>
-        <div class="recommendation-grid">
-          @for (playlist of home.dailyPersonalizedPlaylists; track playlist.playlistId) {
-            <button class="recommendation-card" (click)="openDailyPlaylist(playlist.playlistId)">
-              <img [src]="mediaUrl(playlist.coverPath)" [alt]="playlist.name">
-              <strong>{{ playlist.name }}</strong>
-              <span>{{ playlist.description }}</span>
-              <small>{{ playlist.trackCount }} tracks</small>
-            </button>
+        <div class="daily-playlist-grid">
+          @for (playlist of dailyPlaylists; track playlist.id) {
+            <app-personalized-playlist-card
+              [playlist]="playlist"
+              [imageUrl]="mediaUrl(playlist.coverPath || '')"
+              (onClick)="openDailyPlaylist($event)"
+              (onPlayClick)="startDailyPlaylist($event)">
+            </app-personalized-playlist-card>
           }
         </div>
       </section>

@@ -24,6 +24,10 @@ export interface TrackGetResponse {
   trackUserInfo : TrackUserInfoDto[];
   artists: ArtistTrackDto[];
   albumId: number | null;
+  associationId?: number | null;
+  discNumber?: number;
+  trackNumber?: number;
+  isLegacyAssociation?: boolean;
 }
 
 @Injectable({

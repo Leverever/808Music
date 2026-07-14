@@ -26,7 +26,24 @@
 }
 
 .album-mat-card-title {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   font-size: 20px;
+}
+
+.album-mat-card-header {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+:host ::ng-deep .album-mat-card-header .mat-mdc-card-header-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .hide-overflow {

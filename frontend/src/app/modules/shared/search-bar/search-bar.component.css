@@ -44,3 +44,7 @@
   display: block;
   width: 100%;
 }
+
+:host-context(.album-order-toolbar) .search-bar-input {
+  margin-right: 0;
+}

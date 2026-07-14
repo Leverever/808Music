@@ -87,7 +87,7 @@ export class AlbumCardComponent implements OnInit, OnDestroy {
   }
 
   getTitle() {
-    return this.title.length > 16 ? this.title.slice(0,13) + "..." : this.title;
+    return this.title;
   }
 
   emitClick() {

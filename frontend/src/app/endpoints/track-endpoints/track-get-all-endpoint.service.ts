@@ -82,7 +82,11 @@ export class TrackGetAllEndpointService implements MyBaseEndpointAsync<TrackGetA
         ),
         isLead: artist.isLead
       })),
-      albumId: item.releaseId
+      albumId: item.releaseId,
+      associationId: item.associationId,
+      discNumber: item.discNumber,
+      trackNumber: item.trackNumber,
+      isLegacyAssociation: item.isLegacyAssociation
     };
   }
 

@@ -22,6 +22,15 @@ public sealed record UpdateReleaseTrackCommand(
     bool IsPrimaryRelease,
     bool AllowArtistMismatch = false);
 
+public sealed record ReleaseTrackPosition(
+    int TrackId,
+    int DiscNumber,
+    int TrackNumber);
+
+public sealed record ReorderReleaseTracksCommand(
+    int ReleaseId,
+    IReadOnlyList<ReleaseTrackPosition> Tracks);
+
 public sealed record ReleaseTrackListQuery(
     int ReleaseId,
     int PageNumber = 1,
@@ -77,6 +86,10 @@ public interface IReleaseTrackHandler
 
     Task<ReleaseTrackResponse?> Update(
         UpdateReleaseTrackCommand command,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> Reorder(
+        ReorderReleaseTracksCommand command,
         CancellationToken cancellationToken = default);
 
     Task<bool> Delete(
@@ -367,6 +380,137 @@ public sealed class ReleaseTrackHandler : IReleaseTrackHandler
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return await ToResponse(association, track, release, cancellationToken);
+    }
+
+    public async Task<bool> Reorder(
+        ReorderReleaseTracksCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        if (command.Tracks.Count == 0)
+        {
+            throw new InvalidOperationException("At least one track position is required.");
+        }
+
+        foreach (var position in command.Tracks)
+        {
+            ReleaseTrackAssociationValidation.ValidatePosition(
+                position.DiscNumber,
+                position.TrackNumber);
+        }
+
+        if (command.Tracks.Select(x => x.TrackId).Distinct().Count() != command.Tracks.Count)
+        {
+            throw new InvalidOperationException("Each release track can only appear once in a reorder request.");
+        }
+
+        if (command.Tracks
+            .Select(x => (x.DiscNumber, x.TrackNumber))
+            .Distinct()
+            .Count() != command.Tracks.Count)
+        {
+            throw new InvalidOperationException("Each disc and track number must be unique within the release.");
+        }
+
+        var releaseExists = await _dbContext.Albums
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == command.ReleaseId, cancellationToken);
+        if (!releaseExists)
+        {
+            return false;
+        }
+
+        var associations = await _dbContext.AlbumTracks
+            .Where(x => x.AlbumId == command.ReleaseId)
+            .ToListAsync(cancellationToken);
+
+        var associatedTrackIds = associations
+            .Select(x => x.TrackId)
+            .ToHashSet();
+        var legacyTracks = await _dbContext.Tracks
+            .Where(x => x.AlbumId == command.ReleaseId && !associatedTrackIds.Contains(x.Id))
+            .ToListAsync(cancellationToken);
+
+        var expectedTrackIds = associatedTrackIds
+            .Concat(legacyTracks.Select(x => x.Id))
+            .ToHashSet();
+        var requestedTrackIds = command.Tracks
+            .Select(x => x.TrackId)
+            .ToHashSet();
+
+        if (!expectedTrackIds.SetEquals(requestedTrackIds))
+        {
+            throw new InvalidOperationException("The reorder request must contain every track on the release exactly once.");
+        }
+
+        if (legacyTracks.Count > 0)
+        {
+            var legacyTrackIds = legacyTracks.Select(x => x.Id).ToArray();
+            var alreadyHasPrimaryRelease = await _dbContext.AlbumTracks
+                .AnyAsync(
+                    x => legacyTrackIds.Contains(x.TrackId) && x.IsPrimaryRelease,
+                    cancellationToken);
+            if (alreadyHasPrimaryRelease)
+            {
+                throw new InvalidOperationException(
+                    "One or more legacy tracks already have a different primary release association.");
+            }
+
+            foreach (var legacyTrack in legacyTracks)
+            {
+                var association = new AlbumTrack
+                {
+                    AlbumId = command.ReleaseId,
+                    TrackId = legacyTrack.Id,
+                    IsPrimaryRelease = true
+                };
+                associations.Add(association);
+                await _dbContext.AlbumTracks.AddAsync(association, cancellationToken);
+            }
+        }
+
+        var positionsByTrackId = command.Tracks.ToDictionary(x => x.TrackId);
+        var usesTransactions = !string.Equals(
+            _dbContext.Database.ProviderName,
+            "Microsoft.EntityFrameworkCore.InMemory",
+            StringComparison.Ordinal);
+        await using var transaction = usesTransactions
+            ? await _dbContext.Database.BeginTransactionAsync(cancellationToken)
+            : null;
+
+        try
+        {
+            // Move every row through a position that public commands cannot use. This avoids
+            // collisions with the unique (release, disc, track) index during swaps.
+            for (var index = 0; index < associations.Count; index++)
+            {
+                associations[index].DiscNumber = 0;
+                associations[index].TrackNumber = index + 1;
+            }
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            foreach (var association in associations)
+            {
+                var position = positionsByTrackId[association.TrackId];
+                association.DiscNumber = position.DiscNumber;
+                association.TrackNumber = position.TrackNumber;
+            }
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            if (transaction is not null)
+            {
+                await transaction.CommitAsync(cancellationToken);
+            }
+        }
+        catch
+        {
+            if (transaction is not null)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+            }
+            throw;
+        }
+
+        return true;
     }
 
     public async Task<bool> Delete(

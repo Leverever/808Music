@@ -1,12 +1,17 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {Subscription} from 'rxjs';
-import {PersonalizedPlaylistSummary} from '../../../../endpoints/personalization-endpoints/personalized-playlists-endpoint.service';
-import {MusicPlayerService} from '../../../../services/music-player.service';
+import {
+  PersonalizedPlaylistSummary
+} from '../../../endpoints/personalization-endpoints/personalized-playlists-endpoint.service';
+import {MusicPlayerService} from '../../../services/music-player.service';
 
 @Component({
   selector: 'app-personalized-playlist-card',
   templateUrl: './personalized-playlist-card.component.html',
-  styleUrl: './personalized-playlist-card.component.css'
+  styleUrls: [
+    '../album-card/album-card.component.css',
+    './personalized-playlist-card.component.css'
+  ]
 })
 export class PersonalizedPlaylistCardComponent implements OnInit, OnDestroy {
   @Input({required: true}) playlist!: PersonalizedPlaylistSummary;
@@ -15,17 +20,10 @@ export class PersonalizedPlaylistCardComponent implements OnInit, OnDestroy {
   @Output() onClick = new EventEmitter<string>();
   @Output() onPlayClick = new EventEmitter<string>();
 
-  playBtnStyle = {
-    display: 'none',
-    bottom: '7vh'
-  };
-
-  pauseBtnStyle = {
-    display: 'block',
-    bottom: '7vh'
-  };
-
+  playButtonStyle = {display: 'none'};
+  pauseButtonStyle = {display: 'block'};
   playingState = false;
+
   private readonly subscriptions: Subscription[] = [];
 
   constructor(protected musicPlayerService: MusicPlayerService) {}
@@ -46,15 +44,15 @@ export class PersonalizedPlaylistCardComponent implements OnInit, OnDestroy {
 
   isPlayingThisPlaylist(): boolean {
     return this.musicPlayerService.getQueueType() === 'personalized-playlist' &&
-      this.musicPlayerService.queueSource.value === `/listener/playlist/daily/${this.playlist.id}`;
+      this.musicPlayerService.queueSource.value === this.playlistPath;
   }
 
   showPlayButton(): void {
-    this.playBtnStyle.display = 'block';
+    this.playButtonStyle = {display: 'block'};
   }
 
   hidePlayButton(): void {
-    this.playBtnStyle.display = 'none';
+    this.playButtonStyle = {display: 'none'};
   }
 
   openPlaylist(): void {
@@ -70,5 +68,13 @@ export class PersonalizedPlaylistCardComponent implements OnInit, OnDestroy {
     }
 
     this.onPlayClick.emit(this.playlist.id);
+  }
+
+  getTitle(): string {
+    return this.playlist.name;
+  }
+
+  private get playlistPath(): string {
+    return `/listener/playlist/daily/${this.playlist.id}`;
   }
 }
