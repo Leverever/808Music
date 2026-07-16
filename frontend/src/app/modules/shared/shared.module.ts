@@ -101,6 +101,11 @@ import {CdkDrag, CdkDragHandle, CdkDropList} from '@angular/cdk/drag-drop';
 import {
   PersonalizedPlaylistCardComponent
 } from './personalized-playlist-card/personalized-playlist-card.component';
+import {
+  AddToPlaylistBottomSheetComponent
+} from './bottom-sheets/add-to-playlist-bottom-sheet/add-to-playlist-bottom-sheet.component';
+import {OverflowMarqueeDirective} from './directives/overflow-marquee.directive';
+import {MobileDetailScrollDirective} from './directives/mobile-detail-scroll.directive';
 
 @NgModule({
   declarations: [
@@ -153,6 +158,8 @@ import {
     SendSongMessageComponent,
     SettingsComponent,
     SocialShareBottomSheetComponent,
+    AddToPlaylistBottomSheetComponent,
+    MobileDetailScrollDirective,
 // Dodajemo UnauthorizedComponent u deklaracije
   ],
     imports: [
@@ -225,6 +232,7 @@ import {
         CdkDropList,
         CdkDrag,
         CdkDragHandle,
+        OverflowMarqueeDirective,
     ],
 
   exports: [
@@ -264,6 +272,8 @@ import {
     MessageContentCardComponent,
     PlaylistCardListComponent,
     SocialShareBottomSheetComponent,
+    OverflowMarqueeDirective,
+    MobileDetailScrollDirective,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

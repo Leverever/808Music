@@ -33,6 +33,7 @@ export class InboxComponent implements OnInit, OnDestroy {
   selectedChat: ChatGetResponse | null = null;
   selectedChatMessages: MessageGetResponse[] = [];
   userId!: number;
+  isMobileViewport = window.matchMedia('(max-width: 960px)').matches;
   protected readonly JSON = JSON;
   protected readonly moment = moment;
 
@@ -129,16 +130,19 @@ export class InboxComponent implements OnInit, OnDestroy {
               this.selectedChat = chat;
             }
             else {
-              this.selectedChat = value[0];
+              this.selectedChat = value[0] ?? null;
             }
           }
           else {
-              this.selectedChat = value[0];
+              this.selectedChat = this.isMobileViewport ? null : (value[0] ?? null);
           }
-          this.messagePagedRequest.id = this.selectedChat!.id;
-        })
 
-        this.fetchMessages();
+          if(this.selectedChat != null)
+          {
+            this.messagePagedRequest.id = this.selectedChat.id;
+            this.fetchMessages();
+          }
+        })
       }
     })
 
@@ -176,6 +180,11 @@ export class InboxComponent implements OnInit, OnDestroy {
     this.selectedChat = c;
     this.messagePagedRequest.id = c.id;
     this.fetchMessages();
+  }
+
+  closeChatMobile(): void {
+    this.selectedChat = null;
+    this.selectedChatMessages = [];
   }
 
   fetchMessages() {

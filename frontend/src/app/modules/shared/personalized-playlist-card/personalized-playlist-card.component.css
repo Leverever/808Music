@@ -54,7 +54,19 @@ mat-card-header,
   .playlist-cover { height: 15vw; }
 }
 
-@media only screen and (max-width: 800px) {
-  :host { width: 25vw; }
-  .playlist-cover { height: 25vw; }
+@media only screen and (max-width: 960px) {
+  :host {
+    width: clamp(150px, 43vw, 190px);
+    min-width: clamp(150px, 43vw, 190px);
+  }
+
+  .playlist-cover {
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .ai-generated-badge {
+    padding: 4px 6px;
+    font-size: 10px;
+  }
 }

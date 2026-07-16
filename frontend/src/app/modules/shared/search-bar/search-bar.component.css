@@ -31,14 +31,16 @@
 .search-bar > div > mat-icon{
   position: absolute;
   left:10px;
-  top:15px;
+  top:50%;
+  transform: translateY(-50%);
   color: #EEDEE7;
 }
 
 .remove-btn {
   position: absolute;
   right:10px;
-  top:6px;
+  top:50%;
+  transform: translateY(-50%);
 }
 :host {
   display: block;
@@ -47,4 +49,59 @@
 
 :host-context(.album-order-toolbar) .search-bar-input {
   margin-right: 0;
+}
+
+:host-context(.liquid-sheet) .search-bar {
+  gap: 8px;
+}
+
+:host-context(.liquid-sheet) .search-bar-input {
+  margin-right: 0;
+  padding-left: 42px;
+}
+
+@media (max-width: 960px) {
+  :host-context(.mobile-artwork-detail) .search-bar-input {
+    border: 1px solid rgba(255, 255, 255, .2);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, .13), rgba(255, 255, 255, .025)),
+      rgba(23, 17, 24, .46);
+    box-shadow:
+      0 12px 28px rgba(0, 0, 0, .18),
+      inset 0 1px 0 rgba(255, 255, 255, .14);
+    color: #f8f1f8;
+    -webkit-backdrop-filter: blur(24px) saturate(170%);
+    backdrop-filter: blur(24px) saturate(170%);
+  }
+
+  :host-context(.mobile-artwork-detail) .search-bar-input::placeholder {
+    color: rgba(246, 236, 247, .54);
+  }
+}
+
+@media (max-width: 960px) {
+  .search-bar {
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .search-bar-input {
+    min-height: 50px;
+    margin-right: 0;
+    padding: 13px 42px;
+    border-radius: 16px;
+  }
+
+  .remove-btn {
+    display: grid;
+    padding: 0 !important;
+    place-items: center;
+    line-height: 0;
+  }
+
+  .remove-btn mat-icon {
+    display: block;
+    margin: 0;
+  }
 }

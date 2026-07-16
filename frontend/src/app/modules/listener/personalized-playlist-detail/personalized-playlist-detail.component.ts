@@ -89,6 +89,15 @@ export class PersonalizedPlaylistDetailComponent implements OnInit {
     return this.mediaUrl(this.playlist?.coverPath || firstArtist?.profilePhotoPath);
   }
 
+  get playlistArtworkCss(): string {
+    if(!this.playlist)
+    {
+      return 'none';
+    }
+
+    return `url("${this.playlistCoverUrl()}")`;
+  }
+
   mediaUrl(path?: string): string {
     const value = path || '/media/Images/ArtistPfps/placeholder.png';
     if(/^https?:\/\//i.test(value))

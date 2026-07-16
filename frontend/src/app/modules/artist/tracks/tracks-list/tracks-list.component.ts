@@ -280,4 +280,13 @@ export class TracksListComponent implements OnInit {
   }
 
   protected readonly moment = moment;
+
+  get albumArtworkCss(): string {
+    if(!this.album?.coverPath)
+    {
+      return 'none';
+    }
+
+    return `url("${MyConfig.api_address}${this.album.coverPath}")`;
+  }
 }

@@ -24,9 +24,14 @@
   display:block;
 }
 .song-rows{
+  position: relative;
   flex-direction: row;
   display: flex;
   align-items: center;
+}
+
+.mobile-playing-indicator {
+  display: none;
 }
 .delete-icon{
   position: absolute;
@@ -270,6 +275,122 @@ table p {
 .cdk-drag-animating,
 .disc-table.cdk-drop-list-dragging .mat-mdc-row:not(.cdk-drag-placeholder) {
   transition: transform 180ms cubic-bezier(0, 0, .2, 1);
+}
+
+@media (max-width: 960px) {
+  .tracks-table {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .tracks-search-bar {
+    width: 100%;
+    min-width: 0;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+    padding-right: 0;
+    box-sizing: border-box;
+  }
+
+  .tracks-search-bar .controls {
+    order: 1;
+    flex: 0 0 auto;
+    align-self: center;
+  }
+
+  .disc-table table {
+    table-layout: fixed;
+  }
+
+  .mat-column-position,
+  .mat-column-duration,
+  .mat-column-streams,
+  .mat-column-addedby {
+    display: none;
+  }
+
+  .mat-column-main-control {
+    display: none;
+  }
+
+  .mat-column-artist-controls,
+  .mat-column-add-to-playlist-controls {
+    width: 42px;
+  }
+
+  .mat-mdc-header-row {
+    display: none;
+  }
+
+  .mat-mdc-row {
+    min-height: 70px;
+  }
+
+  .mat-mdc-cell {
+    padding: 7px 3px;
+  }
+
+  .track-image {
+    width: 48px;
+    height: 48px;
+  }
+
+  .track-artists {
+    max-width: 54vw;
+    overflow: hidden;
+    padding: 1px 5px 2px 0;
+    font-size: 12px;
+    line-height: 1.4;
+    box-sizing: border-box;
+  }
+
+  table p {
+    max-width: 54vw;
+    overflow: hidden;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .album-order-toolbar app-search-bar {
+    order: 0;
+    width: 0;
+    min-width: 0;
+    flex: 1 1 0;
+  }
+
+  .mat-mdc-row {
+    cursor: pointer;
+  }
+
+  .mobile-playing-indicator {
+    display: grid;
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
+    margin-right: 5px;
+    order: -1;
+    place-items: center;
+    overflow: hidden;
+    line-height: 0;
+  }
+
+  .mobile-playing-indicator.over-track-artwork {
+    position: absolute;
+    z-index: 3;
+    top: 11px;
+    left: 11px;
+    margin: 0;
+    order: initial;
+    border-radius: 50%;
+    background: rgba(20, 15, 21, .68);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
 }
 
 

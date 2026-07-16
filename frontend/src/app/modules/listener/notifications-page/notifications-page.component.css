@@ -56,3 +56,31 @@
   gap: 5px;
   align-items: center;
 }
+
+@media (max-width: 960px) {
+  .notifications-page {
+    gap: 14px;
+    padding: 18px 0 0;
+  }
+
+  .notifications-panel {
+    height: auto;
+    overflow: visible;
+  }
+
+  .controls {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .chips {
+    max-width: 100%;
+    gap: 7px;
+    overflow-x: auto;
+  }
+
+  .footer {
+    align-items: flex-start;
+    border-radius: 13px;
+  }
+}

@@ -54,7 +54,6 @@ import { UserProfilePageComponent } from './user-profile-page/user-profile-page.
   import {FollowersPageComponent} from './user-profile-page/follower-page/follower-page.component';
 import { FollowingPageComponent } from './user-profile-page/following-page/following-page.component';
 import { OrderListComponent } from './order-list/order-list.component';
-  import {MatMenu, MatMenuItem, MatMenuTrigger} from "@angular/material/menu";
   import {MatCheckbox} from '@angular/material/checkbox';
   import {ArtistDialogComponent} from './artist-page/artist-dialog/artist-dialog.component';
 import { UserMonthlyStatsComponent } from './user-monthly-stats/user-monthly-stats.component';
@@ -63,6 +62,10 @@ import { MonthlyStatsDialogComponent } from './monthly-stats-dialog/monthly-stat
   import {MatSlideToggle} from '@angular/material/slide-toggle';
 import { PersonalizedPlaylistDetailComponent } from './personalized-playlist-detail/personalized-playlist-detail.component';
 import { RadioDetailComponent } from './radio-detail/radio-detail.component';
+import {A11yModule} from '@angular/cdk/a11y';
+import {
+  StemMixerBottomSheetComponent
+} from './music-player/stem-mixer-bottom-sheet/stem-mixer-bottom-sheet.component';
 
 
 @NgModule({
@@ -102,6 +105,7 @@ import { RadioDetailComponent } from './radio-detail/radio-detail.component';
         MonthlyStatsDialogComponent,
         PersonalizedPlaylistDetailComponent,
         RadioDetailComponent,
+        StemMixerBottomSheetComponent,
     ],
   imports: [
     CommonModule,
@@ -134,14 +138,12 @@ import { RadioDetailComponent } from './radio-detail/radio-detail.component';
     MatTabContent,
     InfiniteScrollDirective,
     MatProgressSpinner,
-    MatMenu,
-    MatMenuItem,
-    MatMenuTrigger,
     MatCheckbox,
     MatDialogActions,
     MatDialogContent,
     MatDialogTitle,
     MatSlideToggle,
+    A11yModule,
   ],
     exports: [
         ListenerHomeComponent

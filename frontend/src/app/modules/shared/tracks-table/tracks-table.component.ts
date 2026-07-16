@@ -548,6 +548,32 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
     this.onMainClick.emit(id);
   }
 
+  playTrackFromMobileRow(event: MouseEvent, track: TrackGetResponse): void {
+    if(!window.matchMedia('(max-width: 960px)').matches || this.inArtistMode)
+    {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    if(target?.closest(
+      'button, a, input, mat-checkbox, app-clickable-featured-artists, .clickable-artist, .delete-icon'
+    ))
+    {
+      return;
+    }
+
+    if(this.currentTrack?.id === track.id)
+    {
+      if(!this.playingState)
+      {
+        this.musicPlayerService.togglePlayState();
+      }
+      return;
+    }
+
+    this.emitTrack(track.id);
+  }
+
   deleteTrack(id: number) {
     let matRef = this.matDialog.open(ConfirmDialogComponent, {
       hasBackdrop: true,

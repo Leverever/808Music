@@ -1,4 +1,4 @@
-import {Component, HostListener, OnDestroy, OnInit} from '@angular/core';
+import {Component, EventEmitter, HostListener, OnDestroy, OnInit, Output} from '@angular/core';
 import {TrackGetResponse} from '../../../../endpoints/track-endpoints/track-get-by-id-endpoint.service';
 import {SecondsToDurationStringPipe} from '../../../../services/pipes/seconds-to-string.pipe';
 import {MatSliderDragEvent} from '@angular/material/slider';
@@ -15,7 +15,7 @@ import {MatSlideToggleChange} from '@angular/material/slide-toggle';
 import {PlaybackInteractionTrackerService} from '../../../../services/personalization/playback-interaction-tracker.service';
 import {TrackInteractionContext} from '../../../../endpoints/personalization-endpoints/track-interaction-endpoint.service';
 
-interface StemMix {
+export interface StemMix {
   name: string;
   volume: number;
 }
@@ -37,6 +37,10 @@ interface StemAudioPlayer {
   styleUrl: './music-controller.component.css'
 })
 export class MusicControllerComponent implements OnInit, OnDestroy {
+  @Output() stemMixerRequested = new EventEmitter<void>();
+  @Output() skipNextRequested = new EventEmitter<void>();
+  @Output() skipPreviousRequested = new EventEmitter<void>();
+
   jwt: string = "";
   track : TrackGetResponse | null = null;
   trackLocation = `${MyConfig.api_address}/api/TrackStreamEndpoint?TrackId=`;
@@ -76,6 +80,7 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
   private readonly stemVolumeStorageKey = "music-stem-volumes";
   private readonly stemSyncThresholdSeconds = 0.08;
   private readonly stemSortOrder = ["Vocals", "Drums", "Bass", "Other", "Instrumental"];
+  private pendingPlaybackRestoreTime: number | null = null;
 
   constructor(private musicPlayerService: MusicPlayerService,
               private httpClient : HttpClient,
@@ -97,10 +102,9 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
       }
 
       this.track = this.musicPlayerService.getLastPlayedSong();
-      let cachedTime = window.localStorage.getItem("currentPlaybackTime");
-      if(cachedTime != null)
+      if(this.track != null)
       {
-        this.currentPlaybackTime = Number.parseInt(cachedTime);
+        this.currentPlaybackTime = this.musicPlayerService.getPersistedPlaybackTime(this.track.id);
       }
 
       if(this.track != null)
@@ -111,7 +115,7 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
           this.getInteractionContext());
         this.initializeMediaSession();
         this.updateMediaSessionMetadata();
-        this.loadPlaybackForTrack(this.track.id, false);
+        this.loadPlaybackForTrack(this.track.id, false, this.currentPlaybackTime);
       }
 
       this.musicPlayerService.trackEvent.subscribe({
@@ -125,9 +129,9 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
           this.streamCounted = false;
           this.streamedSec = 0;
           this.currentPlaybackTime = 0;
-          window.localStorage.setItem("currentPlaybackTime", '0');
+          this.musicPlayerService.setPlaybackProgress(0, value.length);
           this.updateMediaSessionMetadata();
-          this.loadPlaybackForTrack(value.id, true);
+          this.loadPlaybackForTrack(value.id, true, 0);
         }
       })
 
@@ -182,6 +186,8 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.persistCurrentPlaybackPosition();
+
     if(this.streamIntervalId !== undefined)
     {
       window.clearInterval(this.streamIntervalId);
@@ -250,7 +256,7 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
 
   setCurrentPlaybackTime(e: number) {
     this.currentPlaybackTime = e;
-    window.localStorage.setItem("currentPlaybackTime", this.currentPlaybackTime.toString());
+    this.musicPlayerService.setPlaybackProgress(this.currentPlaybackTime, this.track?.length ?? 0);
     this.updateMediaSessionPositionState();
   }
 
@@ -298,7 +304,9 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
     if(activePlayer != null)
     {
       this.currentPlaybackTime = Math.floor(activePlayer.currentTime);
-      window.localStorage.setItem("currentPlaybackTime", this.currentPlaybackTime.toString());
+      this.musicPlayerService.setPlaybackProgress(
+        this.currentPlaybackTime,
+        Number.isFinite(activePlayer.duration) ? activePlayer.duration : (this.track?.length ?? 0));
       this.updateMediaSessionPositionState();
     }
   }
@@ -348,6 +356,18 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
     }
 
     this.activateMasterMode(shouldResume);
+  }
+
+  requestStemMixer(): void {
+    this.stemMixerRequested.emit();
+  }
+
+  requestSkipNext(): void {
+    this.skipNextRequested.emit();
+  }
+
+  requestSkipPrevious(): void {
+    this.skipPreviousRequested.emit();
   }
 
   setStemVolume(stemName: string, volume: number) {
@@ -410,12 +430,27 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
     this.musicPlayerService.playPrev();
   }
 
+  willNavigateToPreviousTrack(): boolean {
+    return !this.isLooping && this.getActiveCurrentTime() <= 2;
+  }
+
+  skipToGestureTrack(track: TrackGetResponse): void {
+    this.playbackInteractionTracker.skipTrack();
+
+    if(this.playingState)
+    {
+      this.setPlaybackState(false);
+    }
+
+    this.musicPlayerService.playQueuedTrack(track);
+  }
+
   getVolumeSliderValue(event: Event) {
     return Number.parseInt((event.target as HTMLInputElement).value)/100
   }
 
   setShuffleState() {
-    this.isShuffled = !this.isShuffled;
+    this.musicPlayerService.toggleShuffle();
   }
 
   getTrackId() {
@@ -508,9 +543,10 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
     }
   }
 
-  private loadPlaybackForTrack(trackId: number, playWhenReady: boolean) {
+  private loadPlaybackForTrack(trackId: number, playWhenReady: boolean, restoreTime = 0) {
     const requestId = ++this.playbackRequestId;
 
+    this.pendingPlaybackRestoreTime = Math.max(0, restoreTime);
     this.pauseAllAudio();
     this.playingState = playWhenReady;
     this.shouldPlayWhenReady = playWhenReady;
@@ -573,13 +609,14 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const resumeTime = this.getActiveCurrentTime();
+    const resumeTime = this.getPlaybackResumeTime();
     this.pauseAllAudio();
     this.setMasterAudioSource("", false);
     this.setupStemPlayers();
     this.stemModeActive = true;
     this.currentPlaybackTime = Math.floor(resumeTime);
     this.seekTo(resumeTime, false);
+    this.pendingPlaybackRestoreTime = null;
     this.applyLoopState();
     this.applyVolumes();
     this.updateMediaSessionMetadata();
@@ -593,13 +630,14 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
   }
 
   private activateMasterMode(playWhenReady: boolean) {
-    const resumeTime = this.getActiveCurrentTime();
+    const resumeTime = this.getPlaybackResumeTime();
     this.pauseStemPlayers();
     this.teardownStemPlayers();
     this.stemModeActive = false;
     this.ensureMasterAudioSource();
     this.currentPlaybackTime = Math.floor(resumeTime);
     this.seekTo(resumeTime, false);
+    this.pendingPlaybackRestoreTime = null;
     this.applyLoopState();
     this.applyVolumes();
     this.updateMediaSessionMetadata();
@@ -726,7 +764,9 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
 
     if(persist)
     {
-      window.localStorage.setItem("currentPlaybackTime", Math.floor(this.currentPlaybackTime).toString());
+      this.musicPlayerService.setPlaybackProgress(
+        this.currentPlaybackTime,
+        this.track?.length ?? 0);
     }
 
     this.updateMediaSessionPositionState();
@@ -783,6 +823,31 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
     return activePlayer != null && Number.isFinite(activePlayer.currentTime)
       ? activePlayer.currentTime
       : this.currentPlaybackTime;
+  }
+
+  private getPlaybackResumeTime(): number {
+    return this.pendingPlaybackRestoreTime ?? this.getActiveCurrentTime();
+  }
+
+  @HostListener('window:pagehide')
+  private persistCurrentPlaybackPosition(): void {
+    if(this.track == null)
+    {
+      return;
+    }
+
+    const currentTime = this.pendingPlaybackRestoreTime ?? this.getActiveCurrentTime();
+    if(!Number.isFinite(currentTime))
+    {
+      return;
+    }
+
+    this.currentPlaybackTime = Math.max(0, currentTime);
+    const activePlayer = this.getPrimaryAudioElement();
+    const duration = activePlayer != null && Number.isFinite(activePlayer.duration)
+      ? activePlayer.duration
+      : this.track.length;
+    this.musicPlayerService.setPlaybackProgress(this.currentPlaybackTime, duration);
   }
 
   private applyVolumes() {

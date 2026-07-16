@@ -116,3 +116,50 @@ app-album-card {
 .spotlight-container {
   position: relative;
 }
+
+@media (max-width: 960px) {
+  .artist-music-page {
+    width: 100%;
+    margin-top: 18px;
+    overflow: visible;
+  }
+
+  .lander {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .popular,
+  .popular-1,
+  .tab-group {
+    width: 100%;
+    height: auto;
+    flex-basis: auto;
+    overflow: visible;
+  }
+
+  .album-cover {
+    width: min(74vw, 300px);
+    height: min(74vw, 300px);
+    position: relative;
+    padding: 14px;
+  }
+
+  .album-cards {
+    width: 100%;
+    gap: 12px;
+    overflow-x: auto;
+  }
+
+  app-album-card {
+    width: clamp(150px, 43vw, 190px);
+    min-width: clamp(150px, 43vw, 190px);
+  }
+
+  .view-all {
+    width: 54px;
+    min-width: 54px;
+    height: 180px;
+    padding-top: 72px;
+  }
+}

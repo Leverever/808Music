@@ -82,13 +82,24 @@ export class SendSongMessageComponent implements OnInit {
   protected readonly MyConfig = MyConfig;
 
   checkChat(event: MatCheckboxChange, a: ChatGetResponse) {
-    if(event.checked)
+    this.setChatSelected(a, event.checked);
+  }
+
+  toggleChat(chat: ChatGetResponse): void {
+    this.setChatSelected(chat, !this.checkIfSelected(chat));
+  }
+
+  private setChatSelected(chat: ChatGetResponse, selected: boolean): void {
+    if(selected)
     {
-      this.chatsToSendTo.push(a)
+      if(!this.checkIfSelected(chat))
+      {
+        this.chatsToSendTo.push(chat);
+      }
     }
     else
     {
-      this.chatsToSendTo = this.chatsToSendTo.filter(c => c.id !== a.id)
+      this.chatsToSendTo = this.chatsToSendTo.filter(c => c.id !== chat.id);
     }
   }
 

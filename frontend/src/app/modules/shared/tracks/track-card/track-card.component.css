@@ -54,3 +54,25 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+@media (max-width: 960px) {
+  .track-card {
+    width: 100%;
+    min-height: 74px;
+    height: auto;
+    padding: 9px;
+    border-radius: 13px;
+  }
+
+  .tc-thumbnail {
+    width: 54px;
+    height: 54px;
+    flex: 0 0 54px;
+    border-radius: 8px;
+  }
+
+  .tc-content {
+    min-width: 0;
+    gap: 10px;
+  }
+}

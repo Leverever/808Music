@@ -130,3 +130,66 @@ h6, p {
   display: flex;
   gap: 10px;
 }
+
+.mobile-chat-back {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .inbox-page {
+    width: 100%;
+    height: calc(100dvh - 170px);
+    min-height: 430px;
+    gap: 0;
+    padding-top: 14px;
+    overflow: hidden;
+  }
+
+  .chats {
+    width: 100%;
+    height: 100%;
+    gap: 14px;
+    padding-bottom: 10px;
+  }
+
+  .create {
+    width: auto;
+  }
+
+  .messages {
+    display: none;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .inbox-page.chat-open .chats {
+    display: none;
+  }
+
+  .inbox-page.chat-open .messages {
+    display: block;
+  }
+
+  .mobile-chat-back {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 20;
+    display: inline-grid;
+    place-items: center;
+    color: #fff;
+  }
+
+  .chat-card {
+    min-height: 76px;
+    padding: 10px;
+  }
+
+  .pfp {
+    width: 56px;
+    height: 56px;
+    flex: 0 0 56px;
+  }
+}

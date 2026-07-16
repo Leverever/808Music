@@ -162,3 +162,59 @@ flex-direction: column;
   position: relative;
   margin-bottom: 2vh;
 }
+
+@media (max-width: 960px) {
+  .artist-page {
+    height: auto;
+    min-height: 100%;
+    padding: 14px 0 0;
+    overflow: visible;
+  }
+
+  .banner,
+  .banner-gradient,
+  .banner-controls {
+    height: clamp(250px, 70vw, 360px);
+  }
+
+  .banner {
+    border-radius: 16px;
+  }
+
+  .controls {
+    right: 14px;
+    bottom: 14px;
+    left: 14px;
+  }
+
+  .name {
+    min-width: 0;
+  }
+
+  .name > h2 {
+    overflow: hidden;
+    font-size: clamp(24px, 8vw, 38px);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .artist-user-pic,
+  .personal-rank {
+    width: 58px;
+    height: 58px;
+    flex: 0 0 58px;
+  }
+
+  .rank-title {
+    font-size: 10px;
+  }
+
+  .statistics {
+    align-items: center;
+    gap: 8px;
+  }
+
+  .actions {
+    flex: 0 0 auto;
+  }
+}

@@ -1,3 +1,33 @@
 h3 {
   font-weight: 500;
 }
+
+.album-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+@media (max-width: 960px) {
+  .album-cards {
+    flex-wrap: nowrap;
+    gap: 12px;
+    padding: 2px 2px 10px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .album-cards::-webkit-scrollbar {
+    display: none;
+  }
+
+  app-artist-big-card {
+    flex: 0 0 clamp(146px, 40vw, 180px);
+    scroll-snap-align: start;
+  }
+
+  .view-all {
+    flex: 0 0 54px;
+  }
+}

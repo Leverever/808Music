@@ -37,3 +37,29 @@
   border-radius: 6px;
   cursor: pointer;
 }
+
+@media (max-width: 960px) {
+  .artist-music-page {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+  }
+
+  .album-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .list-heading {
+    margin-bottom: 10px;
+  }
+
+  .play-all-button {
+    min-height: 42px;
+  }
+
+  app-track-card {
+    width: 100%;
+  }
+}

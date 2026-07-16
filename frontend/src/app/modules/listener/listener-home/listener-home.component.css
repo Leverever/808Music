@@ -197,3 +197,69 @@ p{
   padding: 20px 0;
   color: rgba(255, 255, 255, 0.66);
 }
+
+@media (max-width: 960px) {
+  .artist-music-page {
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+    gap: 24px;
+    padding-top: 18px;
+    overflow: visible;
+  }
+
+  .event-carousel-container {
+    height: auto;
+    padding-right: 0;
+  }
+
+  .event-image {
+    height: clamp(210px, 58vw, 340px);
+  }
+
+  .event-info {
+    right: 18px;
+    bottom: 18px;
+    left: 18px;
+  }
+
+  .event-title {
+    font-size: clamp(25px, 8vw, 42px);
+  }
+
+  .event-informations {
+    font-size: 13px;
+  }
+
+  .prev {
+    left: 4px;
+  }
+
+  .next {
+    right: 4px;
+  }
+
+  .daily-playlist-grid {
+    flex-wrap: nowrap;
+    gap: 12px;
+    padding-bottom: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .daily-playlist-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .personalization-section {
+    margin-bottom: 8px;
+  }
+
+  .personalization-heading {
+    align-items: flex-end;
+  }
+
+  .personalization-heading span {
+    font-size: 12px;
+  }
+}

@@ -1,48 +1,131 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  touch-action: pan-y !important;
+}
+
 .queue-remove-option {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 3px;
-  height: 7vh;
+  width: 100%;
+  touch-action: pan-y !important;
+}
+
+.queue-remove-option.cdk-drag,
+.queue-remove-option .track-card,
+.queue-remove-option .remove-button {
+  touch-action: pan-y !important;
+}
+
+.drag-handle {
+  display: grid;
+  width: 34px;
+  height: 44px;
+  flex: 0 0 34px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: rgba(237, 226, 238, .58);
+  cursor: grab;
+  touch-action: none !important;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle mat-icon {
+  display: block;
+  margin: 0;
+  line-height: 1;
 }
 
 .queue-cover {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border: 1px solid rgba(255, 255, 255, .13);
   background-size: cover;
   background-position: center;
-  border-radius: 5px;
+  border-radius: 11px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .24);
 }
 
 .track-card {
   display: flex;
+  min-width: 0;
+  flex: 1;
   align-items: center;
-  justify-content: start;
-  gap: 8px;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
 }
 
 .track-title {
-  font-size: 18px;
-}
-
-.track-title:hover {
-  cursor: pointer;
-  text-decoration: underline;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .position {
-  font-size: 13px;
-  color: #A9A9A9;
+  width: 22px;
+  flex: 0 0 22px;
+  color: rgba(224, 213, 225, .56);
+  font-size: 12px;
+  text-align: right;
 }
 
-.queue-title {
-  padding: 0;
-  text-align: center;
+.remove-button {
+  flex: 0 0 auto;
+  color: #eda3fb;
 }
 
-.dual-control {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  margin-bottom: 10px;
+.cdk-drag-preview {
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 17px;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, .16), rgba(230, 146, 248, .11)),
+    rgba(38, 29, 40, .92);
+  box-shadow: 0 20px 44px rgba(0, 0, 0, .42);
+  color: #f7f1f7;
+  box-sizing: border-box;
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  backdrop-filter: blur(24px) saturate(170%);
+}
+
+.cdk-drag-placeholder {
+  opacity: .28;
+}
+
+.queue-list.cdk-drop-list-dragging .queue-remove-option:not(.cdk-drag-placeholder) {
+  transition: transform 180ms cubic-bezier(.2, .8, .2, 1);
+}
+
+@media (max-width: 420px) {
+  .drag-handle {
+    width: 28px;
+    flex-basis: 28px;
+  }
+
+  .position {
+    width: 18px;
+    flex-basis: 18px;
+  }
 }

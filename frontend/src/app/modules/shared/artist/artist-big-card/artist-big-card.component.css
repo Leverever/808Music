@@ -63,3 +63,28 @@
   padding-top: 18px;
   color: #EEDEE7;
 }
+
+@media (max-width: 960px) {
+  .artist-card {
+    width: 100%;
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .thumbnail-image {
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .play-button {
+    right: 12px;
+    top: auto;
+    bottom: 54px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .play-button > mat-icon {
+    padding-top: 12px;
+  }
+}

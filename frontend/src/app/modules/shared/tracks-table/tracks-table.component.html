@@ -149,6 +149,12 @@
                                                 (onArtistClick)="goToArtistProfile($event)"></app-clickable-featured-artists>
               </div>
             </div>
+            @if (!inArtistMode && currentTrack?.id == track.id && playingState) {
+              <div class="mobile-playing-indicator" [class.over-track-artwork]="isPlaylist"
+                   aria-label="Currently playing">
+                <ng-lottie [width]="'24px'" [height]="'24px'" [options]="options"></ng-lottie>
+              </div>
+            }
           </div>
         </div>
       </td>
@@ -243,6 +249,7 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns; let track;"
         cdkDrag [cdkDragData]="track" [cdkDragDisabled]="!manageAlbumOrder || !canReorder"
+        (click)="playTrackFromMobileRow($event, track)"
         (mouseenter)="showHide(false, track)" (mouseleave)="showHide(true,track)">
     </tr>
   </table>

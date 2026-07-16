@@ -323,6 +323,15 @@ export class TracksPageComponent implements OnInit {
 
   protected readonly open = open;
 
+  get playlistArtworkCss(): string {
+    if(!this.playlistDetails?.coverPath)
+    {
+      return 'none';
+    }
+
+    return `url("${MyConfig.media_address}${this.playlistDetails.coverPath}")`;
+  }
+
   manageCollaborators() {
     if (!this.playlistDetails) return;
 

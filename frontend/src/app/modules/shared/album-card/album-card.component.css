@@ -8,6 +8,7 @@
   transition: background-color 0.25s ease-in-out;
   overflow-x: hidden;
   position: relative;
+  width: 100%;
 }
 
 .album-mat-card:hover {
@@ -90,4 +91,29 @@
   height: 10vw;
   background-size: cover;
   background-position: center;
+}
+
+@media (max-width: 960px) {
+  .album-mat-card {
+    height: 100%;
+    border-radius: 14px;
+  }
+
+  #thumbnail {
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .album-mat-card-title {
+    font-size: 16px;
+  }
+
+  .album-mat-card-controls {
+    opacity: 1;
+  }
+
+  .play-button {
+    right: 8px;
+    bottom: 62px;
+  }
 }

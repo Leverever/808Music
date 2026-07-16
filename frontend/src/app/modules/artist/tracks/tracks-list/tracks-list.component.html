@@ -1,47 +1,56 @@
-<div class="tracks-page">
+<div class="tracks-page" appMobileDetailScroll
+     [class.mobile-artwork-detail]="!artistMode"
+     [style.--detail-artwork]="albumArtworkCss">
   <div class="tracks-list" [ngStyle]="isHome ? {'flex-basis':'100vw'} : {}">
-    <div class="track-page-controls">
-      <button mat-icon-button class="go-back-button" (click)="goBack($event)">
-        <mat-icon class="go-back-arrow">arrow_back</mat-icon>
-      </button>
-    </div>
+    <section class="detail-hero">
+      <div class="track-page-controls">
+        <button mat-icon-button class="go-back-button detail-back-button" (click)="goBack($event)"
+                aria-label="Go back">
+          <mat-icon class="go-back-arrow">arrow_back</mat-icon>
+        </button>
+      </div>
 
-    <div class="album-info">
-      <div class="album-cover" [ngStyle]="{'background-image': 'url('+MyConfig.api_address+album?.coverPath+')'}"></div>
+      <div class="album-info">
+        <div class="album-cover detail-artwork"
+             [ngStyle]="{'background-image': 'url('+MyConfig.api_address+album?.coverPath+')'}"></div>
 
-      <div class="album-details">
-        <mat-icon>
-          @if (isAlbumExplicit())
-          {
-            explicit
+        <div class="album-details detail-copy">
+          @if (isAlbumExplicit()) {
+            <mat-icon class="detail-explicit-icon">explicit</mat-icon>
           }
-        </mat-icon>
-        <div>
-          <h2 class="album-title">{{ album?.title }}</h2>
-          <h6>{{album?.type?.type}} • {{getYear()}}</h6>
-          <p>{{album?.numOfTracks}} tracks • {{album?.lengthInSeconds | longDurationString}}</p>
+          <div>
+            <p class="detail-kicker">{{ album?.type?.type }}</p>
+            <h2 class="album-title detail-title">{{ album?.title }}</h2>
+            <div class="detail-meta">
+              <span>{{ getYear() }}</span>
+              <span aria-hidden="true">&bull;</span>
+              <span>{{ album?.numOfTracks }} tracks</span>
+              <span aria-hidden="true">&bull;</span>
+              <span>{{ album?.lengthInSeconds | longDurationString }}</span>
+            </div>
+          </div>
+          <app-artist-small-card [artist]="artist"></app-artist-small-card>
         </div>
-        <app-artist-small-card [artist]="artist"></app-artist-small-card>
       </div>
-    </div>
+    </section>
 
-    <app-tracks-table [pagedRequest]="pagedRequest" (onMainClick)="editTrack($event)" [inArtistMode]="artistMode"
-                      [groupAlbumDiscs]="true" [manageAlbumOrder]="artistMode"
-                      (onCreateClick)="addNew()" [reload]="reloadTable"></app-tracks-table>
-    <div class="distributor">
-      <div>© {{album?.distributor}}</div>
-      <div class="release-date">
-        <div>{{moment(album?.releaseDate).format('DD. MMMM yyyy.')}}</div>
-        <mat-icon>
-          calendar_month
-        </mat-icon>
+    <section class="detail-tracks-surface">
+      <app-tracks-table [pagedRequest]="pagedRequest" (onMainClick)="editTrack($event)" [inArtistMode]="artistMode"
+                        [groupAlbumDiscs]="true" [manageAlbumOrder]="artistMode"
+                        (onCreateClick)="addNew()" [reload]="reloadTable"></app-tracks-table>
+      <div class="distributor">
+        <div>&copy; {{album?.distributor}}</div>
+        <div class="release-date">
+          <div>{{moment(album?.releaseDate).format('DD. MMMM yyyy.')}}</div>
+          <mat-icon>calendar_month</mat-icon>
+        </div>
       </div>
-    </div>
+    </section>
   </div>
+
   @if (artistMode) {
     <div class="side-island" [ngStyle]="isHome ? {'flex-basis':'0'} : {}">
       <router-outlet></router-outlet>
     </div>
   }
 </div>
-

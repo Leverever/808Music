@@ -1,7 +1,7 @@
-<div class="base-page">
-  <app-sidenav></app-sidenav>
-  <div class="routed-content">
+<div class="base-page" [class.has-player]="musicPlayerService.queue.length > 0">
+  <app-sidenav class="navigation"></app-sidenav>
+  <main class="routed-content">
     <router-outlet></router-outlet>
-  </div>
+  </main>
   <app-music-player class="player"></app-music-player>
 </div>
