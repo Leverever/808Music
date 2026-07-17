@@ -1,11 +1,11 @@
 <mat-card (click)="openPlaylist()" appearance="outlined" class="playlist-mat-card" (mouseover)="showPlayButton()" (mouseleave)="hidePlayButton()"
           [matTooltip]="tooltip"
+          matTooltipTouchGestures="off"
           matTooltipPosition="above"
           matTooltipShowDelay="500" matTooltipHideDelay="250" >
   <div [ngStyle]="{'background-image': 'url(' + imageUrl + ')'}"
        class="playlist-image"
        matCardImage
-       (click)="openPlaylist()"
        (error)="replaceWithPlaceholder()"
        id="thumbnail">
   </div>
@@ -20,13 +20,13 @@
     <mat-card-subtitle class="playlist-author" (click)="openPlaylist()">by {{getAuthor()}}</mat-card-subtitle>
   </mat-card-header>
   <mat-card-actions *ngIf="hasControls" class="playlist-mat-card-controls">
-    <button mat-icon-button (click)="emitDelete()">
+    <button mat-icon-button (click)="emitDelete(); $event.stopPropagation()">
       <mat-icon>delete</mat-icon>
     </button>
-    <button mat-icon-button (click)="emitStats()">
+    <button mat-icon-button (click)="emitStats(); $event.stopPropagation()">
       <mat-icon>bar_chart</mat-icon>
     </button>
-    <button mat-icon-button (click)="emitEdit()">
+    <button mat-icon-button (click)="emitEdit(); $event.stopPropagation()">
       <mat-icon>edit</mat-icon>
     </button>
   </mat-card-actions>

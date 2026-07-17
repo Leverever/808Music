@@ -1,26 +1,37 @@
 @if (track) {
-  <div class="track-card" (mouseover)="showPlayButton(true)" (mouseleave)="showPlayButton(false)" [ngStyle]="cardStyle">
+  <div class="track-card" (click)="handleCardClick($event)" (mouseover)="showPlayButton(true)" (mouseleave)="showPlayButton(false)" [ngStyle]="cardStyle">
     <div class="tc-content">
       <div class="tc-thumbnail" [ngStyle]="{'background-image': 'url('+getCoverUrl(track.coverPath)+')'}"></div>
       <div class="tc-info">
-        <h6 (click)="goToTrack()">{{ track.title }}</h6>
+        <h6 (click)="handleTitleClick($event)"
+            [class.is-playing-track]="isPlayingThisTrack && playingState">{{ track.title }}</h6>
         @if (!artistMode) {
-          <app-clickable-featured-artists [artists]="track.artists"
-                                          (onArtistClick)="goToArtistPage($event)"></app-clickable-featured-artists>
+          <div class="tc-artists">
+            @if (track.isExplicit) {
+              <mat-icon class="track-explicit-icon" aria-label="Explicit">explicit</mat-icon>
+            }
+            <app-clickable-featured-artists [artists]="track.artists"
+                                            (onArtistClick)="goToArtistPage($event)"></app-clickable-featured-artists>
+          </div>
         }
       </div>
     </div>
     <div class="tc-actions" [ngStyle]="isPlayingThisTrack && playingState ? pauseBtnStyle : playBtnSyle">
       @if (artistMode)
       {
-        <button mat-fab (click)="handleActionClick()">
+        <button mat-fab (click)="handlePlayButtonClick($event)">
           <mat-icon>edit</mat-icon>
         </button>
       } @else {
-        <button mat-fab (click)="!isPlayingThisTrack ? handleActionClick() : musicPlayerService.togglePlayState()">
+        <button mat-fab (click)="handlePlayButtonClick($event)">
           <mat-icon>{{isPlayingThisTrack && playingState ? 'pause' : 'play_arrow'}}</mat-icon>
         </button>
       }
     </div>
+    @if (!artistMode && isPlayingThisTrack && playingState) {
+      <div class="mobile-track-playing" aria-label="Currently playing">
+        <ng-lottie [width]="'24px'" [height]="'24px'" [options]="playingAnimationOptions"></ng-lottie>
+      </div>
+    }
   </div>
 }

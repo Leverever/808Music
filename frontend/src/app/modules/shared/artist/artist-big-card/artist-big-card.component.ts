@@ -148,4 +148,19 @@ export class ArtistBigCardComponent implements OnInit, OnDestroy {
       this.router.navigate(["/listener/profile", artistId]);
     }
   }
+
+  openCardOnMobile(event: MouseEvent): void {
+    if(typeof window === 'undefined' || !window.matchMedia('(max-width: 960px)').matches)
+    {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    if(target?.closest('.play-button, .artist-name'))
+    {
+      return;
+    }
+
+    this.goToArtist();
+  }
 }

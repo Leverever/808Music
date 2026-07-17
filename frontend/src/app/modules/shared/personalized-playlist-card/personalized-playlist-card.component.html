@@ -1,5 +1,6 @@
 <mat-card appearance="outlined" class="album-mat-card"
           [matTooltip]="playlist.name"
+          matTooltipTouchGestures="off"
           matTooltipPosition="above"
           matTooltipShowDelay="500"
           matTooltipHideDelay="250"
@@ -9,7 +10,7 @@
   <div class="playlist-cover" matCardImage role="img"
        [attr.aria-label]="playlist.name"
        [style.background-image]="'url(&quot;' + imageUrl + '&quot;)'">
-    <div class="ai-generated-badge" matTooltip="AI-generated playlist"
+    <div class="ai-generated-badge" matTooltip="AI-generated playlist" matTooltipTouchGestures="off"
          aria-label="AI-generated playlist">
       <mat-icon>auto_awesome</mat-icon>
       <span>AI</span>

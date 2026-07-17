@@ -255,9 +255,19 @@ p{
 }
 
 @media (max-width: 960px) {
+  :host {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
   .tracks-page {
     width: 100%;
     padding: 14px 0 0;
+  }
+
+  .tracks-page.mobile-artwork-detail {
+    margin-inline: -14px !important;
   }
 
   .tracks-list {

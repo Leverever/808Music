@@ -114,6 +114,15 @@ export class RadioDetailComponent implements OnInit, OnDestroy {
     return this.mediaUrl(this.seedTrack?.coverPath);
   }
 
+  get radioArtworkCss(): string {
+    if(!this.seedTrack)
+    {
+      return 'none';
+    }
+
+    return `url("${this.coverUrl()}")`;
+  }
+
   mediaUrl(path?: string): string {
     const value = path || '/media/Images/playlist_placeholder.png';
     if(/^https?:\/\//i.test(value))

@@ -5,6 +5,7 @@ import {Router} from '@angular/router';
 import {MyConfig} from '../../../../my-config';
 import {MusicPlayerService} from '../../../../services/music-player.service';
 import {Subscription} from 'rxjs';
+import {AnimationOptions} from 'ngx-lottie';
 
 @Component({
   selector: 'app-track-card',
@@ -16,6 +17,11 @@ export class TrackCardComponent implements AfterViewInit, OnInit, OnDestroy {
   @Input() artistMode : boolean = false;
   @Input() useCustomPlayHandler: boolean = false;
   @Output() playRequested = new EventEmitter<void>();
+
+  playingAnimationOptions: AnimationOptions = {
+    loop: true,
+    path: '/assets/animations/playing_anim.json'
+  };
 
   playBtnSyle = {
     'display': 'none',
@@ -102,7 +108,54 @@ export class TrackCardComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  handleCardClick(event: MouseEvent): void {
+    if(!this.isMobileView())
+    {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    if(target?.closest('button, app-clickable-featured-artists'))
+    {
+      return;
+    }
+
+    this.handleActionClick();
+  }
+
+  handleTitleClick(event: MouseEvent): void {
+    event.stopPropagation();
+    if(this.isMobileView())
+    {
+      this.handleActionClick();
+      return;
+    }
+
+    this.goToTrack();
+  }
+
+  handlePlayButtonClick(event: MouseEvent): void {
+    event.stopPropagation();
+    if(this.artistMode)
+    {
+      this.handleActionClick();
+      return;
+    }
+
+    if(this.isPlayingThisTrack)
+    {
+      this.musicPlayerService.togglePlayState();
+      return;
+    }
+
+    this.handleActionClick();
+  }
+
   getCoverUrl(path: string): string {
     return /^https?:\/\//i.test(path) ? path : MyConfig.api_address + path;
+  }
+
+  private isMobileView(): boolean {
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 960px)').matches;
   }
 }

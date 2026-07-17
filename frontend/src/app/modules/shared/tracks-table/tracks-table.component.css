@@ -205,35 +205,50 @@ table p {
 }
 
 .disc-table-multiple {
-  margin-top: 18px;
-  border: 1px solid #514951;
-  border-radius: 9px;
-  overflow: hidden;
+  margin-top: 24px;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
 }
 
 .disc-heading {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  min-height: 48px;
-  padding: 0 12px 0 16px;
-  background: #282428;
+  min-height: 42px;
+  margin-bottom: 4px;
+  padding: 0 6px 7px 8px;
+  border: 0;
+  background: transparent;
+  text-shadow: 0 5px 18px rgba(0, 0, 0, .32);
 }
 
 .disc-heading > div {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 9px;
 }
 
 .disc-heading h3 {
   margin: 0;
   font-size: 17px;
+  font-weight: 720;
+  letter-spacing: -.015em;
+  line-height: 1.2;
 }
 
 .disc-heading span {
-  color: #a9a9a9;
+  margin-left: auto;
+  color: rgba(255, 255, 255, .62);
   font-size: 13px;
+  line-height: 1.2;
+  text-align: right;
+}
+
+.disc-heading mat-icon {
+  color: #e692f8;
+  filter: drop-shadow(0 0 10px rgba(230, 146, 248, .28));
 }
 
 .mat-column-reorder {

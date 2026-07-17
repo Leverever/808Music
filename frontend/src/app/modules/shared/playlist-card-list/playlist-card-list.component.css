@@ -10,6 +10,14 @@
 }
 
 @media (max-width: 960px) {
+  .title {
+    margin: 0 0 11px;
+    font-size: clamp(20px, 5.8vw, 26px);
+    font-weight: 740;
+    letter-spacing: -0.025em;
+    line-height: 1.12;
+  }
+
   .playlist-cards {
     flex-wrap: nowrap;
     gap: 12px;

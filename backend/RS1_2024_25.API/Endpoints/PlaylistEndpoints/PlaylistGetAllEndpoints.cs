@@ -28,16 +28,55 @@ namespace RS1_2024_25.API.Endpoints.PlaylistEndpoints
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllPlaylistsAsync(CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetAllPlaylistsAsync(
+            [FromQuery] string searchString = "",
+            [FromQuery] int returnAmount = 100,
+            [FromQuery] bool publicOnly = false,
+            CancellationToken cancellationToken = default)
         {
-            var playlists = await _db.Playlists
+            var query = _db.Playlists.AsNoTracking().AsQueryable();
+
+            if (publicOnly)
+            {
+                query = query.Where(playlist => playlist.IsPublic);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                var normalizedSearch = searchString.Trim().ToLower();
+                query = query.Where(playlist =>
+                    playlist.Title.ToLower().Contains(normalizedSearch)
+                    || playlist.UserPlaylists.Any(userPlaylist =>
+                        userPlaylist.IsOwner
+                        && userPlaylist.User.Username.ToLower().Contains(normalizedSearch)));
+            }
+
+            var resultLimit = Math.Clamp(returnAmount, 1, 100);
+            var playlists = await query
+                .OrderByDescending(playlist => playlist.NumOfTracks)
+                .ThenBy(playlist => playlist.Title)
+                .Take(resultLimit)
                 .Select(p => new
                 {
                     p.Id,
                     p.Title,
                     p.NumOfTracks,
                     p.IsPublic,
-                    p.CoverPath
+                    p.CoverPath,
+                    Username = p.UserPlaylists
+                        .Where(userPlaylist => userPlaylist.IsOwner)
+                        .Select(userPlaylist => userPlaylist.User.Username)
+                        .FirstOrDefault() ?? "808 User",
+                    OwnerUsername = p.UserPlaylists
+                        .Where(userPlaylist => userPlaylist.IsOwner)
+                        .Select(userPlaylist => userPlaylist.User.Username)
+                        .FirstOrDefault() ?? "808 User",
+                    UserId = p.UserPlaylists
+                        .Where(userPlaylist => userPlaylist.IsOwner)
+                        .Select(userPlaylist => userPlaylist.MyAppUserId)
+                        .FirstOrDefault(),
+                    IsLikedSongs = p.isLikePlaylist,
+                    p.IsCollaborative
                 })
                 .ToListAsync(cancellationToken);
 

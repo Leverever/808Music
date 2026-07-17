@@ -49,7 +49,8 @@ import {
 } from '../../../endpoints/playlist-endpoints/delete-track-from-playlist-endpoint.service';
 import {HttpErrorResponse} from '@angular/common/http';
 import {
-  PlaylistTracksGetEndpointService
+  PlaylistTracksGetEndpointService,
+  PlaylistTracksGetRequest
 } from '../../../endpoints/playlist-endpoints/playlist-get-tracks-endpoint.service';
 import {IsOnPlaylistService} from '../../../endpoints/playlist-endpoints/is-song-on-playlist-endpoint.service';
 import {ArtistHandlerService} from '../../../services/artist-handler.service';
@@ -67,6 +68,8 @@ interface TrackDiscGroup {
   dropListId: string;
 }
 
+type TracksSearchMode = 'tracks' | 'playlist' | 'client';
+
 @Component({
   selector: 'app-tracks-table',
   templateUrl: './tracks-table.component.html',
@@ -75,6 +78,7 @@ interface TrackDiscGroup {
 export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   @Input() inArtistMode = true;
   @Input() isPlaylist = false;
+  @Input() searchMode: TracksSearchMode = 'tracks';
   @Input() trackInfo: TrackUserInfoDto [] = [];
   @Input() playlistId: number | null = null;
   @Input() isUsersPlaylist = false;
@@ -127,6 +131,8 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
   trackChange$!: Subscription;
 
   currentTrack : TrackGetResponse | null = null;
+  private searchQuery = '';
+  private playlistSearchVersion = 0;
 
   ngOnDestroy(): void {
     //this.state$.unsubscribe();
@@ -180,7 +186,17 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
   ngOnChanges(changes: SimpleChanges): void {
     this.configureDisplayedColumns();
 
-    if (this.reload) {
+    if (this.searchMode === 'client' && changes['tracks']) {
+      this.applyClientSideSearch();
+    } else if (this.searchMode === 'playlist' && changes['tracks'] && !this.searchQuery) {
+      this.setDisplayedTracks(this.tracks);
+    }
+
+    if (this.searchMode === 'playlist' && changes['playlistId'] && this.searchQuery) {
+      this.searchPlaylistTracks();
+    }
+
+    if (this.searchMode === 'tracks' && this.reload) {
       console.log("changes");
       this.reloadData();
     }
@@ -391,6 +407,20 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
   reloadData() {
     this.reload = false;
 
+    if (this.searchMode === 'client') {
+      this.applyClientSideSearch();
+      return;
+    }
+
+    if (this.searchMode === 'playlist') {
+      if (this.searchQuery) {
+        this.searchPlaylistTracks();
+      } else {
+        this.setDisplayedTracks(this.tracks);
+      }
+      return;
+    }
+
     const request = this.groupAlbumDiscs
       ? {...this.pagedRequest, pageNumber: 1, pageSize: 500}
       : this.pagedRequest;
@@ -402,29 +432,8 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
         if (!this.isPlaylist) {
           this.tracks = data.dataItems;
         }
-        this.tracksDto = this.tracks.map((track, index) => ({
-          ...track,
-          position: track.trackNumber ?? index + 1,
-        }));
-        this.dataSource.data = this.tracksDto;
+        this.setDisplayedTracks(this.tracks, true);
         this.reorderUnavailable = this.manageAlbumOrder && data.totalCount > this.tracksDto.length;
-        this.rebuildDiscGroups();
-
-        this.likedSongs.clear();
-
-        this.tracksDto.forEach(track => {
-          const request = {trackId: track.id, userId: this.getUserIdFromToken()};
-          this.isLikedSongService.handleAsync(request).subscribe({
-            next: response => {
-              this.likedSongs.set(track.id, response.isLikedSong);
-            },
-          });
-        });
-
-        this.isPlayingThisAlbum = this.tracks.length > 0 && (
-          this.musicPlayerService.getLastPlayedSong()?.albumId == this.tracks[0].albumId && this.musicPlayerService.getQueueType() === "album"
-          || this.musicPlayerService.getLastPlayedSong()?.albumId == this.playlistId && this.musicPlayerService.getQueueType() === "playlist"
-        );
       },
       error: error => {
         console.error('Error reloading data:', error);
@@ -603,9 +612,93 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
     this.reloadData();
   }
 
-  searchTracks(queryString: string) {
-    this.pagedRequest.title = queryString;
+  searchTracks(queryString: string | null | undefined) {
+    this.playlistSearchVersion++;
+    this.searchQuery = (queryString ?? '').trim();
+    this.pagedRequest.title = this.searchQuery;
+    this.pagedRequest.pageNumber = 1;
     this.reloadData();
+  }
+
+  private applyClientSideSearch(): void {
+    this.playlistSearchVersion++;
+    const query = this.normalizeSearchValue(this.searchQuery);
+    const filteredTracks = query
+      ? this.tracks.filter(track => {
+        const titleMatches = this.normalizeSearchValue(track.title).includes(query);
+        const artistMatches = track.artists.some(artist =>
+          this.normalizeSearchValue(artist.name).includes(query));
+        return titleMatches || artistMatches;
+      })
+      : this.tracks;
+
+    this.setDisplayedTracks(filteredTracks);
+  }
+
+  private searchPlaylistTracks(): void {
+    const playlistId = this.playlistId;
+    if (playlistId == null) {
+      this.setDisplayedTracks(this.tracks);
+      return;
+    }
+
+    const searchVersion = ++this.playlistSearchVersion;
+    const request: PlaylistTracksGetRequest = {
+      playlistId,
+      pageNumber: 1,
+      pageSize: this.pagedRequest.pageSize || 50,
+      title: this.searchQuery
+    };
+
+    this.playlistTracksService.handleAsync(request).subscribe({
+      next: response => {
+        if (searchVersion !== this.playlistSearchVersion) {
+          return;
+        }
+        this.pagedResponse = response;
+        this.setDisplayedTracks(response.dataItems || []);
+      },
+      error: (error: HttpErrorResponse) => {
+        if (searchVersion === this.playlistSearchVersion) {
+          console.error('Error searching playlist tracks:', error);
+        }
+      }
+    });
+  }
+
+  private normalizeSearchValue(value: string): string {
+    return value.trim().toLocaleLowerCase();
+  }
+
+  private setDisplayedTracks(tracks: TrackGetResponse[], resetLikes = false): void {
+    this.tracksDto = tracks.map((track, index) => ({
+      ...track,
+      position: track.trackNumber ?? index + 1,
+    }));
+    this.dataSource.data = this.tracksDto;
+    this.rebuildDiscGroups();
+
+    if (resetLikes) {
+      this.likedSongs.clear();
+    }
+
+    this.tracksDto.forEach(track => {
+      if (this.likedSongs.has(track.id)) {
+        return;
+      }
+
+      const request = {trackId: track.id, userId: this.getUserIdFromToken()};
+      this.isLikedSongService.handleAsync(request).subscribe({
+        next: response => this.likedSongs.set(track.id, response.isLikedSong),
+      });
+    });
+
+    this.isPlayingThisAlbum = this.tracks.length > 0 && (
+      this.musicPlayerService.getLastPlayedSong()?.albumId == this.tracks[0].albumId
+        && this.musicPlayerService.getQueueType() === "album"
+      || this.musicPlayerService.getLastPlayedSong()?.albumId == this.playlistId
+        && this.musicPlayerService.getQueueType() === "playlist"
+    );
   }
 
   emitCreate() {

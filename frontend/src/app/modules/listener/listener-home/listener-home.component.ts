@@ -80,6 +80,15 @@ export class ListenerHomeComponent implements OnInit {
   events : UpcomingEvent [] = [];
   infinitePage = [1];
   currentSlide: number = 0;
+  eventSwipeOffset = 0;
+  eventSwipeDragging = false;
+  eventSwipeAnimating = false;
+  private eventSwipeCommitDirection: 'previous' | 'next' | null = null;
+  private eventSwipePointerId: number | null = null;
+  private eventSwipeStartX = 0;
+  private eventSwipeStartY = 0;
+  private eventSwipeAxis: 'pending' | 'horizontal' | 'vertical' = 'pending';
+  private eventSwipeTimer: ReturnType<typeof setTimeout> | null = null;
   homeRecommendations: HomeRecommendationsResponse | null = null;
   homeRecommendationsLoading = true;
   recommendedAlbums: MyPagedList<AlbumGetAllResponse> | null = null;
@@ -281,6 +290,7 @@ export class ListenerHomeComponent implements OnInit {
   }
   ngOnDestroy(): void {
     clearInterval(this.slideInterval);
+    this.clearEventSwipeTimer();
   }
   loadEvents(): void {
     this.eventGetUpcoming.getUpcomingEvents().subscribe({
@@ -307,12 +317,155 @@ export class ListenerHomeComponent implements OnInit {
     }
   }
   private startAutoSlide(): void {
+    clearInterval(this.slideInterval);
     this.slideInterval = setInterval(() => {
       this.nextSlide();
     }, 10000);
   }
   changeSlide(index: number): void {
     this.currentSlide = index;
+  }
+
+  get previousEvent(): UpcomingEvent | null {
+    if(this.events.length === 0)
+    {
+      return null;
+    }
+
+    return this.events[(this.currentSlide - 1 + this.events.length) % this.events.length];
+  }
+
+  get nextEvent(): UpcomingEvent | null {
+    if(this.events.length === 0)
+    {
+      return null;
+    }
+
+    return this.events[(this.currentSlide + 1) % this.events.length];
+  }
+
+  getEventCoverBackground(event: UpcomingEvent | null): string {
+    return event ? `url("${MyConfig.media_address}${event.eventCover}")` : 'none';
+  }
+
+  getEventSwipeTransform(): string {
+    if(this.eventSwipeCommitDirection === 'previous')
+    {
+      return 'translate3d(0, 0, 0)';
+    }
+
+    if(this.eventSwipeCommitDirection === 'next')
+    {
+      return 'translate3d(-66.666667%, 0, 0)';
+    }
+
+    return `translate3d(calc(-33.333333% + ${this.eventSwipeOffset}px), 0, 0)`;
+  }
+
+  startEventSwipe(event: PointerEvent): void {
+    if(
+      !this.isMobileView() ||
+      this.events.length < 2 ||
+      this.eventSwipeAnimating ||
+      (event.pointerType === 'mouse' && event.button !== 0)
+    )
+    {
+      return;
+    }
+
+    clearInterval(this.slideInterval);
+    this.eventSwipePointerId = event.pointerId;
+    this.eventSwipeStartX = event.clientX;
+    this.eventSwipeStartY = event.clientY;
+    this.eventSwipeOffset = 0;
+    this.eventSwipeCommitDirection = null;
+    this.eventSwipeAxis = 'pending';
+    this.eventSwipeDragging = true;
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+  }
+
+  moveEventSwipe(event: PointerEvent): void {
+    if(this.eventSwipePointerId !== event.pointerId)
+    {
+      return;
+    }
+
+    const deltaX = event.clientX - this.eventSwipeStartX;
+    const deltaY = event.clientY - this.eventSwipeStartY;
+
+    if(this.eventSwipeAxis === 'pending' && Math.max(Math.abs(deltaX), Math.abs(deltaY)) >= 7)
+    {
+      this.eventSwipeAxis = Math.abs(deltaX) > Math.abs(deltaY) ? 'horizontal' : 'vertical';
+    }
+
+    if(this.eventSwipeAxis === 'vertical')
+    {
+      this.eventSwipeOffset = 0;
+      this.eventSwipeDragging = false;
+      return;
+    }
+
+    if(this.eventSwipeAxis !== 'horizontal')
+    {
+      return;
+    }
+
+    event.preventDefault();
+    const carouselWidth = (event.currentTarget as HTMLElement).clientWidth;
+    const maxOffset = carouselWidth * .34;
+    this.eventSwipeOffset = Math.max(-maxOffset, Math.min(maxOffset, deltaX));
+  }
+
+  finishEventSwipe(event: PointerEvent): void {
+    if(this.eventSwipePointerId !== event.pointerId)
+    {
+      return;
+    }
+
+    const target = event.currentTarget as HTMLElement;
+    if(target.hasPointerCapture(event.pointerId))
+    {
+      target.releasePointerCapture(event.pointerId);
+    }
+
+    const carouselWidth = target.clientWidth;
+    const threshold = Math.max(48, carouselWidth * .14);
+    const offset = this.eventSwipeOffset;
+    const axis = this.eventSwipeAxis;
+    this.eventSwipePointerId = null;
+    this.eventSwipeDragging = false;
+
+    if(axis !== 'horizontal' || Math.abs(offset) < 8)
+    {
+      this.resetEventSwipe();
+      this.startAutoSlide();
+      return;
+    }
+
+    if(offset <= -threshold)
+    {
+      this.animateEventSwipe('next');
+      return;
+    }
+
+    if(offset >= threshold)
+    {
+      this.animateEventSwipe('previous');
+      return;
+    }
+
+    this.animateEventSwipe(null);
+  }
+
+  cancelEventSwipe(event: PointerEvent): void {
+    if(this.eventSwipePointerId !== event.pointerId)
+    {
+      return;
+    }
+
+    this.eventSwipePointerId = null;
+    this.eventSwipeDragging = false;
+    this.animateEventSwipe(null);
   }
   private getUserIdFromToken(): number {
     let authToken = sessionStorage.getItem('authToken');
@@ -337,5 +490,51 @@ export class ListenerHomeComponent implements OnInit {
   loadMore() {
     this.infinitePage.push(this.infinitePage[this.infinitePage.length-1]+1);
     console.log("Scrolled")
+  }
+
+  private resetEventSwipe(): void {
+    this.eventSwipePointerId = null;
+    this.eventSwipeOffset = 0;
+    this.eventSwipeDragging = false;
+    this.eventSwipeAnimating = false;
+    this.eventSwipeCommitDirection = null;
+    this.eventSwipeAxis = 'pending';
+  }
+
+  private animateEventSwipe(direction: 'previous' | 'next' | null): void {
+    this.eventSwipeAnimating = true;
+    this.eventSwipeCommitDirection = direction;
+    if(direction === null)
+    {
+      this.eventSwipeOffset = 0;
+    }
+
+    this.clearEventSwipeTimer();
+    this.eventSwipeTimer = setTimeout(() => {
+      if(direction === 'previous')
+      {
+        this.prevSlide();
+      }
+      else if(direction === 'next')
+      {
+        this.nextSlide();
+      }
+
+      this.resetEventSwipe();
+      this.startAutoSlide();
+      this.eventSwipeTimer = null;
+    }, 240);
+  }
+
+  private clearEventSwipeTimer(): void {
+    if(this.eventSwipeTimer !== null)
+    {
+      clearTimeout(this.eventSwipeTimer);
+      this.eventSwipeTimer = null;
+    }
+  }
+
+  private isMobileView(): boolean {
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 960px)').matches;
   }
 }

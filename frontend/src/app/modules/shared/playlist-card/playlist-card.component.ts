@@ -24,12 +24,10 @@ export class PlaylistCardComponent implements OnInit, OnDestroy {
   @Output() onPlayClick: EventEmitter<number> = new EventEmitter();
 
   playBtnStyle = {
-    'display': 'none',
-    'bottom': '7vh'
+    'display': 'none'
   }
   pauseBtnStyle = {
-    'display': 'block',
-    'bottom': '7vh'
+    'display': 'block'
   }
 
   isPlayingThisAlbum: boolean = false;
@@ -55,10 +53,6 @@ export class PlaylistCardComponent implements OnInit, OnDestroy {
     this.trackChange$ = this.musicPlayerService.trackEvent.subscribe(track =>
       this.isPlayingThisAlbum = track.albumId == this.id && this.musicPlayerService.getQueueType() === "playlist");
 
-    if(this.username != ""){
-      this.playBtnStyle['bottom'] = '7vh';
-      this.pauseBtnStyle['bottom'] = '7vh';
-    }
   }
 
   replaceWithPlaceholder() {
@@ -67,10 +61,6 @@ export class PlaylistCardComponent implements OnInit, OnDestroy {
 
   showPlayButton() {
     this.playBtnStyle['display'] = 'block';
-    if(this.username != ""){
-      this.playBtnStyle['bottom'] = '7vh';
-      this.pauseBtnStyle['bottom'] = '7vh';
-    }
   }
 
   hidePlayButton() {
@@ -90,7 +80,7 @@ export class PlaylistCardComponent implements OnInit, OnDestroy {
   }
 
   getTitle() {
-    return this.title && this.title.length > 15 ? this.title.slice(0, 10) + "..." : this.title || 'Untitled Playlist';
+    return this.title || 'Untitled Playlist';
   }
   getAuthor(): string {
     return this.username ? this.username : 'Nepoznato';

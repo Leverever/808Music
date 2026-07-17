@@ -14,6 +14,66 @@ body.listener-player-expanded .cdk-overlay-container {
 }
 
 @media (max-width: 960px) {
+  .routed-content:has(app-listener-home) {
+    background:
+      radial-gradient(ellipse 85% 34% at 16% -4%, rgba(230, 146, 248, .2), transparent 72%),
+      radial-gradient(ellipse 68% 30% at 102% 32%, rgba(107, 18, 197, .13), transparent 74%),
+      linear-gradient(180deg, #302a31 0%, #252126 34%, #1a171b 100%);
+    background-attachment: local;
+  }
+
+  [appCardRail] {
+    --card-rail-gap: 12px;
+    --card-rail-item-width: clamp(
+      108px,
+      calc((100% - (2 * var(--card-rail-gap))) / 2.5),
+      184px
+    );
+    display: flex !important;
+    width: 100%;
+    max-width: 100%;
+    padding: 2px 2px 12px !important;
+    flex-flow: row nowrap !important;
+    align-items: stretch !important;
+    gap: var(--card-rail-gap) !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-inline: contain;
+    scroll-padding-inline: 0;
+    scroll-snap-type: none !important;
+    scrollbar-width: none;
+    touch-action: pan-x pan-y;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+  }
+
+  [appCardRail]::-webkit-scrollbar {
+    display: none;
+  }
+
+  [appCardRail] > :not(.view-all) {
+    width: var(--card-rail-item-width) !important;
+    min-width: var(--card-rail-item-width) !important;
+    max-width: var(--card-rail-item-width) !important;
+    flex: 0 0 var(--card-rail-item-width) !important;
+    scroll-snap-align: none !important;
+  }
+
+  [appCardRail].card-rail--can-scroll-forward:not(.card-rail--can-scroll-back) {
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 42px), transparent 100%);
+    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 42px), transparent 100%);
+  }
+
+  [appCardRail].card-rail--can-scroll-back:not(.card-rail--can-scroll-forward) {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 34px, #000 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 34px, #000 100%);
+  }
+
+  [appCardRail].card-rail--can-scroll-back.card-rail--can-scroll-forward {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 34px, #000 calc(100% - 42px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 34px, #000 calc(100% - 42px), transparent 100%);
+  }
+
   .mobile-artwork-detail {
     --detail-artwork: none;
     --detail-artwork-scale: 1;

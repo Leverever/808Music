@@ -106,6 +106,7 @@ import {
 } from './bottom-sheets/add-to-playlist-bottom-sheet/add-to-playlist-bottom-sheet.component';
 import {OverflowMarqueeDirective} from './directives/overflow-marquee.directive';
 import {MobileDetailScrollDirective} from './directives/mobile-detail-scroll.directive';
+import {CardRailDirective} from './directives/card-rail.directive';
 
 @NgModule({
   declarations: [
@@ -160,6 +161,7 @@ import {MobileDetailScrollDirective} from './directives/mobile-detail-scroll.dir
     SocialShareBottomSheetComponent,
     AddToPlaylistBottomSheetComponent,
     MobileDetailScrollDirective,
+    CardRailDirective,
 // Dodajemo UnauthorizedComponent u deklaracije
   ],
     imports: [
@@ -274,6 +276,7 @@ import {MobileDetailScrollDirective} from './directives/mobile-detail-scroll.dir
     SocialShareBottomSheetComponent,
     OverflowMarqueeDirective,
     MobileDetailScrollDirective,
+    CardRailDirective,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

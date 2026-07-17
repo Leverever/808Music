@@ -89,24 +89,48 @@ app-album-card {
 }
 
 .view-all {
+  display: grid;
   width: 3vw;
   height: 12vw;
-  background-color: #161215;
-  border-radius: 10px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 16px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .025)),
+    rgba(37, 29, 39, .58);
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, .22),
+    inset 0 1px 0 rgba(255, 255, 255, .2),
+    inset 0 -1px 0 rgba(255, 255, 255, .06);
   margin-right: 10px;
   text-align: center;
-  padding-top: 5vw;
   box-sizing: border-box;
   font-size: 27px;
   font-weight: bold;
   align-self: center;
-  border: 0.1rem solid #4E444B;
+  color: rgba(255, 255, 255, .94);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(22px) saturate(175%);
+  backdrop-filter: blur(22px) saturate(175%);
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .view-all:hover {
-  cursor: pointer;
-  text-decoration: underline;
-  background-color: #4D3D50;
+  border-color: rgba(230, 146, 248, .46);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .22), rgba(230, 146, 248, .08)),
+    rgba(53, 40, 56, .68);
+  box-shadow:
+    0 15px 32px rgba(0, 0, 0, .26),
+    0 0 24px rgba(230, 146, 248, .1),
+    inset 0 1px 0 rgba(255, 255, 255, .25);
+  transform: translateY(-2px);
+}
+
+.view-all:active {
+  transform: translateY(0) scale(.98);
 }
 
 .featured-section {
@@ -160,6 +184,7 @@ app-album-card {
     width: 54px;
     min-width: 54px;
     height: 180px;
-    padding-top: 72px;
+    padding: 0;
+    border-radius: 18px;
   }
 }

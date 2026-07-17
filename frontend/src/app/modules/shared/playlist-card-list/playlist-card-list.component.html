@@ -2,7 +2,7 @@
   <div>
     <h3 class="title">{{ title }}</h3>
     <div class="row">
-    <div class="playlist-cards">
+    <div class="playlist-cards" appCardRail>
       @for (playlist of playlists; track playlist.id; let i = $index) {
         @if (i < 6 && !artistMode || i < 8 && artistMode) {
           <app-playlist-card

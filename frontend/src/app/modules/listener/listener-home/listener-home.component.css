@@ -109,18 +109,35 @@ h3{margin:0;}
 
 
 
-.event-image {
+.event-swipe-viewport {
   width: 100%;
   height: 18vw;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.event-swipe-strip {
+  display: flex;
+  width: 300%;
+  height: 100%;
+  transform: translate3d(-33.333333%, 0, 0);
+  will-change: transform;
+}
+
+.event-swipe-strip.swipe-animating {
+  transition: transform 240ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.event-image {
+  position: relative;
+  width: 33.333333%;
+  height: 100%;
+  flex: 0 0 33.333333%;
   background-size: cover;
   background-position: center;
-  position: relative;
-  border-radius: 10px;
 }
 .event-image::before {
   content: '';
-  border-radius: 10px;
-
   position: absolute;
   top: 0;
   left: 0;
@@ -200,12 +217,28 @@ p{
 
 @media (max-width: 960px) {
   .artist-music-page {
-    width: 100%;
+    width: calc(100% + 28px);
     height: auto;
-    min-height: 100%;
-    gap: 24px;
-    padding-top: 18px;
+    min-height: 100dvh;
+    margin: 0 -14px;
+    padding: max(18px, env(safe-area-inset-top)) 14px 30px;
+    gap: 26px;
     overflow: visible;
+    isolation: isolate;
+    box-sizing: border-box;
+    background: transparent;
+  }
+
+  .artist-music-page > * {
+    min-width: 0;
+  }
+
+  .event-header,
+  .personalization-heading h3 {
+    font-size: clamp(21px, 6vw, 27px);
+    font-weight: 760;
+    letter-spacing: -.03em;
+    line-height: 1.12;
   }
 
   .event-carousel-container {
@@ -213,8 +246,23 @@ p{
     padding-right: 0;
   }
 
-  .event-image {
+  .event-swipe-viewport {
     height: clamp(210px, 58vw, 340px);
+    overflow: hidden;
+    touch-action: pan-y;
+    user-select: none;
+    border: 0;
+    border-radius: 20px;
+    box-shadow: none;
+    cursor: grab;
+  }
+
+  .event-swipe-viewport.is-swiping {
+    cursor: grabbing;
+  }
+
+  .event-image::before {
+    border-radius: 0;
   }
 
   .event-info {
@@ -224,19 +272,22 @@ p{
   }
 
   .event-title {
-    font-size: clamp(25px, 8vw, 42px);
+    font-size: clamp(24px, 7.6vw, 38px);
+    letter-spacing: -.035em;
+    line-height: 1.02;
   }
 
   .event-informations {
-    font-size: 13px;
+    margin-top: 7px;
+    color: rgba(255, 255, 255, .74);
+    font-size: 11px;
+    letter-spacing: .035em;
+    line-height: 1.35;
   }
 
-  .prev {
-    left: 4px;
-  }
-
+  .prev,
   .next {
-    right: 4px;
+    display: none;
   }
 
   .daily-playlist-grid {
@@ -256,10 +307,23 @@ p{
   }
 
   .personalization-heading {
-    align-items: flex-end;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .personalization-heading h3 {
+    margin: 0;
   }
 
   .personalization-heading span {
-    font-size: 12px;
+    padding: 0;
+    font-size: 11px;
+    line-height: 1.25;
+  }
+
+  .personalization-status,
+  .event-empty-state {
+    font-size: 14px;
+    line-height: 1.45;
   }
 }

@@ -64,8 +64,8 @@
         <div>
           <mat-icon>album</mat-icon>
           <h3>Disc {{ disc.discNumber }}</h3>
-          <span>{{ disc.tracks.length }} {{ disc.tracks.length === 1 ? 'track' : 'tracks' }}</span>
         </div>
+        <span>{{ disc.tracks.length }} {{ disc.tracks.length === 1 ? 'track' : 'tracks' }}</span>
         @if (disc.tracks.length === 0) {
           <button mat-icon-button (click)="removeEmptyDisc(disc.discNumber)" aria-label="Remove empty disc">
             <mat-icon>close</mat-icon>
