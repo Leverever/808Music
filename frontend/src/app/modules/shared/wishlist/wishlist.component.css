@@ -1,14 +1,4 @@
-.shopping-cart{
-position: absolute;
-top: 1.5vw;
-right: 30%;
-z-index: 1200;}
-.wishlist-icon{
-background: none;
-  color: white;
-  border-style: none;
-  cursor: pointer;
-}
-.wishlist-icon:hover{
-  color: #86638e;
-}
+:host { display:block; flex:0 0 auto; }
+.wishlist-launcher { display:grid; width:48px; height:48px; padding:0; place-items:center; border:1px solid rgba(255,255,255,.14); border-radius:50%; background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(255,255,255,.025)),rgba(25,20,27,.6); box-shadow:0 10px 26px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.13); color:#eca8fa; cursor:pointer; -webkit-backdrop-filter:blur(20px) saturate(150%); backdrop-filter:blur(20px) saturate(150%); }
+.wishlist-launcher:hover { border-color:rgba(230,146,248,.4); background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(230,146,248,.045)),rgba(25,20,27,.68); }
+.wishlist-launcher mat-icon { width:23px; height:23px; font-size:23px; line-height:23px; }

@@ -1,109 +1,125 @@
 <div class="artist-music-page">
   <div class="lander">
-    <div class="spotlight">
+    <section class="popular">
+      <h5>POPULAR</h5>
+      <mat-tab-group class="tab-group" [dynamicHeight]="true">
+        <mat-tab label="Originals">
+          <app-tracks-table
+            [inArtistMode]="false"
+            [listenerDetailList]="true"
+            [showPopularityStats]="true"
+            (onMainClick)="createQueue($event)"
+            [tracks]="tracks"
+            [pagedRequest]="myPagedRequest"
+            [allowPagination]="false">
+          </app-tracks-table>
+        </mat-tab>
+
+        <mat-tab label="Appears On">
+          <app-tracks-table
+            [inArtistMode]="false"
+            [listenerDetailList]="true"
+            [showPopularityStats]="true"
+            (onMainClick)="createFeaturedQueue($event)"
+            [tracks]="featuredTracks"
+            [pagedRequest]="myFeaturedRequest"
+            [allowPagination]="false">
+          </app-tracks-table>
+        </mat-tab>
+      </mat-tab-group>
+    </section>
+
+    <section class="spotlight">
       <h5>SPOTLIGHT</h5>
-      <div class="spotlight-container">
-        <div class="album-cover"
-             [ngStyle]="{'background-image':'url('+MyConfig.api_address+featuredAlbum?.coverArt +')'}">
+      <div
+        class="spotlight-container"
+        role="link"
+        tabindex="0"
+        (click)="openSpotlight()"
+        (keydown.enter)="openSpotlight()"
+        (keydown.space)="openSpotlight(); $event.preventDefault()">
+        <div
+          class="spotlight-art"
+          [ngStyle]="{'background-image': 'url(' + MyConfig.api_address + featuredAlbum?.coverArt + ')'}">
         </div>
-        <div class="album-cover banner-gradient">
-          <div class="spotlight-info">
-            <h6 (click)="goToAlbum(featuredAlbum?.id ?? 1)" class="spotlight-title">{{ getTitle(featuredAlbum?.title) }}</h6>
-            @if (!isPlayingThisAlbum)
-            {
-              <button mat-fab (click)="playFeatured()">
+        <div class="spotlight-shade" aria-hidden="true"></div>
+
+        <div class="spotlight-info">
+          <div class="spotlight-copy">
+            <span>Featured release</span>
+            <h6 class="spotlight-title">
+              {{ featuredAlbum?.title }}
+            </h6>
+            @if (featuredAlbum) {
+              <p>{{ featuredAlbum.type }} · {{ getYear(featuredAlbum.releaseDate) }}</p>
+            }
+          </div>
+
+          <div class="spotlight-playback">
+            @if (!isPlayingThisAlbum) {
+              <button mat-fab (click)="$event.stopPropagation(); playFeatured()" aria-label="Play spotlight album">
                 <mat-icon>play_arrow</mat-icon>
               </button>
             } @else {
-              <button mat-fab (click)="musicPlayerService.togglePlayState()">
-                <mat-icon>{{playingState ? 'pause' : 'play_arrow'}}</mat-icon>
+              <button
+                mat-fab
+                (click)="$event.stopPropagation(); musicPlayerService.togglePlayState()"
+                [attr.aria-label]="playingState ? 'Pause spotlight album' : 'Resume spotlight album'">
+                <mat-icon>{{ playingState ? 'pause' : 'play_arrow' }}</mat-icon>
               </button>
             }
           </div>
         </div>
       </div>
-    </div>
-    <div class="popular">
-      <h5>POPULAR</h5>
-      <mat-tab-group class="tab-group">
-        <mat-tab label="Originals">
-          <div class="popular-1">
-            <app-tracks-table [inArtistMode]="false" (onMainClick)="createQueue($event)"
-                              [tracks]="tracks"
-                              [pagedRequest]="myPagedRequest"
-                              [allowPagination]="false"
-            ></app-tracks-table>
-          </div>
-        </mat-tab>
-
-        <mat-tab label="Appears On">
-          <div class="popular-1">
-            <app-tracks-table [inArtistMode]="false" (onMainClick)="createFeaturedQueue($event)"
-                              [tracks]="featuredTracks"
-                              [pagedRequest]="myFeaturedRequest"
-                              [allowPagination]="false"
-            ></app-tracks-table>
-          </div>
-        </mat-tab>
-
-        <!--
-        <mat-tab label="Your top 5">
-          <div class="popular-1">
-            <app-tracks-table [inArtistMode]="false" (onMainClick)="createQueue($event)"
-                              [tracks]="featuredTracks"
-                              [pagedRequest]="myPagedRequest"
-                              [allowPagination]="false"
-            ></app-tracks-table>
-          </div>
-        </mat-tab>
-        -->
-      </mat-tab-group>
-    </div>
+    </section>
   </div>
+
   @if (albums && albums.dataItems.length > 0) {
-    <div>
+    <section class="release-section">
       <h5>RELEASES</h5>
-      <div class="album-cards">
-        @for (album of albums?.dataItems; track album.id) {
-          <app-album-card [title]="album.title"
-                          [subtitle]="album.type + ' • ' + getYear(album.releaseDate)"
-                          [imageUrl]="MyConfig.api_address+album.coverArt"
-                          [id]="album.id"
-                          [tooltip]="album.title"
-                          (onClick)="goToAlbum($event)"
-                          (onPlayClick)="playAlbum($event,false)"
-          ></app-album-card>
+      <div class="album-cards" appCardRail>
+        @for (album of albums.dataItems; track album.id) {
+          <app-album-card
+            [title]="album.title"
+            [subtitle]="album.type + ' • ' + getYear(album.releaseDate)"
+            [imageUrl]="MyConfig.api_address + album.coverArt"
+            [id]="album.id"
+            [tooltip]="album.title"
+            (onClick)="goToAlbum($event)"
+            (onPlayClick)="playAlbum($event, false)">
+          </app-album-card>
         }
-        @if (albums != null) {
-          @if (albums.dataItems.length >= 6) {
-            <div class="view-all" (click)="viewAll(false)">...</div>
-          }
+        @if (albums.dataItems.length >= 6) {
+          <button type="button" class="view-all" (click)="viewAll(false)" aria-label="View all releases">
+            <mat-icon>more_horiz</mat-icon>
+          </button>
         }
       </div>
-    </div>
+    </section>
   }
 
-  @if (featuredAlbums != null && featuredAlbums.dataItems.length > 0) {
-    <div class="featured-section">
+  @if (featuredAlbums && featuredAlbums.dataItems.length > 0) {
+    <section class="featured-section">
       <h5>FEATURED ON</h5>
-      <div class="album-cards">
+      <div class="album-cards" appCardRail>
         @for (album of featuredAlbums.dataItems; track album.id) {
-          <app-album-card [title]="album.title"
-                          [subtitle]="album.type + ' • ' + getYear(album.releaseDate)"
-                          [imageUrl]="MyConfig.api_address+album.coverArt"
-                          [id]="album.id"
-                          [tooltip]="album.title"
-                          [artistName]="album.artist"
-                          (onClick)="goToAlbum($event)"
-                          (onPlayClick)="playAlbum($event,true)"
-          ></app-album-card>
+          <app-album-card
+            [title]="album.title"
+            [subtitle]="album.type + ' • ' + getYear(album.releaseDate)"
+            [imageUrl]="MyConfig.api_address + album.coverArt"
+            [id]="album.id"
+            [tooltip]="album.title"
+            [artistName]="album.artist"
+            (onClick)="goToAlbum($event)"
+            (onPlayClick)="playAlbum($event, true)">
+          </app-album-card>
         }
-        @if (featuredAlbums != null) {
-          @if (featuredAlbums.dataItems.length >= 6) {
-            <div class="view-all" (click)="viewAll(true)">...</div>
-          }
+        @if (featuredAlbums.dataItems.length >= 6) {
+          <button type="button" class="view-all" (click)="viewAll(true)" aria-label="View all featured releases">
+            <mat-icon>more_horiz</mat-icon>
+          </button>
         }
       </div>
-    </div>
+    </section>
   }
 </div>

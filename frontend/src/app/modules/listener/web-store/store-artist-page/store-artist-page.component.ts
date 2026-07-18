@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ProductGetByArtistIdService, Product } from '../../../../endpoints/products-endpoints/product-get-by-artist-id.service';
 import { Router, ActivatedRoute } from '@angular/router';
-import { ArtistHandlerService } from '../../../../services/artist-handler.service';
-import {MyConfig} from '../../../../my-config';
 
 @Component({
   selector: 'app-store-artist-page',
@@ -19,7 +17,6 @@ export class StoreArtistPageComponent implements OnInit {
     private productService: ProductGetByArtistIdService,
     private router: Router,
     private route: ActivatedRoute,
-    private artistHandlerService: ArtistHandlerService
   ) {}
 
   ngOnInit(): void {
@@ -48,12 +45,4 @@ export class StoreArtistPageComponent implements OnInit {
     });
   }
 
-  updateCalculatedPrice(product: Product): number {
-    const calculatedPrice = product.saleAmount > 0
-      ? product.price * (1 - product.saleAmount )
-      : product.price;
-    return parseFloat(calculatedPrice.toFixed(2));
-  }
-
-  protected readonly MyConfig = MyConfig;
 }

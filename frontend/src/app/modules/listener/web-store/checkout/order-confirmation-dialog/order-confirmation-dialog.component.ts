@@ -1,45 +1,30 @@
-import { Component, Inject, ChangeDetectorRef } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {Router} from '@angular/router';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-order-confirmation-dialog',
   templateUrl: './order-confirmation-dialog.component.html',
-  styleUrls: ['./order-confirmation-dialog.component.css']
+  styleUrls: ['./order-confirmation-dialog.component.css'],
 })
 export class OrderConfirmationDialogComponent {
-  orderCode!: string;
+  readonly orderCode: string;
 
   constructor(
-    public dialogRef: MatDialogRef<OrderConfirmationDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { orderCode: string },
-    private cdr: ChangeDetectorRef,
-    private router: Router
+    private readonly dialogRef: MatDialogRef<OrderConfirmationDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) data: { orderCode: string },
+    private readonly router: Router,
   ) {
-    console.log('Dialog data:', data);
-    if (data && data.orderCode) {
-      this.orderCode = data.orderCode;
-      console.log('Received orderCode:', this.orderCode);
-    } else {
-      console.error('No orderCode received');
-    }
+    this.orderCode = data?.orderCode ?? '';
   }
 
   onBackToHome(): void {
-    this.router.navigate(['listener/home']);
     this.dialogRef.close();
-
+    this.router.navigate(['/listener/home']);
   }
 
   onBackToStore(): void {
-    this.router.navigate(['listener/store-home']);
-
     this.dialogRef.close();
-
-  }
-
-  OrderCode() {
-    console.log(this.orderCode);
-    return this.orderCode;
+    this.router.navigate(['/listener/store-home']);
   }
 }

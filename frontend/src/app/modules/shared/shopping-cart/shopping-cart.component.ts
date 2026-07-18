@@ -1,10 +1,7 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
-import { GetShoppingCartService } from '../../../endpoints/products-endpoints/get-shopping-cart-endpoint.service';
-import { RemoveFromShoppingCartService } from '../../../endpoints/products-endpoints/remove-item-from-shopping-cart-endpoint.service';
-import { UpdateShoppingCartService } from '../../../endpoints/products-endpoints/update-shopping-cart-endpoint.service';
+import { Component, HostListener, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { MyConfig } from '../../../my-config';
-import {Router} from '@angular/router';
-import {CartUpdateService} from './shopping-cart.service';
+import { CartUpdateService } from './shopping-cart.service';
 
 @Component({
   selector: 'app-shopping-cart',
@@ -12,98 +9,38 @@ import {CartUpdateService} from './shopping-cart.service';
   styleUrls: ['./shopping-cart.component.css'],
 })
 export class ShoppingCartComponent implements OnInit {
-  cartItems: any[] = [];
-  totalPrice: number = 0;
   isCartVisible = false;
+  readonly mediaAddress = MyConfig.media_address;
 
   constructor(
-    private getCartService: GetShoppingCartService,
-    private removeFromCartService: RemoveFromShoppingCartService,
-    private updateShoppingCartService: UpdateShoppingCartService,
-    private router : Router,
-    private cdRef : ChangeDetectorRef,
-    private cartUpdateService: CartUpdateService,
+    readonly cart: CartUpdateService,
+    private readonly router: Router,
   ) {}
 
   ngOnInit(): void {
-    const userId = this.getUserIdFromToken();
-    if (userId) {
-      this.loadCart(userId);
-    } else {
-      console.error('User not authenticated');
-    }
-    this.cartUpdateService.cartUpdated$.subscribe(() => {
-      const userId = this.getUserIdFromToken();
-      if (userId) {
-        this.loadCart(userId);
-      }
-    });
+    this.cart.load().subscribe({ error: () => undefined });
   }
 
-  private getUserIdFromToken(): number {
-    let authToken = sessionStorage.getItem('authToken');
-
-    if (!authToken) {
-      authToken = localStorage.getItem('authToken');
-    }
-
-    if (!authToken) {
-      return 0;
-    }
-
-    try {
-      const parsedToken = JSON.parse(authToken);
-      return parsedToken.userId;
-    } catch (error) {
-      console.error('Error parsing authToken:', error);
-      return 0;
-    }
-  }
-
-
-  loadCart(userId: number): void {
-    this.getCartService.getCart(userId).subscribe((response) => {
-      if (Array.isArray(response.cartItems)) {
-        this.cartItems = response.cartItems;
-        this.calculateTotalPrice();
-        this.cdRef.detectChanges();
-      } else {
-        console.error('Expected an array for cartItems, but received:', response.cartItems);
-        this.cartItems = [];
-        this.totalPrice = 0;
-        this.cdRef.detectChanges();
-      }
-    });
-  }
-
-  calculateTotalPrice(): void {
-    this.totalPrice = this.cartItems.reduce(
-      (sum, item) => sum + item.totalPrice,
-      0
-    );
+  toggleCart(): void {
+    this.isCartVisible = !this.isCartVisible;
+    if (this.isCartVisible) this.cart.load().subscribe({ error: () => undefined });
   }
 
   updateQuantity(productId: number, quantity: number): void {
-    const userId = this.getUserIdFromToken();
-    if (userId) {
-      this.updateShoppingCartService.updateCart({ productId, userId, quantity }).subscribe(() => {
-        this.loadCart(userId);
-      });
-    }
+    this.cart.updateQuantity(productId, quantity).subscribe({ error: () => undefined });
   }
 
   removeItem(productId: number): void {
-    const userId = this.getUserIdFromToken();
-    if (userId) {
-      this.removeFromCartService.removeFromCart({ productId, userId }).subscribe(() => {
-        this.loadCart(userId);
-      });
-    }
+    this.cart.removeItem(productId).subscribe({ error: () => undefined });
   }
 
-  protected readonly MyConfig = MyConfig;
+  proceedToCheckout(): void {
+    this.isCartVisible = false;
+    this.router.navigate(['/listener/checkout']);
+  }
 
-  proceedToCheckout() {
-    this.router.navigate(['listener/checkout']);
+  @HostListener('document:keydown.escape')
+  close(): void {
+    this.isCartVisible = false;
   }
 }

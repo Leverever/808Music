@@ -1,63 +1,61 @@
-<div class="track-page-controls">
-  <button mat-icon-button class="go-back-button" (click)="goBack()">
-    <mat-icon class="go-back-arrow">arrow_back</mat-icon>
-  </button>
-
-</div>
-<div class="product-container" [@pageAnimation]>
-  <div class="carousel-container">
-    <div class="carousel-wrapper">
-      <button class="prev" (click)="prevSlide()">❮</button>
-      <lib-ngx-image-zoom
-        [thumbImage]="MyConfig.api_address + '/media' + (product?.thumbnailPath?.[currentSlide] ?? '')"
-        [fullImage]="MyConfig.media_address + (product?.photoPaths?.[currentSlide] ?? '')">
-      </lib-ngx-image-zoom>
-
-      <button class="next" (click)="nextSlide()">❯</button>
+<main class="product-detail-page" [style.--product-artwork]="'url(' + currentArtwork + ')'">
+  <header class="product-detail-topbar">
+    <button type="button" class="glass-icon-button" aria-label="Go back" (click)="goBack()"><mat-icon>arrow_back</mat-icon></button>
+    <div class="product-detail-utilities">
+      <app-shopping-cart></app-shopping-cart>
     </div>
-    <div class="thumbnails">
-      <div *ngFor="let photoPath of product?.photoPaths; let i = index" class="thumbnail" (click)="changeSlide(i)">
-        <img [src]="MyConfig.media_address + photoPath" alt="Thumbnail" class="thumbnail-image">
+  </header>
+
+  <div class="product-detail-state" *ngIf="loading"><mat-spinner diameter="42"></mat-spinner><p>Loading product…</p></div>
+  <div class="product-detail-state" *ngIf="!loading && errorMessage"><mat-icon>inventory_2</mat-icon><h2>{{ errorMessage }}</h2></div>
+
+  <div class="product-detail-layout" *ngIf="!loading && product">
+    <section class="product-gallery" aria-label="Product photos">
+      <div class="product-gallery__stage" (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
+        <img [src]="currentArtwork" [alt]="product.title">
+        <button type="button" class="gallery-arrow gallery-arrow--previous" *ngIf="(product.photoPaths?.length ?? 0) > 1" (click)="prevSlide()" aria-label="Previous photo"><mat-icon>chevron_left</mat-icon></button>
+        <button type="button" class="gallery-arrow gallery-arrow--next" *ngIf="(product.photoPaths?.length ?? 0) > 1" (click)="nextSlide()" aria-label="Next photo"><mat-icon>chevron_right</mat-icon></button>
       </div>
-    </div>
-  </div>
-  <div class="product-header">
-    <h1 class="product-title">{{ product?.title }}</h1>
-    <div class="price-container">
-      <p *ngIf="product?.discountedPrice !== product?.price" class="original-price">
-        {{ product?.price | currency }}
-      </p>
-      <p class="price">{{ product?.discountedPrice | currency }}</p>
-    </div>
-  </div>
+      <div class="product-thumbnails" *ngIf="(product.photoPaths?.length ?? 0) > 1">
+        <button type="button" *ngFor="let photo of product.photoPaths; let index = index" [class.active]="index === currentSlide" (click)="changeSlide(index)" [attr.aria-label]="'View photo ' + (index + 1)">
+          <img [src]="mediaAddress + photo" alt="">
+        </button>
+      </div>
+    </section>
 
-  <div class="artist-info" (click)="goToArtistPage(product!.artistId)">
-    <div class="artist-photo" [ngStyle]="{'background-image': 'url(' + MyConfig.media_address +'Images/Artistpfps/'+ product?.artistPhoto + ')'}" alt="Event Cover"></div>
+    <section class="product-purchase">
+      <span class="product-purchase__eyebrow">Official merchandise</span>
+      <h1>{{ product.title }}</h1>
 
-    <p class="artist-name">{{ product?.artistName ?? 'Unknown Artist' }}</p>
-  </div>
+      <div class="product-price">
+        <strong>{{ product.discountedPrice | currency:'EUR':'symbol':'1.2-2' }}</strong>
+        <s *ngIf="product.discountedPrice !== product.price">{{ product.price | currency:'EUR':'symbol':'1.2-2' }}</s>
+      </div>
 
-  <p class="product-description">{{ product?.bio ?? '808 Shop item ready to be purchased! ' }}</p>
-  <p class="quantity" [ngClass]="(product?.quantity ?? 0) > 0 ? '' : 'out-of-stock'">
-    {{ (product?.quantity ?? 0) > 0 ? 'In Stock' : 'Out of Stock' }}
-  </p>
-  <div class = "checkout-related">
-  <div class="add-to-cart-container">
-    <button mat-icon-button (click)="addToCart()" [disabled]="!quantity || quantity <= 0">
-      <mat-icon>shopping_cart</mat-icon> Add to Cart
-    </button>
-  </div>
-    <div class="quantity-container">
-      <label for="quantity">Quantity:</label>
-      <input type="number" id="quantity" [(ngModel)]="quantity" min="1" [max]="product?.quantity  || 0" />
-    </div>
+      <button type="button" class="artist-link" (click)="goToArtistPage()">
+        <span class="artist-photo" [style.background-image]="'url(' + mediaAddress + 'Images/Artistpfps/' + product.artistPhoto + ')'" aria-hidden="true"></span>
+        <span><small>Sold by</small><strong>{{ product.artistName || '808 Music artist' }}</strong></span>
+        <mat-icon>chevron_right</mat-icon>
+      </button>
 
-  </div>
-  <div class="add-to-cart-container">
-    <button mat-icon-button (click)="addToWishlist()" [disabled]="!quantity || quantity <= 0">
-      <mat-icon>favorite_border</mat-icon> Add to Wishlist
-    </button>
-  </div>
+      <p class="product-description">{{ product.bio || 'An official 808 Shop item ready for your collection.' }}</p>
+      <p class="stock-status" [class.stock-status--out]="product.quantity <= 0"><span></span>{{ product.quantity > 0 ? product.quantity + ' available' : 'Out of stock' }}</p>
 
-<app-shopping-cart> </app-shopping-cart>
-</div>
+      <div class="quantity-row" *ngIf="product.quantity > 0">
+        <span>Quantity</span>
+        <div class="quantity-stepper">
+          <button type="button" [disabled]="quantity <= 1" (click)="changeQuantity(-1)" aria-label="Decrease quantity"><mat-icon>remove</mat-icon></button>
+          <strong>{{ quantity }}</strong>
+          <button type="button" [disabled]="quantity >= product.quantity" (click)="changeQuantity(1)" aria-label="Increase quantity"><mat-icon>add</mat-icon></button>
+        </div>
+      </div>
+
+      <div class="purchase-actions">
+        <button type="button" class="wishlist-action" (click)="toggleWishlist()" [attr.aria-label]="((wishlistSlugs$ | async)?.has(product.slug) ? 'Remove from' : 'Add to') + ' wishlist'">
+          <mat-icon>{{ (wishlistSlugs$ | async)?.has(product.slug) ? 'favorite' : 'favorite_border' }}</mat-icon>
+        </button>
+        <button type="button" class="cart-action" [disabled]="product.quantity <= 0" (click)="addToCart()"><mat-icon>shopping_bag</mat-icon><span>Add to cart</span></button>
+      </div>
+    </section>
+  </div>
+</main>

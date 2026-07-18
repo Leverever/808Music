@@ -77,6 +77,8 @@ type TracksSearchMode = 'tracks' | 'playlist' | 'client';
 })
 export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   @Input() inArtistMode = true;
+  @Input() listenerDetailList = false;
+  @Input() showPopularityStats = false;
   @Input() isPlaylist = false;
   @Input() searchMode: TracksSearchMode = 'tracks';
   @Input() trackInfo: TrackUserInfoDto [] = [];

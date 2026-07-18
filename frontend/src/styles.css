@@ -4,6 +4,49 @@ html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif;
 background-color: #333333;}
 
+/* Shared overflow affordance for every horizontal card rail. */
+[appCardRail] {
+  --card-rail-fade-back: 34px;
+  --card-rail-fade-forward: 42px;
+}
+
+[appCardRail].card-rail--can-scroll-forward:not(.card-rail--can-scroll-back) {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0,
+    #000 calc(100% - var(--card-rail-fade-forward)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 0,
+    #000 calc(100% - var(--card-rail-fade-forward)),
+    transparent 100%
+  );
+}
+
+[appCardRail].card-rail--can-scroll-back:not(.card-rail--can-scroll-forward) {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--card-rail-fade-back), #000 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 var(--card-rail-fade-back), #000 100%);
+}
+
+[appCardRail].card-rail--can-scroll-back.card-rail--can-scroll-forward {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--card-rail-fade-back),
+    #000 calc(100% - var(--card-rail-fade-forward)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--card-rail-fade-back),
+    #000 calc(100% - var(--card-rail-fade-forward)),
+    transparent 100%
+  );
+}
+
 body.listener-player-expanded {
   overflow: hidden;
   overscroll-behavior: none;
@@ -13,12 +56,100 @@ body.listener-player-expanded .cdk-overlay-container {
   z-index: 2400;
 }
 
+/* Storefront routes own the full listener scroll surface so their ambient
+   background continues through short pages and the reserved player/nav area. */
+.routed-content:has(app-web-store),
+.routed-content:has(app-store-search-results),
+.routed-content:has(app-products-by-type),
+.routed-content:has(app-product-details),
+.routed-content:has(app-product-wishlist),
+.routed-content:has(app-checkout),
+.routed-content:has(app-order-list),
+.routed-content:has(app-user-subscription) {
+  background:
+    radial-gradient(ellipse 62% 30% at 8% 0%, rgba(230, 146, 248, .2), transparent 72%),
+    radial-gradient(ellipse 50% 38% at 100% 58%, rgba(99, 29, 143, .14), transparent 74%),
+    linear-gradient(180deg, #29232b 0%, #201b22 48%, #181419 100%);
+  background-attachment: local;
+}
+
+.playlist-create-dialog-backdrop {
+  background: rgba(12, 8, 13, .42);
+  -webkit-backdrop-filter: blur(8px) saturate(125%);
+  backdrop-filter: blur(8px) saturate(125%);
+}
+
+.cdk-overlay-pane.playlist-create-dialog-pane .mat-mdc-dialog-container,
+.cdk-overlay-pane.playlist-create-dialog-pane .mat-mdc-dialog-surface,
+.cdk-overlay-pane.playlist-create-dialog-pane .mdc-dialog__surface {
+  padding: 0 !important;
+  overflow: visible !important;
+  border-radius: 28px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.cdk-overlay-pane.artist-info-dialog-pane .mat-mdc-dialog-container,
+.cdk-overlay-pane.artist-info-dialog-pane .mat-mdc-dialog-surface,
+.cdk-overlay-pane.artist-info-dialog-pane .mdc-dialog__surface {
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, .17) !important;
+  border-radius: 28px !important;
+  background: transparent !important;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .14) !important;
+}
+
+.cdk-overlay-pane.store-order-confirmation-pane .mat-mdc-dialog-container,
+.cdk-overlay-pane.store-order-confirmation-pane .mat-mdc-dialog-surface,
+.cdk-overlay-pane.store-order-confirmation-pane .mdc-dialog__surface {
+  padding: 0 !important;
+  overflow: visible !important;
+  border-radius: 28px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
 @media (max-width: 960px) {
+  body:has(app-listener-layout) {
+    --listener-mobile-nav-surface-height: 56px;
+    --listener-mobile-player-surface-height: 72px;
+    --listener-mobile-surface-gap: 8px;
+    --listener-mobile-edge-offset: max(8px, env(safe-area-inset-bottom));
+    --listener-mobile-overlay-bottom: calc(
+      var(--listener-mobile-edge-offset) +
+      var(--listener-mobile-nav-surface-height) +
+      var(--listener-mobile-surface-gap)
+    );
+  }
+
+  body:has(app-listener-layout .base-page.has-player) {
+    --listener-mobile-overlay-bottom: calc(
+      var(--listener-mobile-edge-offset) +
+      var(--listener-mobile-nav-surface-height) +
+      var(--listener-mobile-surface-gap) +
+      var(--listener-mobile-player-surface-height) +
+      var(--listener-mobile-surface-gap)
+    );
+  }
+
+  body.listener-player-expanded {
+    --listener-mobile-overlay-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
   .routed-content:has(app-listener-home) {
     background:
       radial-gradient(ellipse 85% 34% at 16% -4%, rgba(230, 146, 248, .2), transparent 72%),
       radial-gradient(ellipse 68% 30% at 102% 32%, rgba(107, 18, 197, .13), transparent 74%),
       linear-gradient(180deg, #302a31 0%, #252126 34%, #1a171b 100%);
+    background-attachment: local;
+  }
+
+  .routed-content:has(app-artist-page) {
+    background:
+      radial-gradient(ellipse 80% 24% at 8% 24%, rgba(230, 146, 248, .13), transparent 74%),
+      radial-gradient(ellipse 72% 30% at 108% 55%, rgba(98, 37, 139, .11), transparent 72%),
+      linear-gradient(180deg, #211a22 0%, #1c171d 44%, #171318 100%);
     background-attachment: local;
   }
 
@@ -51,27 +182,21 @@ body.listener-player-expanded .cdk-overlay-container {
     display: none;
   }
 
+  [appCardRail]:not(.card-rail--overflowing) {
+    overflow: visible !important;
+    touch-action: pan-y pinch-zoom;
+  }
+
+  [appCardRail] > * {
+    touch-action: inherit;
+  }
+
   [appCardRail] > :not(.view-all) {
     width: var(--card-rail-item-width) !important;
     min-width: var(--card-rail-item-width) !important;
     max-width: var(--card-rail-item-width) !important;
     flex: 0 0 var(--card-rail-item-width) !important;
     scroll-snap-align: none !important;
-  }
-
-  [appCardRail].card-rail--can-scroll-forward:not(.card-rail--can-scroll-back) {
-    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 42px), transparent 100%);
-    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 42px), transparent 100%);
-  }
-
-  [appCardRail].card-rail--can-scroll-back:not(.card-rail--can-scroll-forward) {
-    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 34px, #000 100%);
-    mask-image: linear-gradient(to right, transparent 0, #000 34px, #000 100%);
-  }
-
-  [appCardRail].card-rail--can-scroll-back.card-rail--can-scroll-forward {
-    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 34px, #000 calc(100% - 42px), transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0, #000 34px, #000 calc(100% - 42px), transparent 100%);
   }
 
   .mobile-artwork-detail {
@@ -828,6 +953,40 @@ button.liquid-sheet-row:hover {
     max-width: none !important;
   }
 
+  .cdk-overlay-pane.listener-content-sheet-pane {
+    position: absolute !important;
+    right: 8px !important;
+    bottom: var(--listener-mobile-overlay-bottom, max(8px, env(safe-area-inset-bottom))) !important;
+    left: 8px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    max-height: calc(
+      100dvh -
+      var(--listener-mobile-overlay-bottom, max(8px, env(safe-area-inset-bottom))) -
+      max(8px, env(safe-area-inset-top))
+    ) !important;
+  }
+
+  .cdk-overlay-pane.listener-content-sheet-pane .mat-bottom-sheet-container,
+  .cdk-overlay-pane.listener-content-sheet-pane .mat-bottom-sheet-container > *,
+  .cdk-overlay-pane.listener-content-sheet-pane .liquid-sheet {
+    max-height: inherit !important;
+  }
+
+  .cdk-overlay-pane.artist-info-dialog-pane {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    height: min(620px, calc(100dvh - 32px)) !important;
+    max-height: calc(100dvh - 32px) !important;
+  }
+
+  .cdk-overlay-pane.artist-info-dialog-pane .mat-mdc-dialog-container,
+  .cdk-overlay-pane.artist-info-dialog-pane .mat-mdc-dialog-surface,
+  .cdk-overlay-pane.artist-info-dialog-pane .mdc-dialog__surface {
+    border-radius: 24px !important;
+  }
+
   .liquid-glass-sheet-pane .mat-bottom-sheet-container,
   .liquid-sheet {
     max-height: min(86dvh, 760px);
@@ -858,5 +1017,31 @@ button.liquid-sheet-row:hover {
   .liquid-sheet-actions > button {
     min-width: 0;
     flex: 1;
+  }
+
+  .cdk-overlay-pane.playlist-create-dialog-pane {
+    position: absolute !important;
+    right: 8px !important;
+    bottom: var(--listener-mobile-overlay-bottom, max(8px, env(safe-area-inset-bottom))) !important;
+    left: 8px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    max-height: calc(
+      100dvh -
+      var(--listener-mobile-overlay-bottom, max(8px, env(safe-area-inset-bottom))) -
+      max(8px, env(safe-area-inset-top))
+    ) !important;
+  }
+
+  .cdk-overlay-pane.playlist-create-dialog-pane .mat-mdc-dialog-container,
+  .cdk-overlay-pane.playlist-create-dialog-pane .mat-mdc-dialog-surface,
+  .cdk-overlay-pane.playlist-create-dialog-pane .mdc-dialog__surface,
+  .cdk-overlay-pane.playlist-create-dialog-pane app-playlist-create-dialog {
+    max-height: inherit !important;
+  }
+
+  body:has(app-listener-layout) .mat-mdc-snack-bar-container {
+    margin-bottom: var(--listener-mobile-overlay-bottom) !important;
   }
 }

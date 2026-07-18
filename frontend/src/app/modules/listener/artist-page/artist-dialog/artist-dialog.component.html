@@ -1,6 +1,6 @@
 <div class="dialog-container">
   <div class="playlist-cover" [ngStyle]="{'background-image': 'url(' + MyConfig.api_address + data.artist.profilePhotoPath + ')'}">
-    <button class="close-button" mat-icon-button (click)="closeDialog($event)">
+    <button class="close-button" mat-icon-button (click)="closeDialog($event)" aria-label="Close artist information">
       <mat-icon>close</mat-icon>
     </button>
 
@@ -10,23 +10,24 @@
 
     <div class="rank-container">
       <div class="rank" *ngIf="data.artistStats.musicRank !== 0">
-        <p class="rank-no">#{{ data.artistStats?.musicRank }}</p>
-        <p class="rank-title">ARTIST
-          RANK</p>
+        <p class="rank-no">#{{ data.artistStats.musicRank }}</p>
+        <p class="rank-title">Artist rank</p>
       </div>
       <div class="rank" *ngIf="data.artistStats.shopRank !== 0">
-        <p class="rank-no">#{{ data.artistStats?.shopRank }}</p>
-        <p class="rank-title">SHOP RANK</p>
+        <p class="rank-no">#{{ data.artistStats.shopRank }}</p>
+        <p class="rank-title">Shop rank</p>
 
       </div>
     </div>
 
 
     <div class="content">
+      <span class="dialog-eyebrow">About the artist</span>
+      <h2>{{ data.artist.name }}</h2>
       <p class="followers"><b>{{ data.artistStats.monthlyListeners | number }}</b> monthly listeners</p>
 
       <div class="bio-container">
-        <p class="bio">{{ data.artistStats?.bio }}</p>
+        <p class="bio">{{ data.artistStats.bio }}</p>
       </div>
 
     </div>

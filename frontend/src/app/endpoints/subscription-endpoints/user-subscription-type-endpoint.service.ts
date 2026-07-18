@@ -13,7 +13,8 @@ export interface UserSubscriptionDetailsResponse {
     endDate: string;
     renewalOn: boolean;
     message: string;
-  };
+  } | null;
+  message?: string;
 
 }
 

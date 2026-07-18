@@ -1,38 +1,43 @@
 <div class="shopping-cart">
-  <button class="cart-icon" (click)="isCartVisible = !isCartVisible">
-    <mat-icon>shopping_cart</mat-icon>
-    <span class="item-count" *ngIf="cartItems.length > 0">{{ cartItems.length }}</span>
+  <button type="button" class="store-utility-button" aria-label="Open shopping cart" (click)="toggleCart()">
+    <mat-icon>shopping_bag</mat-icon>
+    <span class="item-count" *ngIf="(cart.count$ | async) as count">{{ count > 99 ? '99+' : count }}</span>
   </button>
 
-  <div *ngIf="isCartVisible" class="cart-details">
-    <h3 class="Rdy">Ready to order?</h3>
+  <button *ngIf="isCartVisible" type="button" class="cart-backdrop" aria-label="Close shopping cart" (click)="close()"></button>
+  <aside *ngIf="isCartVisible" class="cart-panel" role="dialog" aria-modal="true" aria-labelledby="cart-title">
+    <header class="cart-panel__header">
+      <div><span>Your bag</span><h2 id="cart-title">Ready to order?</h2></div>
+      <button type="button" class="cart-close" aria-label="Close cart" (click)="close()"><mat-icon>close</mat-icon></button>
+    </header>
 
-    <div *ngFor="let item of cartItems" class="cart-item">
-      <div class="product-info">
-        <img class="product-img" [src]="MyConfig.media_address + item.productPhoto" alt="{{ item.productTitle }}">
-        <button class="remove-item" (click)="removeItem(item.productId)">
-          <mat-icon>close</mat-icon>
-        </button>
-        <div class="title-quantity">
-          <div class="product-title">{{ item.productTitle }}</div>
-          <div class="quantity-all">
-            <div>Quantity: </div>
-            <button class = "minus" (click)="updateQuantity(item.productId, item.quantity - 1)" [disabled]="item.quantity <= 1">-</button>
-            <div>{{ item.quantity }}</div>
-            <button class = "plus" (click)="updateQuantity(item.productId, item.quantity + 1)">+</button>
+    <div class="cart-panel__items" *ngIf="(cart.items$ | async) as items">
+      <div class="cart-empty" *ngIf="!items.length">
+        <mat-icon>shopping_bag</mat-icon>
+        <strong>Your bag is empty</strong>
+        <span>Products you add will be ready here.</span>
+      </div>
+
+      <article class="cart-item" *ngFor="let item of items">
+        <img [src]="item.productPhoto ? mediaAddress + item.productPhoto : 'assets/icons/pattern.svg'" [alt]="item.productTitle">
+        <div class="cart-item__details">
+          <h3>{{ item.productTitle }}</h3>
+          <div class="quantity-control" aria-label="Product quantity">
+            <button type="button" [disabled]="item.quantity <= 1" (click)="updateQuantity(item.productId, item.quantity - 1)" aria-label="Decrease quantity"><mat-icon>remove</mat-icon></button>
+            <span>{{ item.quantity }}</span>
+            <button type="button" (click)="updateQuantity(item.productId, item.quantity + 1)" aria-label="Increase quantity"><mat-icon>add</mat-icon></button>
           </div>
         </div>
-        <div class="product-price">
-          {{ item.totalPrice | currency: 'EUR': true: '1.2-2' }}
-
+        <div class="cart-item__end">
+          <button type="button" aria-label="Remove item" (click)="removeItem(item.productId)"><mat-icon>close</mat-icon></button>
+          <strong>{{ item.totalPrice | currency:'EUR':'symbol':'1.2-2' }}</strong>
         </div>
-      </div>
+      </article>
     </div>
 
-    <div class="total-price">
-      <strong>TOTAL: {{ totalPrice | currency: 'EUR': true: '1.2-2' }}</strong>
-    </div>
-
-    <button class="checkout-button" (click)="proceedToCheckout()">Proceed to Checkout</button>
-  </div>
+    <footer class="cart-panel__footer" *ngIf="(cart.items$ | async)?.length">
+      <div><span>Total</span><strong>{{ cart.total$ | async | currency:'EUR':'symbol':'1.2-2' }}</strong></div>
+      <button type="button" (click)="proceedToCheckout()"><span>Checkout</span><mat-icon>arrow_forward</mat-icon></button>
+    </footer>
+  </aside>
 </div>

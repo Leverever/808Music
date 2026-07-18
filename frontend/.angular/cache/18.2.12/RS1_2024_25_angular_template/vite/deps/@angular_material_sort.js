@@ -1,4 +1,9 @@
 import {
+  AnimationCurves,
+  AnimationDurations,
+  MatCommonModule
+} from "./chunk-3KZBSG6L.js";
+import {
   animate,
   animateChild,
   keyframes,
@@ -8,11 +13,6 @@ import {
   transition,
   trigger
 } from "./chunk-OPRBR5CV.js";
-import {
-  AnimationCurves,
-  AnimationDurations,
-  MatCommonModule
-} from "./chunk-3KZBSG6L.js";
 import "./chunk-RP2C3EAY.js";
 import {
   AriaDescriber,
@@ -65,10 +65,10 @@ import {
   ɵɵrestoreView,
   ɵɵtemplate
 } from "./chunk-LO7GNJQE.js";
-import "./chunk-5OPE3T2R.js";
 import {
   merge
 } from "./chunk-4N4GOYJH.js";
+import "./chunk-5OPE3T2R.js";
 import {
   ReplaySubject,
   Subject

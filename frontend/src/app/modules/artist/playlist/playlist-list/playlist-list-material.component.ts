@@ -34,6 +34,7 @@ export class PlaylistListMaterialComponent implements OnInit {
   snackBar = inject(MatSnackBar);
   userId: number | null = null;
   dailyPlaylists: PersonalizedPlaylistSummary[] = [];
+  isListenerMode = false;
 
   constructor(
     private playlistService: GetPlaylistsByUserIdEndpointService,
@@ -47,6 +48,7 @@ export class PlaylistListMaterialComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.isListenerMode = this.router.url.startsWith('/listener');
     this.userId = this.getUserIdFromToken();
     this.loadPlaylists();
     this.loadDailyPlaylists();
@@ -75,6 +77,21 @@ export class PlaylistListMaterialComponent implements OnInit {
       ? value
       : `/media/${value.replace(/^\/+/, '')}`;
     return `${MyConfig.api_address}${normalizedPath}`;
+  }
+
+  playlistCoverUrl(path?: string): string {
+    const value = path || '/media/Images/playlist_placeholder.png';
+    if(/^https?:\/\//i.test(value))
+    {
+      return value;
+    }
+
+    if(value.startsWith('/media/'))
+    {
+      return `${MyConfig.api_address}${value}`;
+    }
+
+    return `${MyConfig.media_address}${value.replace(/^\/+/, '')}`;
   }
 
   startDailyPlaylist(id: string) {
@@ -124,7 +141,6 @@ export class PlaylistListMaterialComponent implements OnInit {
           complete: () => {
             this.snackBar.open(`"${playlist?.title}" deleted successfully.`, 'Dismiss', { duration: 3000 });
             this.loadPlaylists();
-this.loadPlaylists();
           }
         });
       }
@@ -140,7 +156,13 @@ this.loadPlaylists();
   }
   createPlaylist() {
     const dialogRef = this.dialog.open(PlaylistCreateDialogComponent, {
-      width: '900px',
+      width: 'min(680px, calc(100vw - 24px))',
+      maxWidth: '680px',
+      maxHeight: 'calc(100dvh - 24px)',
+      panelClass: 'playlist-create-dialog-pane',
+      backdropClass: 'playlist-create-dialog-backdrop',
+      autoFocus: 'first-tabbable',
+      restoreFocus: true,
       data: {},
     });
 

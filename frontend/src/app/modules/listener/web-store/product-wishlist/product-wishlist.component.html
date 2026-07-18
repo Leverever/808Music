@@ -1,34 +1,48 @@
-<div class="wishlist-page" [@pageAnimation]>
-
-    <h3 class ="wishlist-name">{{ userName ? userName + "'s Wishlist" : "Your Wishlist" }}</h3>
-<div *ngIf="wishlistItems.length > 0" class="wishlist-container">
-  <div *ngFor="let item of wishlistItems" class="wishlist-item">
-    <img [src]="MyConfig.api_address + '/media/' + item.productPhoto" alt="Product Image" class="product-photo" />
-    <div class="item-details">
-      <h3 class="product-title">{{ item.productTitle }}</h3>
-      <p class="artist-name" (click)="goToProfile()">
-        <span class="artist-pfp">
-            <img [src]="MyConfig.media_address +'/Images/Artistpfps/' + item?.artistPfp " alt="Artist Image" class="artist-photo" />
-        </span>
-        {{ item.artistName }}
-      </p>
-      <div class="price-container">
-        <span *ngIf="item.saleAmount > 0" class="discount">-{{ getDiscountPercentage(item.saleAmount) }}%</span>
-        <span class="price">{{ item.discountedPrice | currency:'USD' }}</span>
-      </div>
-      <div class="date-n-remove">
-      <span>Date added {{ item.dateAdded | date:'dd/MM/yyyy' }}</span>
-      <button (click)="removeFromWishlist(item.slug)" class="remove-from-wishlist">(Remove from Wishlist)</button>
-      </div>
+<main class="wishlist-page">
+  <header class="wishlist-header">
+    <div>
+      <span>Your collection</span>
+      <h1>Wishlist</h1>
+      <p *ngIf="(items$ | async) as items">{{ items.length }} saved product{{ items.length === 1 ? '' : 's' }}</p>
     </div>
-    <button (click)="addToCart(item.productId)" class="add-to-cart-btn">
-      <mat-icon>shopping_cart</mat-icon>
+    <div class="wishlist-header__actions">
+      <a routerLink="/listener/store-home" aria-label="Return to shop"><mat-icon>storefront</mat-icon></a>
+      <app-shopping-cart></app-shopping-cart>
+    </div>
+  </header>
 
-    </button>
-  </div>
-</div>
+  <div class="wishlist-state" *ngIf="loading"><mat-spinner diameter="40"></mat-spinner><p>Loading your wishlist…</p></div>
 
-<div *ngIf="wishlistItems.length === 0" class="no-items-message">
-  No items in your wishlist.
-</div>
-</div>
+  <ng-container *ngIf="!loading && (items$ | async) as items">
+    <section class="wishlist-list" *ngIf="items.length; else emptyWishlist">
+      <article class="wishlist-row" *ngFor="let item of items" tabindex="0" role="link" (click)="openProduct(item.slug)" (keydown.enter)="openProduct(item.slug)">
+        <img [src]="mediaAddress + item.productPhoto" [alt]="item.productTitle">
+        <div class="wishlist-row__content">
+          <h2>{{ item.productTitle }}</h2>
+          <p class="wishlist-row__artist">
+            <img *ngIf="item.artistPfp" [src]="mediaAddress + 'Images/Artistpfps/' + item.artistPfp" alt="">
+            <span>{{ item.artistName }}</span>
+          </p>
+          <p class="wishlist-row__date">Saved {{ item.dateAdded | date:'mediumDate' }}</p>
+        </div>
+        <div class="wishlist-row__price">
+          <span *ngIf="item.saleAmount > 0">-{{ discountPercent(item.saleAmount) }}%</span>
+          <strong>{{ item.discountedPrice | currency:'EUR':'symbol':'1.2-2' }}</strong>
+        </div>
+        <div class="wishlist-row__actions">
+          <button type="button" (click)="removeFromWishlist($event, item.slug)" aria-label="Remove from wishlist"><mat-icon>favorite</mat-icon></button>
+          <button type="button" class="wishlist-row__cart" (click)="addToCart($event, item.productId)" aria-label="Add to cart"><mat-icon>shopping_bag</mat-icon></button>
+        </div>
+      </article>
+    </section>
+  </ng-container>
+
+  <ng-template #emptyWishlist>
+    <div class="wishlist-state">
+      <mat-icon>favorite_border</mat-icon>
+      <h2>Nothing saved yet</h2>
+      <p>Keep products you love close by adding them to your wishlist.</p>
+      <a routerLink="/listener/store-home">Explore the shop</a>
+    </div>
+  </ng-template>
+</main>

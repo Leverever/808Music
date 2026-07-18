@@ -1,64 +1,53 @@
-import {Component, OnInit} from '@angular/core';
-import {
-  GetOrderResponse,
-  OrderItem,
-  OrderService
-} from '../../../endpoints/products-endpoints/orders-by-user-endpoint.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {MyConfig} from '../../../my-config';
+import { Component, OnInit } from '@angular/core';
+import { GetOrderResponse, OrderItem, OrderService } from '../../../endpoints/products-endpoints/orders-by-user-endpoint.service';
+import { MyConfig } from '../../../my-config';
 
 @Component({
   selector: 'app-order-list',
   templateUrl: './order-list.component.html',
-  styleUrl: './order-list.component.css'
+  styleUrl: './order-list.component.css',
 })
-export class OrderListComponent implements OnInit{
+export class OrderListComponent implements OnInit {
   orders: OrderItem[] = [];
-  userName: string = '';
+  userName = '';
   errorMessage: string | null = null;
-  userId = 0;
-  constructor(private _router : Router, private activatedRoute : ActivatedRoute, private orderService : OrderService ){}
+  loading = true;
+  readonly MyConfig = MyConfig;
+
+  constructor(private readonly orderService: OrderService) {}
 
   ngOnInit(): void {
-    this.userId = this.getUserIdFromToken();
-  this.loadOrders(this.userId );
+    const userId = this.getUserId();
+    if (!userId) {
+      this.loading = false;
+      this.errorMessage = 'Sign in to view your orders.';
+      return;
+    }
+    this.loadOrders(userId);
   }
-  private getUserIdFromToken(): number {
-    let authToken = sessionStorage.getItem('authToken');
 
-    if (!authToken) {
-      authToken = localStorage.getItem('authToken');
-    }
-
-    if (!authToken) {
-      return 0;
-    }
-
-    try {
-      const parsedToken = JSON.parse(authToken);
-      return parsedToken.userId;
-    } catch (error) {
-      console.error('Error parsing authToken:', error);
-      return 0;
-    }
-  }
-  loadOrders(userId: number): void {
+  private loadOrders(userId: number): void {
     this.orderService.getOrdersByUser(userId).subscribe({
       next: (response: GetOrderResponse) => {
         if (response.success) {
-          this.orders = response.orders;
+          this.orders = response.orders ?? [];
           this.userName = response.userName;
           this.errorMessage = null;
         } else {
-          this.errorMessage = response.message || 'Nije moguće dohvatiti narudžbe.';
+          this.errorMessage = response.message || 'Your orders could not be loaded.';
         }
+        this.loading = false;
       },
-      error: (error) => {
-        console.error('Greška pri dohvaćanju narudžbi:', error);
-        this.errorMessage = 'Došlo je do greške na serveru.';
+      error: () => {
+        this.errorMessage = 'Your orders could not be loaded.';
+        this.loading = false;
       },
     });
   }
 
-  protected readonly MyConfig = MyConfig;
+  private getUserId(): number {
+    const token = sessionStorage.getItem('authToken') ?? localStorage.getItem('authToken');
+    if (!token) return 0;
+    try { return Number(JSON.parse(token).userId) || 0; } catch { return 0; }
+  }
 }

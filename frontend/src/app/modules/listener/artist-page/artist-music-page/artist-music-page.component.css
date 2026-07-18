@@ -1,156 +1,221 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+* { box-sizing: border-box; }
+
 .artist-music-page {
+  position: relative;
   display: flex;
+  min-width: 0;
+  margin-top: 3vh;
   flex-direction: column;
   gap: 20px;
-  position: relative;
-  margin-top: 3vh;
-  overflow-y: auto;
-}
- h5 {
-  font-weight: 500;
 }
 
-.album-cover {
-  box-sizing: border-box;
-  width: 19vw;
-  height: 19vw;
-  background-color: #00B2A9;
-  border-radius: 10px;
-  padding: 1vw;
-  background-size: cover;
-  background-position: center;
-  position: absolute;
-}
-
-.spotlight-info {
-  position: absolute;
-  bottom: 1vw;
-  right: 1vw;
-  left: 1vw;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.spotlight-title:hover {
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.spotlight-info > h6 {
-  margin-bottom: 0;
-  font-weight: 500;
+h5 {
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 690;
+  letter-spacing: -.025em;
+  line-height: 1.1;
 }
 
 .lander {
   display: flex;
+  min-width: 0;
   justify-content: space-between;
-}
-
-.popular {
-  height: fit-content;
-  flex-basis: 45vw;
-  overflow-y: hidden;
-}
-
-.popular-1 {
-  height: 35vh;
-  flex-basis: 45vw;
-  overflow-y: auto;
-}
-
-.tab-group {
-  flex-basis: 45vw;
-  background-color: #161215;
-  height: fit-content;
-  overflow-y: auto;
-  border-radius: 10px;
-}
-
-.album-cards {
-  display: flex;
-  flex-basis: 10vw;
-  gap: 20px;
-  align-items: end;
-}
-
-app-album-card {
-  width: 10vw;
+  gap: clamp(22px, 3vw, 46px);
 }
 
 .spotlight {
   position: relative;
-}
-
-.banner-gradient {
-  position: absolute;
-  background: rgb(0,0,0);
-  background: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7959558823529411) 13%, rgba(0,0,0,0.6082808123249299) 20%, rgba(0,0,0,0) 42%);
-}
-
-.view-all {
-  display: grid;
-  width: 3vw;
-  height: 12vw;
-  padding: 0;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, .18);
-  border-radius: 16px;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .025)),
-    rgba(37, 29, 39, .58);
-  box-shadow:
-    0 12px 28px rgba(0, 0, 0, .22),
-    inset 0 1px 0 rgba(255, 255, 255, .2),
-    inset 0 -1px 0 rgba(255, 255, 255, .06);
-  margin-right: 10px;
-  text-align: center;
-  box-sizing: border-box;
-  font-size: 27px;
-  font-weight: bold;
-  align-self: center;
-  color: rgba(255, 255, 255, .94);
-  cursor: pointer;
-  -webkit-backdrop-filter: blur(22px) saturate(175%);
-  backdrop-filter: blur(22px) saturate(175%);
-  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease,
-    box-shadow 180ms ease;
-}
-
-.view-all:hover {
-  border-color: rgba(230, 146, 248, .46);
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, .22), rgba(230, 146, 248, .08)),
-    rgba(53, 40, 56, .68);
-  box-shadow:
-    0 15px 32px rgba(0, 0, 0, .26),
-    0 0 24px rgba(230, 146, 248, .1),
-    inset 0 1px 0 rgba(255, 255, 255, .25);
-  transform: translateY(-2px);
-}
-
-.view-all:active {
-  transform: translateY(0) scale(.98);
-}
-
-.featured-section {
-  margin-top: 4vh;
+  min-width: 0;
 }
 
 .spotlight-container {
   position: relative;
+  width: 19vw;
+  height: 19vw;
+  overflow: hidden;
+  border-radius: 13px;
+  background: #211b22;
+  box-shadow: 0 20px 44px rgba(0, 0, 0, .28);
+  cursor: pointer;
+  isolation: isolate;
+}
+
+.spotlight-container:focus-visible {
+  outline: 2px solid #ed9cf5;
+  outline-offset: 4px;
+}
+
+.spotlight-art,
+.spotlight-shade {
+  position: absolute;
+  inset: 0;
+}
+
+.spotlight-art {
+  z-index: 0;
+  background-position: center;
+  background-size: cover;
+  transition: transform 300ms ease;
+}
+
+.spotlight-container:hover .spotlight-art { transform: scale(1.025); }
+
+.spotlight-shade {
+  z-index: 1;
+  background:
+    linear-gradient(0deg, rgba(10, 8, 11, .94) 0%, rgba(10, 8, 11, .7) 23%, transparent 58%),
+    linear-gradient(145deg, rgba(255, 255, 255, .09), transparent 36%);
+  pointer-events: none;
+}
+
+.spotlight-info {
+  position: absolute;
+  z-index: 2;
+  right: 14px;
+  bottom: 14px;
+  left: 14px;
+  display: flex;
+  min-width: 0;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.spotlight-copy { min-width: 0; }
+
+.spotlight-copy > span {
+  display: block;
+  margin-bottom: 4px;
+  color: #ef9cf5;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.spotlight-title {
+  margin: 0;
+  overflow: hidden;
+  color: #fff;
+  font-size: clamp(17px, 1.65vw, 25px);
+  font-weight: 730;
+  letter-spacing: -.03em;
+  line-height: 1.08;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.spotlight-title:hover { text-decoration: underline; }
+
+.spotlight-copy p {
+  margin: 5px 0 0;
+  color: rgba(245, 237, 246, .66);
+  font-size: 10px;
+}
+
+.spotlight-playback button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.spotlight-playback mat-icon { display: block; margin: 0; }
+
+.popular {
+  width: 45vw;
+  min-width: 0;
+  height: fit-content;
+  overflow: hidden;
+}
+
+.popular-1 {
+  width: 100%;
+  height: 35vh;
+  overflow-y: auto;
+}
+
+.tab-group {
+  width: 100%;
+  height: fit-content;
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
+}
+
+:host ::ng-deep .tab-group .mat-mdc-tab-body-wrapper,
+:host ::ng-deep .tab-group .mat-mdc-tab-body.mat-mdc-tab-body-active,
+:host ::ng-deep .tab-group .mat-mdc-tab-body-content {
+  min-height: 0;
+  height: auto;
+  overflow: visible;
+}
+
+.album-cards {
+  display: flex;
+  min-width: 0;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+app-album-card {
+  width: 10vw;
+  min-width: 0;
+}
+
+.featured-section { margin-top: 4vh; }
+
+.view-all {
+  display: grid;
+  width: 3vw;
+  min-width: 44px;
+  height: 12vw;
+  padding: 0;
+  place-items: center;
+  align-self: center;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .025)), rgba(37, 29, 39, .58);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .2);
+  color: rgba(255, 255, 255, .94);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(22px) saturate(175%);
+  backdrop-filter: blur(22px) saturate(175%);
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.view-all:hover {
+  border-color: rgba(230, 146, 248, .46);
+  background: linear-gradient(145deg, rgba(255, 255, 255, .22), rgba(230, 146, 248, .08)), rgba(53, 40, 56, .68);
+  transform: translateY(-2px);
 }
 
 @media (max-width: 960px) {
   .artist-music-page {
     width: 100%;
-    margin-top: 18px;
+    margin-top: 0;
+    padding: 14px 12px 0;
+    gap: 34px;
     overflow: visible;
+  }
+
+  h5 {
+    margin-bottom: 13px;
+    font-size: clamp(23px, 6.7vw, 30px);
+    font-weight: 760;
+    letter-spacing: -.04em;
   }
 
   .lander {
     flex-direction: column;
-    gap: 16px;
+    gap: 34px;
   }
 
   .popular,
@@ -158,33 +223,101 @@ app-album-card {
   .tab-group {
     width: 100%;
     height: auto;
-    flex-basis: auto;
     overflow: visible;
   }
 
-  .album-cover {
-    width: min(74vw, 300px);
-    height: min(74vw, 300px);
-    position: relative;
-    padding: 14px;
+  .tab-group {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  :host ::ng-deep .tab-group .mat-mdc-tab-header {
+    border-bottom: 1px solid rgba(255, 255, 255, .09);
+    background: transparent;
+  }
+
+  :host ::ng-deep .tab-group .mat-mdc-tab {
+    min-width: 0;
+    height: 46px;
+    flex: 1;
+  }
+
+  :host ::ng-deep .tab-group .mdc-tab__text-label {
+    color: rgba(247, 239, 248, .66);
+    font-size: 11px;
+    font-weight: 720;
+  }
+
+  :host ::ng-deep .tab-group .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+    color: #f0a8f8;
+  }
+
+  :host ::ng-deep .tab-group .mdc-tab-indicator__content--underline {
+    border-color: #e692f8;
+  }
+
+  .spotlight-container {
+    width: min(calc(100vw - 32px), 390px);
+    height: auto;
+    margin: 0 auto;
+    aspect-ratio: 1;
+    border: 1px solid rgba(255, 255, 255, .15);
+    border-radius: 23px;
+    box-shadow: 0 24px 52px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255, 255, 255, .12);
+  }
+
+  .spotlight-shade {
+    background:
+      linear-gradient(0deg, rgba(13, 10, 14, .94) 0%, rgba(13, 10, 14, .65) 25%, transparent 60%),
+      linear-gradient(145deg, rgba(255, 255, 255, .12), transparent 34%);
+  }
+
+  .spotlight-info {
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+  }
+
+  .spotlight-title { font-size: clamp(21px, 6vw, 28px); }
+  .spotlight-copy p { font-size: 11px; }
+
+  .spotlight-playback button {
+    width: 54px;
+    height: 54px;
+    background: #7c00dd !important;
+    box-shadow: 0 12px 28px rgba(66, 0, 120, .4);
+  }
+
+  .release-section,
+  .featured-section {
+    min-width: 0;
+    margin: 0;
   }
 
   .album-cards {
     width: 100%;
     gap: 12px;
+    padding-bottom: 8px;
     overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
   }
 
+  .album-cards::-webkit-scrollbar { display: none; }
+
   app-album-card {
-    width: clamp(150px, 43vw, 190px);
-    min-width: clamp(150px, 43vw, 190px);
+    width: clamp(145px, 42vw, 184px);
+    min-width: clamp(145px, 42vw, 184px);
+    flex: 0 0 clamp(145px, 42vw, 184px);
   }
 
   .view-all {
-    width: 54px;
-    min-width: 54px;
-    height: 180px;
-    padding: 0;
+    width: 50px;
+    min-width: 50px;
+    height: 172px;
     border-radius: 18px;
   }
 }

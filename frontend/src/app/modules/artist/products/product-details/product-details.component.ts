@@ -1,196 +1,136 @@
 import { Component, OnInit } from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import { Location } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProductGetByIdEndpointService, ProductGetResponse } from '../../../../endpoints/products-endpoints/produt-get-by-id-endpoint.service';
-import { HttpErrorResponse } from '@angular/common/http';
-import {
-  AddToShoppingCartEndpointService
-} from '../../../../endpoints/products-endpoints/add-to-shopping-cart-endpoint.service';
-import {
-  AddProductToWishlistEndpointService, AddProductToWishlistRequest, AddProductToWishlistResponse
-} from '../../../../endpoints/products-endpoints/add-to-wishlist-endpoint.service';
-import {MyConfig} from '../../../../my-config';
-import {animate, style, transition, trigger} from '@angular/animations';
-import {CartUpdateService} from '../../../shared/shopping-cart/shopping-cart.service';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {Location} from '@angular/common';
+import { AddToShoppingCartEndpointService } from '../../../../endpoints/products-endpoints/add-to-shopping-cart-endpoint.service';
+import { MyConfig } from '../../../../my-config';
+import { CartUpdateService } from '../../../shared/shopping-cart/shopping-cart.service';
+import { StorefrontWishlistService } from '../../../listener/web-store/storefront-wishlist.service';
 
 @Component({
   selector: 'app-product-details',
   templateUrl: './product-details.component.html',
   styleUrls: ['./product-details.component.css'],
-  animations: [
-    trigger('pageAnimation', [
-      transition(':enter', [
-        style({ opacity: 0 }),
-        animate('0.4s ease-out', style({ opacity: 1 }))
-      ]),
-      transition(':leave', [
-        style({ opacity: 1 }),
-        animate('0.5s ease-in', style({ opacity: 0 }))
-      ])
-    ]),
-    trigger('profileImageAnimation', [
-      transition(':enter', [
-        style({ transform: 'scale(0)', opacity: 0 }),
-        animate('0.3s ease-out', style({ transform: 'scale(1)', opacity: 1 }))
-      ])
-    ])
-  ]
 })
 export class ProductDetailsComponent implements OnInit {
   product: ProductGetResponse | null = null;
-  loading: boolean = true;
-  errorMessage: string = '';
-  currentSlide: number = 0;
-  quantity: number = 1;
-  constructor(
-    private route: ActivatedRoute,
-    private location: Location,
-    private productService: ProductGetByIdEndpointService,
-    private addToShoppingCartService: AddToShoppingCartEndpointService,
-    private addProductToWishlist: AddProductToWishlistEndpointService,
-    private router : Router,  private cartUpdateService: CartUpdateService,
-    private snackBar : MatSnackBar
+  loading = true;
+  errorMessage = '';
+  currentSlide = 0;
+  quantity = 1;
+  private touchStartX = 0;
+  readonly mediaAddress = MyConfig.media_address;
 
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly location: Location,
+    private readonly productService: ProductGetByIdEndpointService,
+    private readonly addToShoppingCart: AddToShoppingCartEndpointService,
+    private readonly router: Router,
+    private readonly cart: CartUpdateService,
+    private readonly wishlist: StorefrontWishlistService,
+    private readonly snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
-    const productSlug = this.route.snapshot.paramMap.get('slug');
-    if (productSlug) {
-      this.loadProduct(productSlug);
-    } else {
-      this.errorMessage = 'Invalid product slug';
+    const slug = this.route.snapshot.paramMap.get('slug');
+    if (!slug) {
+      this.loading = false;
+      this.errorMessage = 'This product could not be found.';
+      return;
     }
-  }
 
-  loadProduct(slug: string): void {
+    this.wishlist.ensureLoaded().subscribe({ error: () => undefined });
     this.productService.handleAsync(slug).subscribe({
-      next: (data) => {
-        if (data) {
-          this.product = data;
-          console.log(data);
-        } else {
-          this.errorMessage = 'No product data available';
-        }
+      next: product => {
+        this.product = product;
+        this.quantity = product.quantity > 0 ? 1 : 0;
         this.loading = false;
       },
-      error: (err: HttpErrorResponse) => {
-        this.errorMessage = 'Failed to load product';
-        console.error(err);
+      error: () => {
+        this.errorMessage = 'This product could not be loaded.';
         this.loading = false;
-      }
+      },
     });
   }
 
+  get wishlistSlugs$() {
+    return this.wishlist.slugs$;
+  }
+
+  get currentArtwork(): string {
+    const path = this.product?.photoPaths?.[this.currentSlide];
+    return path ? this.mediaAddress + path : 'assets/icons/pattern.svg';
+  }
+
   nextSlide(): void {
-    if (this.product?.photoPaths && this.product.photoPaths.length > 0) {
-      this.currentSlide = (this.currentSlide + 1) % this.product.photoPaths.length;
-    }
+    const count = this.product?.photoPaths?.length ?? 0;
+    if (count > 1) this.currentSlide = (this.currentSlide + 1) % count;
   }
-  addToCart(): void {
-    const userId = this.getUserIdFromToken();
 
-    if (this.product && this.quantity > 0 && userId !== null) {
-      const request = {
-        productId: this.product.id,
-        userId: userId,
-        quantity: this.quantity
-      };
-
-      this.addToShoppingCartService.handleAsync(request).subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.snackBar.open('Product added to Cart successfully', 'Close', {
-              duration: 1500,
-              verticalPosition: 'bottom',
-              horizontalPosition: 'center'
-            });            this.cartUpdateService.notifyCartUpdated();
-          } else {
-            console.error('Failed to add product to cart:', response.message);
-          }
-        },
-        error: (err) => {
-          console.error('Error adding to cart', err);
-        }
-      });
-    } else {
-      console.error('Invalid user ID or product quantity.');
-    }
-
-  }
   prevSlide(): void {
-    if (this.product?.photoPaths && this.product.photoPaths.length > 0) {
-      this.currentSlide =
-        (this.currentSlide - 1 + this.product.photoPaths.length) % this.product.photoPaths.length;
-    }
+    const count = this.product?.photoPaths?.length ?? 0;
+    if (count > 1) this.currentSlide = (this.currentSlide - 1 + count) % count;
   }
 
   changeSlide(index: number): void {
     this.currentSlide = index;
   }
-  private getUserIdFromToken(): number | null {
-    let authToken = sessionStorage.getItem('authToken');
 
-    if (!authToken) {
-      authToken = localStorage.getItem('authToken');
-    }
-
-    if (!authToken) {
-      return 0;
-    }
-
-    try {
-      const parsedToken = JSON.parse(authToken);
-      return parsedToken.userId;
-    } catch (error) {
-      console.error('Error parsing authToken:', error);
-      return 0;
-    }
+  onTouchStart(event: TouchEvent): void {
+    this.touchStartX = event.changedTouches[0]?.clientX ?? 0;
   }
 
-  addToWishlist() {
-    const userId = this.getUserIdFromToken();
-    if (userId === null) {
-      alert('You must be logged in to add items to the wishlist.');
+  onTouchEnd(event: TouchEvent): void {
+    const distance = (event.changedTouches[0]?.clientX ?? 0) - this.touchStartX;
+    if (Math.abs(distance) < 45) return;
+    distance > 0 ? this.prevSlide() : this.nextSlide();
+  }
+
+  changeQuantity(amount: number): void {
+    if (!this.product?.quantity) return;
+    this.quantity = Math.min(this.product.quantity, Math.max(1, this.quantity + amount));
+  }
+
+  addToCart(): void {
+    if (!this.product || this.quantity < 1) return;
+    const userId = this.getUserId();
+    if (!userId) {
+      this.snackBar.open('You must be logged in to add products to your cart.', 'Close', { duration: 2200 });
       return;
     }
-    if (this.product!.slug === null) {
-      alert('You must be logged in to add items to the wishlist.');
-      return;
-    }
-    const request: AddProductToWishlistRequest = {
-      productSlug: this.product!.slug,
-      userId: userId
-    };
-    this.addProductToWishlist.handleAsync(request).subscribe(
-      (response: AddProductToWishlistResponse) => {
+
+    this.addToShoppingCart.handleAsync({ productId: this.product.id, userId, quantity: this.quantity }).subscribe({
+      next: response => {
         if (response.success) {
-          this.snackBar.open('Product added to Wishlist successfully', 'Close', {
-            duration: 1500,
-            verticalPosition: 'bottom',
-            horizontalPosition: 'center'
-          });
-          this.ngOnInit();
-        } else {
-          this.snackBar.open('Product already on Wishlist', 'Close', {
-            duration: 1500,
-            verticalPosition: 'bottom',
-            horizontalPosition: 'center'
-          });             }
+          this.cart.notifyCartUpdated();
+          this.snackBar.open('Added to cart', 'Close', { duration: 1600 });
+        }
       },
-      (error) => {
-        alert('An error occurred: ' + error.message);
-      }
-    );
+      error: () => this.snackBar.open('Could not add this product to your cart.', 'Close', { duration: 2200 }),
+    });
   }
 
-  protected readonly MyConfig = MyConfig;
-
-  goToArtistPage(artistId: number) {
-    this.router.navigate(['/listener/profile/', artistId])
+  toggleWishlist(): void {
+    if (!this.product) return;
+    this.wishlist.toggle(this.product.slug).subscribe({
+      next: added => this.snackBar.open(added ? 'Added to wishlist' : 'Removed from wishlist', 'Close', { duration: 1600 }),
+      error: error => this.snackBar.open(error.message || 'Could not update wishlist', 'Close', { duration: 2200 }),
+    });
   }
 
-  goBack() {
+  goToArtistPage(): void {
+    if (this.product?.artistId) this.router.navigate(['/listener/profile', this.product.artistId]);
+  }
+
+  goBack(): void {
     this.location.back();
+  }
+
+  private getUserId(): number {
+    const token = sessionStorage.getItem('authToken') ?? localStorage.getItem('authToken');
+    if (!token) return 0;
+    try { return Number(JSON.parse(token).userId) || 0; } catch { return 0; }
   }
 }

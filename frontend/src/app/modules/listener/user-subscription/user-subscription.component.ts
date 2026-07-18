@@ -1,299 +1,188 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { loadStripe, Stripe, StripeCardElement, StripeElements } from '@stripe/stripe-js';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { SubscriptionDetails, SubscriptionDetailsService } from '../../../endpoints/subscription-endpoints/get-subscription-details-endpoint.service';
 import { SubscriptionAddEndpointService } from '../../../endpoints/subscription-endpoints/add-subscription-endpoint.service';
-import { loadStripe, Stripe, StripeCardElement, StripeElements } from '@stripe/stripe-js';
-import { StripeService } from '../../../endpoints/stripe-endpoints/stripe-endpoint.service'; // Import StripeService
+import { StripeService } from '../../../endpoints/stripe-endpoints/stripe-endpoint.service';
 import { UserService } from '../../../endpoints/user-endpoints/get-user-info-endpoints.service';
-import {
-  IsSubscribedRequest,
-  IsSubscribedService
-} from '../../../endpoints/auth-endpoints/is-subscribed-endpoint.service';
-import {
-  UserSubscriptionDetailsResponse,
-  UserSubscriptionService
-} from '../../../endpoints/subscription-endpoints/user-subscription-type-endpoint.service';
-import moment from 'moment';
-import {MyConfig} from '../../../my-config';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {animate, style, transition, trigger} from '@angular/animations'; // Import UserService
+import { UserSubscriptionDetailsResponse, UserSubscriptionService } from '../../../endpoints/subscription-endpoints/user-subscription-type-endpoint.service';
 
 @Component({
   selector: 'app-user-subscription',
   templateUrl: './user-subscription.component.html',
   styleUrls: ['./user-subscription.component.css'],
-  animations: [
-    trigger('pageAnimation', [
-      transition(':enter', [
-        style({ opacity: 0 }),
-        animate('0.2s ease-out', style({ opacity: 1 }))
-      ]),
-      transition(':leave', [
-        style({ opacity: 1 }),
-        animate('0.2s ease-in', style({ opacity: 0 }))
-      ])
-    ]),
-    trigger('profileImageAnimation', [
-      transition(':enter', [
-        style({ transform: 'scale(0)', opacity: 0 }),
-        animate('0.3s ease-out', style({ transform: 'scale(1)', opacity: 1 }))
-      ])
-    ])
-  ]
 })
 export class UserSubscriptionComponent implements OnInit {
   subscriptions: SubscriptionDetails[] = [];
   subscriptionDetails: UserSubscriptionDetailsResponse = {
-    subscription: {
-      subscriptionType: 0,
-      title: '',
-      description: '',
-      price: 0,
-      startDate: '',
-      endDate: '',
-      renewalOn: false,
-      message: ''
-    }
+    subscription: null,
   };
   selectedSubscription: SubscriptionDetails | null = null;
   stripe: Stripe | null = null;
   elements: StripeElements | null = null;
   card: StripeCardElement | null = null;
-  paymentSuccess: boolean = false;
-  errorMessage: string = '';
-  planColors: { [key in '1' | '2' | '3']: string } = {
-    '1': '#b3f6b3',  // One month plan boja (Indigo)
-    '2': '#f6e795',  // 6 month plan boja (Gold)
-    '3': '#cf9ef8'   // 1 year plan boja (Lime Green)
-  };
+  userSubscribed = false;
+  private plansLoading = true;
+  private currentSubscriptionLoading = true;
+  processing = false;
+  paymentSuccess = false;
+  errorMessage = '';
+  readonly planColors: Record<number, string> = { 1: '#b3f6b3', 2: '#f6e795', 3: '#cf9ef8' };
+
+  get loading(): boolean {
+    return this.plansLoading || this.currentSubscriptionLoading;
+  }
 
   constructor(
-    private subscriptionService: SubscriptionDetailsService,
-    private subscriptionAddService: SubscriptionAddEndpointService,
-    private userService: UserService,
-    private stripeService: StripeService,
-  private cdr: ChangeDetectorRef,
-    private isSubscribedService : IsSubscribedService,
-    private userSubscriptionService : UserSubscriptionService,
-    private snackBar : MatSnackBar
+    private readonly subscriptionService: SubscriptionDetailsService,
+    private readonly subscriptionAdd: SubscriptionAddEndpointService,
+    private readonly userService: UserService,
+    private readonly stripeService: StripeService,
+    private readonly userSubscription: UserSubscriptionService,
+    private readonly snackBar: MatSnackBar,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
-  userSubscribed = false;
-  async ngOnInit(): Promise<void> {
-    const userId = this.getUserIdFromToken();
-    this.userSubscriptionService.getUserSubscriptionDetails(userId).subscribe({
-      next: (response: UserSubscriptionDetailsResponse) => {
-        this.subscriptionDetails = response;
-        this.userSubscribed = response.subscription.subscriptionType != null;
-        console.log('User subscription details:', response);
-      },
-      error: (err) => {
-        console.error('Error fetching subscription details:', err);
-      }
-    });
 
-    this.isUserSubscribed();
-    this.subscriptionService.getAll().subscribe((data) => {
-      this.subscriptions = data;
+  async ngOnInit(): Promise<void> {
+    const userId = this.getUserId();
+    if (!userId) {
+      this.plansLoading = false;
+      this.currentSubscriptionLoading = false;
+      this.errorMessage = 'Sign in to manage a subscription.';
+      return;
+    }
+
+    this.loadCurrentSubscription(userId);
+    this.subscriptionService.getAll().subscribe({
+      next: plans => {
+        this.subscriptions = plans ?? [];
+        this.plansLoading = false;
+      },
+      error: () => {
+        this.errorMessage = 'Subscription plans could not be loaded.';
+        this.plansLoading = false;
+      },
     });
 
     this.stripe = await loadStripe('pk_test_51QEZojCQgR3U8MdBa1uGUBRSshgia3TauM5hIFtla1wprW3iNEJX6yzk1p2liFGNmjavOYxRDxDEvauXP7in5gOZ00Jr5eCt3w');
     if (this.stripe) {
       this.elements = this.stripe.elements();
-
-    } else {
-      console.error('Stripe nije učitan');
-    }
-  }
-  getPlanBackgroundColor(planType: number): string {
-    const planTypeString = planType.toString() as '1' | '2' | '3';
-    return this.planColors[planTypeString] || '#333333';
-  }
-  loadStripeCard(): void {
-    if (this.stripe && this.elements) {
-      if (this.card) {
-        this.card.mount('#card-element');
-      } else {
-        this.card = this.elements.create('card');
-        this.card.mount('#card-element');
-      }
-
-      this.cdr.detectChanges();
-    } else {
-      console.error('Stripe ili Elements nisu inicijalizirani');
+      if (this.selectedSubscription) this.mountCard();
     }
   }
 
-
-  createPaymentIntent(userId: number): void {
-    if (this.stripe && this.card && this.selectedSubscription) {
-      let amountInCents: number;
-
-      if (this.selectedSubscription?.price === 8.99) {
-        amountInCents = Math.round(this.selectedSubscription?.price * 100) * 6;
-      } else if (this.selectedSubscription?.price === 6.50) {
-        amountInCents = Math.round(this.selectedSubscription?.price * 100) * 12;
-      } else {
-        amountInCents = Math.round(this.selectedSubscription?.price * 100);
-      }
-      this.userService.getUserInfo(userId).subscribe(
-        (userInfo) => {
-          const email = userInfo.email;
-          this.stripeService.createPaymentIntent(amountInCents, email).subscribe(
-            (response) => {
-              const clientSecret = response.clientSecret;
-              this.confirmPayment(clientSecret, userId);
-            },
-            (error) => {
-              this.errorMessage = 'Error creating payment intent: ' + error.message;
-            }
-          );
-        },
-        (error) => {
-          this.errorMessage = 'Error fetching user info: ' + error.message;
-        }
-      );
-    }
-  }
-
-  confirmPayment(clientSecret: string, userId: number): void {
-    if (this.stripe && this.card) {
-      this.stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: this.card,
-        },
-      }).then((result) => {
-        if (result.error) {
-          this.errorMessage = result.error.message || 'Payment failed';
-        } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
-          this.paymentSuccess = true;
-          this.snackBar.open('Payment successful!', 'Close', {
-            duration: 1500,
-            verticalPosition: 'bottom',
-            horizontalPosition: 'center'
-          });
-          this.addSubscription(userId);
-        }
-      });
-    }
-  }
-  private getUserIdFromToken(): number {
-    let authToken = sessionStorage.getItem('authToken');
-
-    if (!authToken) {
-      authToken = localStorage.getItem('authToken');
-    }
-
-    if (!authToken) {
-      return 0;
-    }
-
-    try {
-      const parsedToken = JSON.parse(authToken);
-      return parsedToken.userId;
-    } catch (error) {
-      console.error('Error parsing authToken:', error);
-      return 0;
-    }
-  }
-
-  subscribe(subscription: SubscriptionDetails): void {
-    this.selectedSubscription = subscription;
-    const userId = this.getUserIdFromToken();
-    if (!userId) {
-      this.errorMessage = 'User ID not found.';
-      return;
-    }
-
-
-    this.createPaymentIntent(userId);
-  }
   selectPlan(subscription: SubscriptionDetails): void {
     this.selectedSubscription = subscription;
     this.paymentSuccess = false;
     this.errorMessage = '';
-
-    setTimeout(() => {
-      this.loadStripeCard();
-    }, 200);
+    this.cdr.detectChanges();
+    setTimeout(() => this.mountCard());
   }
 
-
-
   handleSubmit(): void {
-    if (!this.selectedSubscription) {
-      this.errorMessage = 'Please select a subscription plan first.';
+    const userId = this.getUserId();
+    if (!userId || !this.selectedSubscription || !this.stripe || !this.card) {
+      this.errorMessage = 'Select a plan and wait for payment details to load.';
       return;
     }
 
-      this.loadStripeCard();
-
-    this.subscribe(this.selectedSubscription);
+    this.processing = true;
+    this.userService.getUserInfo(userId).subscribe({
+      next: user => this.stripeService.createPaymentIntent(Math.round(this.totalPrice(this.selectedSubscription!) * 100), user.email).subscribe({
+        next: response => this.confirmPayment(response.clientSecret, userId),
+        error: error => this.failPayment('Could not start payment: ' + error.message),
+      }),
+      error: error => this.failPayment('Could not load billing information: ' + error.message),
+    });
   }
 
-  addSubscription(userId: number): void {
-    this.subscriptionAddService.handleAsync({
-      userId,
-      subscriptionType: this.selectedSubscription?.id || 1,
-      renewalOn: true,
-    }).subscribe(
-      (response) => {
-        if (response.success) {
-          this.snackBar.open('Subscription added successful!', 'Close', {
-            duration: 1500,
-            verticalPosition: 'bottom',
-            horizontalPosition: 'center'
-          });setTimeout(() => {
-            window.location.reload();
-          }, 1500);
-        } else {
-          this.errorMessage = response.message;
-        }
+  totalPrice(plan: SubscriptionDetails): number {
+    return plan.price * this.planMonths(plan);
+  }
+
+  planMonths(plan: SubscriptionDetails): number {
+    if (plan.subscriptionType === 2) return 6;
+    if (plan.subscriptionType === 3) return 12;
+    return 1;
+  }
+
+  planCadence(plan: SubscriptionDetails): string {
+    const months = this.planMonths(plan);
+    return months === 1 ? 'Billed monthly' : `Billed every ${months} months`;
+  }
+
+  planIcon(plan: SubscriptionDetails): string {
+    return plan.subscriptionType === 3 ? 'workspace_premium' : plan.subscriptionType === 2 ? 'auto_awesome' : 'music_note';
+  }
+
+  planColor(plan: SubscriptionDetails): string {
+    return this.planColors[plan.subscriptionType] ?? '#e692f8';
+  }
+
+  private mountCard(): void {
+    const target = document.getElementById('subscription-card-element');
+    if (!target || !this.elements) return;
+    if (this.card) this.card.unmount();
+    this.card = this.elements.create('card', {
+      style: {
+        base: { color: '#ffffff', fontSize: '16px', iconColor: '#e692f8', '::placeholder': { color: 'rgba(243,233,244,.52)' } },
+        invalid: { color: '#ff9fb1', iconColor: '#ff9fb1' },
       },
-      (error) => {
-        this.errorMessage = 'Error adding subscription: ' + error.message;
+    });
+    this.card.mount(target);
+  }
+
+  private confirmPayment(clientSecret: string, userId: number): void {
+    this.stripe!.confirmCardPayment(clientSecret, { payment_method: { card: this.card! } }).then(result => {
+      if (result.error) {
+        this.failPayment(result.error.message || 'Payment failed.');
+      } else if (result.paymentIntent?.status === 'succeeded') {
+        this.addSubscription(userId);
       }
-    );
+    });
   }
 
-  private isUserSubscribed() {
-    const request: IsSubscribedRequest = {
-      userId : this.getUserIdFromToken()
-    };
-    this.isSubscribedService.handleAsync(request).subscribe({
-      next: (response) => {
-        if (response.isSubscribed)
-        {
-          this.userSubscribed = true;
-
+  private addSubscription(userId: number): void {
+    this.subscriptionAdd.handleAsync({ userId, subscriptionType: this.selectedSubscription?.id || 1, renewalOn: true }).subscribe({
+      next: response => {
+        if (!response.success) {
+          this.failPayment(response.message);
+          return;
         }
-        else
-        {
-          this.userSubscribed = false;
-
-        }
+        this.processing = false;
+        this.paymentSuccess = true;
+        this.snackBar.open('Subscription activated', 'Close', { duration: 1800 });
+        this.loadCurrentSubscription(userId);
       },
-      error: (err) => {
-        console.error('Error:', err);
+      error: error => this.failPayment('Could not activate subscription: ' + error.message),
+    });
+  }
 
+  private loadCurrentSubscription(userId: number): void {
+    this.currentSubscriptionLoading = true;
+    this.userSubscription.getUserSubscriptionDetails(userId).subscribe({
+      next: response => {
+        this.subscriptionDetails = response;
+        this.userSubscribed = Number(response.subscription?.subscriptionType ?? 0) > 0;
+        this.currentSubscriptionLoading = false;
+      },
+      error: () => {
+        this.subscriptionDetails = { subscription: null };
+        this.userSubscribed = false;
+        this.currentSubscriptionLoading = false;
       },
     });
   }
 
-  getSubscriptionTitle(subscriptionType: number | null) {
-    return "";
+  private failPayment(message: string): void {
+    this.processing = false;
+    this.paymentSuccess = false;
+    this.errorMessage = message;
   }
 
-  protected readonly moment = moment;
-  protected readonly MyConfig = MyConfig;
-
-  getPrice() {
-    let amountInCents
-    if (this.selectedSubscription?.price === 8.99) {
-      amountInCents = this.selectedSubscription?.price * 6;
-    } else if (this.selectedSubscription?.price === 6.50) {
-      amountInCents = this.selectedSubscription?.price  * 12;
-    } else {
-      amountInCents = this.selectedSubscription?.price!;
-    }
-    return amountInCents
+  private getUserId(): number {
+    const token = sessionStorage.getItem('authToken') ?? localStorage.getItem('authToken');
+    if (!token) return 0;
+    try { return Number(JSON.parse(token).userId) || 0; } catch { return 0; }
   }
 }

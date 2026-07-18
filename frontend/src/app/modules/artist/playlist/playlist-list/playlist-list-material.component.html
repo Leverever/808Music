@@ -1,13 +1,25 @@
-<div class="base-page flex-page">
-  <div class="select-page">
-    @if (dailyPlaylists.length > 0) {
-      <section class="daily-playlists-section">
-        <div class="title">
-          <h1 class="title-playlist">Made for you</h1>
-          <p>Personalized mixes refreshed every day</p>
-        </div>
+<main class="library-page" [class.listener-library]="isListenerMode">
+  <div class="library-glow library-glow-primary" aria-hidden="true"></div>
+  <div class="library-glow library-glow-secondary" aria-hidden="true"></div>
 
-        <div class="daily-playlist-grid">
+  <div class="select-page">
+    <header class="library-hero">
+      <span class="library-eyebrow">YOUR COLLECTION</span>
+      <h1>{{ isListenerMode ? 'Your library' : 'Playlists' }}</h1>
+      <p>{{ playlists?.length || 0 }} playlists &bull; personalized mixes refreshed daily</p>
+    </header>
+
+    @if (dailyPlaylists.length > 0) {
+      <section class="library-section daily-playlists-section">
+        <header class="section-heading">
+          <div>
+            <span>FOR YOU</span>
+            <h2>Daily mixes</h2>
+          </div>
+          <p>Shaped around your recent listening</p>
+        </header>
+
+        <div class="daily-playlist-grid" appCardRail>
           @for (playlist of dailyPlaylists; track playlist.id) {
             <app-personalized-playlist-card
               [playlist]="playlist"
@@ -20,35 +32,46 @@
       </section>
     }
 
-    <div class="title">
-      <h1 class="title-playlist">Your playlists</h1>
-    </div>
+    <section class="library-section collection-section">
+      <header class="section-heading collection-heading">
+        <div>
+          <span>PLAYLISTS</span>
+          <h2>Your playlists</h2>
+        </div>
 
-    <div class="flex-controls">
-      <mat-card class="add-playlist" appearance="outlined" (click)="createPlaylist()">
-        <mat-card-header>
-          <mat-card-title-group>
-            <mat-card-title>New Playlist</mat-card-title>
-            <mat-icon>add_circle</mat-icon>
-          </mat-card-title-group>
-        </mat-card-header>
-        <mat-card-content></mat-card-content>
-      </mat-card>
-    </div>
+        <button type="button" class="create-playlist-button" (click)="createPlaylist()">
+          <mat-icon>add</mat-icon>
+          <span>Create</span>
+        </button>
+      </header>
 
-    <div class="flex-container">
-      <div class="row" *ngFor="let playlist of playlists || []">
-        <app-playlist-card matTooltip="{{ playlist.title }}" matTooltipPosition="below" [title]="playlist.title"
-                           [imageUrl]="MyConfig.media_address + playlist.coverPath"
-                           [username]="playlist.ownerUsername"
-                           [id]="playlist.id"
-                           [hasControls]="false"
-                           (onDelete)="deletePlaylist(playlist.id)"
-                           (onEdit)="editPlaylist(playlist.id)"
-                           (onClick)="openPlaylist(playlist.id)"
-                           (onPlayClick)="startPlaylist($event, playlist)">
-        </app-playlist-card>
-      </div>
-    </div>
+      @if (playlists === null) {
+        <div class="library-status">Loading your playlists...</div>
+      } @else if (playlists.length === 0) {
+        <button type="button" class="empty-library" (click)="createPlaylist()">
+          <span class="empty-library-icon"><mat-icon>queue_music</mat-icon></span>
+          <strong>Create your first playlist</strong>
+          <small>Collect tracks for any mood or moment.</small>
+        </button>
+      } @else {
+        <div class="user-playlist-grid">
+          @for (playlist of playlists; track playlist.id) {
+            <app-playlist-card
+              [matTooltip]="playlist.title"
+              matTooltipPosition="below"
+              [title]="playlist.title"
+              [imageUrl]="playlistCoverUrl(playlist.coverPath)"
+              [username]="playlist.ownerUsername"
+              [id]="playlist.id"
+              [hasControls]="false"
+              (onDelete)="deletePlaylist(playlist.id)"
+              (onEdit)="editPlaylist(playlist.id)"
+              (onClick)="openPlaylist(playlist.id)"
+              (onPlayClick)="startPlaylist($event, playlist)">
+            </app-playlist-card>
+          }
+        </div>
+      }
+    </section>
   </div>
-</div>
+</main>

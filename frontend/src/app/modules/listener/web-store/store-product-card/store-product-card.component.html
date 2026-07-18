@@ -1,0 +1,34 @@
+<article
+  class="store-product-card"
+  [class.store-product-card--compact]="compact"
+  tabindex="0"
+  role="link"
+  (click)="openProduct()"
+  (keydown.enter)="openProduct()"
+  (keydown.space)="$event.preventDefault(); openProduct()"
+>
+  <div class="store-product-card__media">
+    <img [src]="imagePath()" [alt]="product.title" loading="lazy">
+    <span class="store-product-card__sale" *ngIf="salePercent() > 0">-{{ salePercent() }}%</span>
+    <button
+      *ngIf="showWishlist"
+      type="button"
+      class="store-product-card__wishlist"
+      [attr.aria-label]="((wishlistSlugs$ | async)?.has(product.slug) ? 'Remove from' : 'Add to') + ' wishlist'"
+      (click)="toggleWishlist($event)"
+    >
+      <mat-icon>{{ (wishlistSlugs$ | async)?.has(product.slug) ? 'favorite' : 'favorite_border' }}</mat-icon>
+    </button>
+  </div>
+
+  <div class="store-product-card__body">
+    <h3>{{ product.title }}</h3>
+    <p class="store-product-card__meta" *ngIf="product.artistName || product.productType">
+      {{ product.artistName || product.productType }}
+    </p>
+    <div class="store-product-card__price">
+      <strong>{{ currentPrice() | currency:'EUR':'symbol':'1.2-2' }}</strong>
+      <s *ngIf="salePercent() > 0">{{ originalPrice() | currency:'EUR':'symbol':'1.2-2' }}</s>
+    </div>
+  </div>
+</article>

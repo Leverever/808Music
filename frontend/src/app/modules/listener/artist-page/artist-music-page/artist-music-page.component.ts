@@ -165,6 +165,13 @@ export class ArtistMusicPageComponent implements OnInit, AfterViewInit, OnDestro
     this.router.navigate(["listener/release", id])
   }
 
+  openSpotlight(): void {
+    if(this.featuredAlbum)
+    {
+      this.goToAlbum(this.featuredAlbum.id);
+    }
+  }
+
   playFeatured() {
     this.trackGetAllService.handleAsync({isReleased:true, albumId: this.featuredAlbum?.id}).subscribe({
       next: data => {

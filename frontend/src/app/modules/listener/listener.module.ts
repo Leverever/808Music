@@ -66,6 +66,7 @@ import {A11yModule} from '@angular/cdk/a11y';
 import {
   StemMixerBottomSheetComponent
 } from './music-player/stem-mixer-bottom-sheet/stem-mixer-bottom-sheet.component';
+import {StoreProductCardComponent} from './web-store/store-product-card/store-product-card.component';
 
 
 @NgModule({
@@ -106,6 +107,7 @@ import {
         PersonalizedPlaylistDetailComponent,
         RadioDetailComponent,
         StemMixerBottomSheetComponent,
+        StoreProductCardComponent,
     ],
   imports: [
     CommonModule,

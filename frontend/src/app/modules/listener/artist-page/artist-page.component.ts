@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {
   ArtistDetailResponse,
@@ -33,7 +33,7 @@ import {
   styleUrl: './artist-page.component.css',
   providers: [Location, {provide: LocationStrategy, useClass: PathLocationStrategy}]
 })
-export class ArtistPageComponent implements OnInit, OnDestroy {
+export class ArtistPageComponent implements OnInit, AfterViewInit, OnDestroy {
   artist: ArtistDetailResponse | null = null;
   hasTracks: boolean = true;
   followInfo: Follow | null = null;
@@ -45,10 +45,34 @@ export class ArtistPageComponent implements OnInit, OnDestroy {
   trackChange$! : Subscription;
   userArtistStats : GetUserArtistStatsResponse | null = null;
   artistStats : GetArtistBioResponse | null = null;
+  activeSection: 'music' | 'shop' | 'events' = 'music';
+
+  private scrollContainer: HTMLElement | null = null;
+  private parallaxFrame: number | null = null;
+
+  private readonly updateParallax = () => {
+    if (this.parallaxFrame !== null) return;
+
+    this.parallaxFrame = requestAnimationFrame(() => {
+      const scrollTop = this.scrollContainer?.scrollTop ?? 0;
+      const heroHeight = Math.min(Math.max(window.innerWidth * .82, 310), 430);
+      const offset = Math.min(scrollTop * .3, heroHeight * .3);
+      const progress = Math.min(scrollTop / heroHeight, 1);
+
+      this.host.nativeElement.style.setProperty('--artist-parallax-y', `${offset}px`);
+      this.host.nativeElement.style.setProperty('--artist-hero-progress', progress.toFixed(3));
+      this.parallaxFrame = null;
+    });
+  };
 
   ngOnDestroy(): void {
-    this.state$.unsubscribe();
-    this.trackChange$.unsubscribe();
+    this.state$?.unsubscribe();
+    this.trackChange$?.unsubscribe();
+    this.scrollContainer?.removeEventListener('scroll', this.updateParallax);
+
+    if (this.parallaxFrame !== null) {
+      cancelAnimationFrame(this.parallaxFrame);
+    }
   }
 
   constructor(private route: ActivatedRoute,
@@ -64,8 +88,21 @@ export class ArtistPageComponent implements OnInit, OnDestroy {
               private snackBar : MatSnackBar,
               private getArtistInfo : GetArtistBioEndpointService,
               private dialog: MatDialog,
-              private userArtistService : GetUserArtistStatsEndpointService
+              private userArtistService : GetUserArtistStatsEndpointService,
+              private host: ElementRef<HTMLElement>,
+              private zone: NgZone,
               ) { }
+
+    ngAfterViewInit(): void {
+      this.scrollContainer = this.host.nativeElement.closest('.routed-content') as HTMLElement | null;
+
+      if (this.scrollContainer) {
+        this.zone.runOutsideAngular(() => {
+          this.scrollContainer?.addEventListener('scroll', this.updateParallax, {passive: true});
+          this.updateParallax();
+        });
+      }
+    }
 
     ngOnInit(): void {
 
@@ -110,7 +147,11 @@ export class ArtistPageComponent implements OnInit, OnDestroy {
   protected readonly MyConfig = MyConfig;
 
   shareProfile() {
-      this.shareSheet.open(ShareBottomSheetComponent, {data: {url: MyConfig.ui_address + "/listener/profile/"+this.artist?.id}});
+      this.shareSheet.open(ShareBottomSheetComponent, {
+        data: {url: MyConfig.ui_address + "/listener/profile/" + this.artist?.id},
+        panelClass: ['liquid-glass-sheet-pane', 'listener-content-sheet-pane'],
+        backdropClass: 'liquid-glass-sheet-backdrop'
+      });
   }
 
   playArtist() {
@@ -187,14 +228,20 @@ export class ArtistPageComponent implements OnInit, OnDestroy {
     if (!this.artist || !this.artistStats) return;
 
     this.dialog.open(ArtistDialogComponent, {
-      width: '950px',
-      height: '600px',
-      maxWidth: 'none',
-      panelClass: 'custom-dialog-container',
+      width: 'min(950px, calc(100vw - 32px))',
+      height: 'min(600px, calc(100dvh - 32px))',
+      maxWidth: '950px',
+      maxHeight: '600px',
+      panelClass: 'artist-info-dialog-pane',
       data: { artist: this.artist, artistStats: this.artistStats }
     });
 
   }
+
+  selectSection(section: 'music' | 'shop' | 'events'): void {
+    this.activeSection = section;
+  }
+
   private loadArtistStats(id: number) {
     const request = {
       artistId : id

@@ -1,108 +1,163 @@
 <div class="artist-page">
-  <div class="banner-controls">
-    <div class="banner"
-         [ngStyle]="{'background-image': 'url('+ MyConfig.api_address + artist?.profileBackgroundPath+')'}"></div>
-    <div class="banner-gradient"></div>
-    <button mat-raised-button class="back-button" (click)="goBack()">
-      <mat-icon>arrow_back</mat-icon>
-      Back
-    </button>
-    <div class="controls">
-      <div class="name">
-        <button mat-icon-button (click)="shufflePlay()" class="shuffley">
-          <mat-icon>@if (musicPlayerService.isShuffled) {
-            shuffle_on
-          } @else {
-            shuffle
-          }</mat-icon>
+  <header class="banner-controls">
+    <div class="banner-visual">
+      <div
+        class="banner"
+        role="img"
+        [attr.aria-label]="artist?.name ? artist?.name + ' banner' : 'Artist banner'"
+        [ngStyle]="{'background-image': 'url(' + MyConfig.api_address + artist?.profileBackgroundPath + ')'}">
+      </div>
+      <div class="banner-gradient" aria-hidden="true"></div>
+
+      <button mat-icon-button class="back-button" (click)="goBack()" aria-label="Go back">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+
+      <h1 class="artist-banner-name">{{ artist?.name }}</h1>
+      <div class="banner-metrics">
+        <span><strong>{{ artist?.followers | number }}</strong> followers</span>
+        <span aria-hidden="true">•</span>
+        <span><strong>{{ artistStats?.monthlyListeners | number }}</strong> monthly listeners</span>
+      </div>
+    </div>
+
+    <section class="artist-overview" aria-label="Artist playback and profile controls">
+      <div class="actions-options">
+        @if (followInfo) {
+          <button mat-flat-button class="follow-button is-following" (click)="followOrUnfollow()">
+            Unfollow
+          </button>
+        } @else {
+          <button mat-flat-button class="follow-button" (click)="followOrUnfollow()">
+            Follow
+          </button>
+        }
+
+        @if (followInfo) {
+          <button
+            mat-icon-button
+            class="profile-action"
+            (click)="toggleNotifications()"
+            [matTooltip]="'Toggle notifications'"
+            matTooltipPosition="above"
+            aria-label="Toggle artist notifications">
+            <mat-icon>{{ followInfo.wantsNotifications ? 'notifications_active' : 'notifications' }}</mat-icon>
+          </button>
+        }
+
+        <button
+          mat-icon-button
+          class="profile-action"
+          (click)="openArtistDialog()"
+          [matTooltip]="'More about ' + artist?.name"
+          matTooltipPosition="above"
+          [attr.aria-label]="'More about ' + artist?.name">
+          <mat-icon>info</mat-icon>
         </button>
-        @if (!isPlayingThisAlbum)
-        {
-          <button mat-fab (click)="playArtist()">
+
+        <button
+          mat-icon-button
+          class="profile-action"
+          (click)="shareProfile()"
+          [matTooltip]="'Share artist'"
+          matTooltipPosition="above"
+          aria-label="Share artist">
+          <mat-icon>share</mat-icon>
+        </button>
+
+        <button mat-icon-button (click)="shufflePlay()" class="shuffle-button" aria-label="Toggle shuffle">
+          <mat-icon>{{ musicPlayerService.isShuffled ? 'shuffle_on' : 'shuffle' }}</mat-icon>
+        </button>
+
+        @if (!isPlayingThisAlbum) {
+          <button mat-fab class="artist-play-button" (click)="playArtist()" aria-label="Play artist">
             <mat-icon>play_arrow</mat-icon>
           </button>
         } @else {
-          <button mat-fab (click)="musicPlayerService.togglePlayState()">
-            <mat-icon>{{playingState ? 'pause' : 'play_arrow'}}</mat-icon>
+          <button
+            mat-fab
+            class="artist-play-button"
+            (click)="musicPlayerService.togglePlayState()"
+            [attr.aria-label]="playingState ? 'Pause artist' : 'Resume artist'">
+            <mat-icon>{{ playingState ? 'pause' : 'play_arrow' }}</mat-icon>
           </button>
         }
-        <h2>{{ artist?.name }}</h2>
       </div>
+    </section>
+  </header>
 
-      <div class="actions">
-        <div class="artist-numbers">
-        <div class="followers">{{ artist?.followers }} FOLLOWERS</div></div>
-
-        <div class="followers">{{ artistStats?.monthlyListeners }} MONTHLY LISTENERS</div>
-        <div class="actions-options">
-          <button mat-icon-button (click)="shareProfile()" [matTooltip]="'Share artist'"
-                  matTooltipPosition="above">
-            <mat-icon>share</mat-icon>
-          </button>
-          <button mat-icon-button (click)="openArtistDialog()" [matTooltip]="'More about ' + artist?.name"
-                  matTooltipPosition="above"><mat-icon>info</mat-icon></button>
-
-          @if (followInfo) {
-            <button mat-icon-button (click)="toggleNotifications()" [matTooltip]="'Toggle notifications'"
-                    matTooltipPosition="above">
-              <mat-icon>
-                @if (followInfo.wantsNotifications) {
-                  notifications_active
-                } @else {
-                  notifications
-                }
-              </mat-icon>
-            </button>
-          }
-          @if (followInfo) {
-            <button mat-flat-button class="follow-button" (click)="followOrUnfollow()">
-              Unfollow
-            </button>
-          } @else {
-            <button mat-stroked-button class="follow-button" (click)="followOrUnfollow()">
-              Follow
-            </button>
-          }
-
+  <section class="statistics" *ngIf="userArtistStats?.minutesPlayed !== 0" aria-label="Your artist listening statistics">
+    <div class="left-side">
+      <div class="artist-avatars" aria-hidden="true">
+        <div
+          class="artist-user-pic"
+          [ngStyle]="{'background-image': 'url(' + MyConfig.media_address + '/Images/Artistpfps/' + userArtistStats?.artistProfilePicture + ')'}">
+        </div>
+        <div
+          class="artist-user-pic"
+          [ngStyle]="{'background-image': 'url(' + MyConfig.media_address + userArtistStats?.userProfilePicture + ')'}">
         </div>
       </div>
-    </div>
-  </div>
-  <div class="statistics" *ngIf="userArtistStats?.minutesPlayed !== 0">
-    <div class="left-side">
-    <div class="artist-user-pic" [ngStyle]="{'background-image': 'url(' + MyConfig.media_address + '/Images/Artistpfps/' + userArtistStats?.artistProfilePicture + ')'}" ></div>
-    <div class="artist-user-pic" [ngStyle]="{'background-image': 'url(' + MyConfig.media_address  + userArtistStats?.userProfilePicture + ')'}" ></div>
-    <div class="stats-rows">
-      <p class="text-row">You have liked {{userArtistStats?.likedSongs}} {{artist?.name}} songs.</p>
 
-      <p class="text-row">
-        You've been listening to {{ artist?.name }} for {{ userArtistStats?.minutesPlayed | number:'1.0-0' }} minutes.
-      </p>
-      <p class="text-row">You've been following {{artist?.name}} for {{userArtistStats?.daysFollowing}} days.</p>
-    </div></div>
+      <div class="stats-rows">
+        <p class="text-row">You have liked {{ userArtistStats?.likedSongs }} {{ artist?.name }} songs.</p>
+        <p class="text-row">
+          You've been listening to {{ artist?.name }} for
+          {{ userArtistStats?.minutesPlayed | number:'1.0-0' }} minutes.
+        </p>
+        <p class="text-row">
+          You've been following {{ artist?.name }} for {{ userArtistStats?.daysFollowing }} days.
+        </p>
+      </div>
+    </div>
+
     <div class="personal-rank">
-      <p class="rank-title">YOUR</p>
+      <p class="rank-title">Your</p>
       <p class="rank-no">#{{ userArtistStats?.artistRank }}</p>
-      <p class="rank-title">ARTIST</p>
+      <p class="rank-title">artist</p>
     </div>
-  </div>
-  <mat-divider *ngIf="userArtistStats?.minutesPlayed !== 0"></mat-divider>
-  <mat-tab-group>
-    <mat-tab label="MUSIC">
-      <ng-template matTabContent>
-        <app-artist-music-page></app-artist-music-page>
-      </ng-template>
-    </mat-tab>
-    <mat-tab label="SHOP">
-      <ng-template matTabContent>
-        <app-store-artist-page></app-store-artist-page>
+  </section>
 
-      </ng-template>
-    </mat-tab>
-    <mat-tab label="EVENTS">
-      <ng-template matTabContent>
+  <mat-divider *ngIf="userArtistStats?.minutesPlayed !== 0"></mat-divider>
+
+  <nav class="artist-section-tabs" role="tablist" aria-label="Artist sections">
+    <button
+      type="button"
+      role="tab"
+      [class.active]="activeSection === 'music'"
+      [attr.aria-selected]="activeSection === 'music'"
+      (click)="selectSection('music')">
+      Music
+    </button>
+    <button
+      type="button"
+      role="tab"
+      [class.active]="activeSection === 'shop'"
+      [attr.aria-selected]="activeSection === 'shop'"
+      (click)="selectSection('shop')">
+      Shop
+    </button>
+    <button
+      type="button"
+      role="tab"
+      [class.active]="activeSection === 'events'"
+      [attr.aria-selected]="activeSection === 'events'"
+      (click)="selectSection('events')">
+      Events
+    </button>
+  </nav>
+
+  <section class="artist-section-content" role="tabpanel">
+    @switch (activeSection) {
+      @case ('music') {
+        <app-artist-music-page></app-artist-music-page>
+      }
+      @case ('shop') {
+        <app-store-artist-page></app-store-artist-page>
+      }
+      @case ('events') {
         <app-eventpage></app-eventpage>
-      </ng-template>
-    </mat-tab>
-  </mat-tab-group>
+      }
+    }
+  </section>
 </div>
