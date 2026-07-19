@@ -13,21 +13,37 @@ import moment from 'moment';
   styleUrls: ['./user-monthly-stats.component.css']
 })
 export class UserMonthlyStatsComponent implements OnInit {
-  @ViewChild('statsContainer', { static: false }) statsContainer!: ElementRef;
+  @ViewChild('statsContainer', { static: false }) statsContainer?: ElementRef<HTMLElement>;
   userId = 0;
-  statsData!: UserMonthlyStatsResponse;
+  loading = true;
+  loadError = false;
+  downloading = false;
+  statsData: UserMonthlyStatsResponse = {
+    artistRankOnePfp: '',
+    artistRankTwoPfp: '',
+    artistRankThreePfp: '',
+    artistRankFourPfp: '',
+    artistRankFivePfp: '',
+    minutesStreamed: 0,
+    streams: 0,
+    username: '',
+    topSongs: [],
+    topArtists: [],
+  };
   themes = [
     { name: 'Theme 1',
       background: 'linear-gradient(to right, #ff7e5f, #feb47b)',
       textColor: '#ffffff',
       monthColor: '#ff2900',
-      bottomTextColor: '#ff2900'},{ name: 'Theme 2', background: 'linear-gradient(to right, #6a11cb, #2575fc)', textColor: '#ffffff' },
+      bottomTextColor: '#ff2900', listColor: '#ffffff'},
+    { name: 'Theme 2', background: 'linear-gradient(to right, #6a11cb, #2575fc)', textColor: '#ffffff',
+      monthColor: '#dce8ff', bottomTextColor: '#dce8ff', listColor: '#ffffff' },
     { name: 'Theme 3', background: 'linear-gradient(135deg, #68F9AC, #43D854)', listColor: '#0c0c0c',textColor: '#ffffff', monthColor: '#0c0c0c',
       bottomTextColor: '#ffffff' },
     { name: 'Theme 4', background: 'linear-gradient(135deg, #C7A0E5, #8653E0)', textColor: '#ffffff', monthColor: '#51438a',
-      bottomTextColor: '#51438a' },
+      bottomTextColor: '#51438a', listColor: '#ffffff' },
     { name: 'Theme 5', background: 'linear-gradient(135deg, #EBBBF9, #EF9EC5)', textColor: '#ffffff', monthColor: '#ff0283',
-      bottomTextColor: '#fd0282' },
+      bottomTextColor: '#fd0282', listColor: '#ffffff' },
   ];
   gifUrls: string[] = [
     'https://th.bing.com/th/id/R.3e505a007bc34662288f30527bae719f?rik=BaGv1L0UN7WtFQ&riu=http%3a%2f%2fpixel.nymag.com%2fimgs%2fdaily%2fvulture%2f2015%2f03%2f09%2fkanye-gif%2fkanye-dance-3.nocrop.w529.h554.gif&ehk=z6ufsBQewPcHDcyZ6Kr1ewDXb5pVqeUVNsHznmuBRQI%3d&risl=&pid=ImgRaw&r=0',
@@ -44,12 +60,28 @@ export class UserMonthlyStatsComponent implements OnInit {
   constructor(private statsService: GetUserMonthlyStatsEndpointService) {}
   currentTheme = this.themes[0];
 
+  get hasEnoughData(): boolean {
+    return this.statsData.minutesStreamed > 0 && this.statsData.topArtists.length >= 3;
+  }
+
   ngOnInit(): void {
     this.userId = this.getUserIdFromToken();
     this.selectedGif = this.getRandomGif();
 
-    this.statsService.handleAsync(this.userId).subscribe((data) => {
-      this.statsData = data;
+    this.statsService.handleAsync(this.userId).subscribe({
+      next: data => {
+        this.statsData = {
+          ...this.statsData,
+          ...data,
+          topSongs: data.topSongs ?? [],
+          topArtists: data.topArtists ?? [],
+        };
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.loadError = true;
+      },
     });
   }
   private getUserIdFromToken(): number {
@@ -68,22 +100,31 @@ export class UserMonthlyStatsComponent implements OnInit {
       return 0;
     }
   }
-  changeTheme(theme: any) {
+  changeTheme(theme: typeof this.themes[number]): void {
     this.currentTheme = theme;
   }
-  downloadAsImage(): void {
-  console.log('Ušao sam u funkciju');
-    html2canvas(this.statsContainer.nativeElement, {
-      useCORS: true,
-      logging: true,
-    }).then((canvas) => {
+
+  async downloadAsImage(): Promise<void> {
+    const element = this.statsContainer?.nativeElement;
+    if (!element || this.downloading) return;
+
+    this.downloading = true;
+    try {
+      const width = Math.max(element.getBoundingClientRect().width, 1);
+      const canvas = await html2canvas(element, {
+        useCORS: true,
+        logging: false,
+        scale: Math.min(3, Math.max(2, 1000 / width)),
+      });
       const link = document.createElement('a');
       link.href = canvas.toDataURL('image/png');
-      link.download = 'monthly_stats.png';
+      link.download = `808music-recap-${moment().format('YYYY-MM')}.png`;
       link.click();
-    });
-
+    } finally {
+      this.downloading = false;
+    }
   }
+
   getRandomGif(): string {
     const randomIndex = Math.floor(Math.random() * this.gifUrls.length);
     return this.gifUrls[randomIndex];

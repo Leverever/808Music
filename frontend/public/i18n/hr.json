@@ -24,8 +24,12 @@
   },
   "SETTINGS": {
     "Title": "Postavke",
+    "HeroEyebrow": "Vaše iskustvo",
+    "Description": "Upravljajte svojim računom, iskustvom slušanja i postavkama obavijesti.",
     "ACCOUNT": {
       "Title": "Korisnički račun",
+      "Kicker": "Osobni podaci",
+      "Description": "Održavajte podatke računa točnima i sigurnima.",
       "FirstName": "Ime*",
       "LastName": "Prezime*",
       "DateOfBirth" : "Datum rođenja*",
@@ -34,23 +38,52 @@
       "Country": "Država*",
       "NewPassword": "Nova lozinka",
       "NewPassPlaceholder": "Ostavite prazno ako ne želite promijeniti lozinku",
-      "SaveChanges": "Sačuvaj promjene"
+      "SaveChanges": "Spremi promjene",
+      "PasswordRequired": "Prije spremanja potrebna je trenutačna lozinka."
     },
     "PROFILE": {
       "Title": "Profil",
+      "Kicker": "Identitet",
       "ChangePicture": "Promijeni profilnu sliku"
     },
     "NOTIFICATIONS": {
       "Title": "Obavijesti",
+      "Kicker": "Budite informirani",
       "Preferences": "Promijeni postavke",
-      "Following": "Upravljajte praćenjem"
+      "PreferencesDescription": "Odaberite kanale dostave i prioritetne obavijesti.",
+      "Following": "Upravljajte praćenjem",
+      "FollowingDescription": "Upravljajte izvođačima koje pratite i obavijestima o izdanjima."
     },
     "PLAYBACK": {
       "Title": "Reprodukcija",
-      "Autoplay": "Automatska reprodukcija"
+      "Autoplay": "Automatska reprodukcija",
+      "AutoplayDescription": "Nastavite s povezanom pjesmom kada red završi.",
+      "ToggleAutoplay": "Uključi ili isključi automatsku reprodukciju"
     },
     "LANGUAGE": {
-      "Title": "Jezik"
+      "Title": "Jezik",
+      "Description": "Odaberite jezik koji se koristi u cijeloj aplikaciji 808 Music."
+    },
+    "APP": {
+      "Kicker": "Ponašanje aplikacije",
+      "Title": "Reprodukcija i jezik"
+    },
+    "DIALOGS": {
+      "ProfileEyebrow": "Profil",
+      "PictureTitle": "Promijeni profilnu sliku",
+      "PictureDescription": "Odaberite sliku i izrežite je kako bi odgovarala vašem profilu.",
+      "AddPhoto": "Dodaj fotografiju",
+      "BrowsePhoto": "Dodirnite za odabir ili ovdje ispustite sliku.",
+      "PhotoReady": "Fotografija je spremna",
+      "CropPhoto": "Prilagodite izrezivanje prije spremanja.",
+      "Cancel": "Otkaži",
+      "SavePicture": "Spremi sliku",
+      "SecurityEyebrow": "Sigurnost računa",
+      "PasswordTitle": "Spremi promjene računa",
+      "PasswordDescription": "Unesite lozinku za nastavak.",
+      "PasswordLabel": "Trenutačna lozinka",
+      "PasswordPlaceholder": "Unesite trenutačnu lozinku",
+      "Confirm": "Potvrdi"
     }
   }
 }

@@ -5,7 +5,7 @@ import { ListenerRoutingModule } from './listener-routing.module';
 import { ListenerLayoutComponent } from './listener-layout/listener-layout.component';
 import { MusicPlayerComponent } from './music-player/music-player.component';
 import { MusicControllerComponent } from './music-player/music-controller/music-controller.component';
-import {MatIcon} from '@angular/material/icon';
+import {MatIconModule} from '@angular/material/icon';
 import {SharedModule} from '../shared/shared.module';
 import {
   ClickableFeaturedArtistsComponent
@@ -112,7 +112,7 @@ import {StoreProductCardComponent} from './web-store/store-product-card/store-pr
   imports: [
     CommonModule,
     ListenerRoutingModule,
-    MatIcon,
+    MatIconModule,
     SharedModule,
     MatIconButton,
     MatTooltip,

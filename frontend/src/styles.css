@@ -65,12 +65,40 @@ body.listener-player-expanded .cdk-overlay-container {
 .routed-content:has(app-product-wishlist),
 .routed-content:has(app-checkout),
 .routed-content:has(app-order-list),
-.routed-content:has(app-user-subscription) {
+.routed-content:has(app-user-subscription),
+.routed-content:has(app-user-profile-page),
+.routed-content:has(app-followers-page),
+.routed-content:has(app-following-page),
+.routed-content:has(app-inbox),
+.routed-content:has(app-settings) {
   background:
     radial-gradient(ellipse 62% 30% at 8% 0%, rgba(230, 146, 248, .2), transparent 72%),
     radial-gradient(ellipse 50% 38% at 100% 58%, rgba(99, 29, 143, .14), transparent 74%),
     linear-gradient(180deg, #29232b 0%, #201b22 48%, #181419 100%);
   background-attachment: local;
+}
+
+.liquid-settings-dialog-backdrop {
+  background: rgba(11, 8, 12, .4);
+  -webkit-backdrop-filter: blur(8px) saturate(125%);
+  backdrop-filter: blur(8px) saturate(125%);
+}
+
+.cdk-overlay-pane.liquid-settings-dialog-pane .mat-mdc-dialog-container,
+.cdk-overlay-pane.liquid-settings-dialog-pane .mat-mdc-dialog-surface,
+.cdk-overlay-pane.liquid-settings-dialog-pane .mdc-dialog__surface {
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, .16) !important;
+  border-radius: 28px !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .13), rgba(255, 255, 255, .025)),
+    linear-gradient(120deg, rgba(230, 146, 248, .12), rgba(28, 22, 30, .82) 52%),
+    rgba(24, 19, 26, .9) !important;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .15) !important;
+  color: #f8f1f8 !important;
+  -webkit-backdrop-filter: blur(30px) saturate(170%);
+  backdrop-filter: blur(30px) saturate(170%);
 }
 
 .playlist-create-dialog-backdrop {
@@ -108,6 +136,16 @@ body.listener-player-expanded .cdk-overlay-container {
   border-radius: 28px !important;
   background: transparent !important;
   box-shadow: none !important;
+}
+
+/* Keep the notifications ambience on the routed scroll surface as well as the
+   page itself, including the mobile space reserved for player/navigation. */
+.routed-content:has(app-notifications-page) {
+  background:
+    radial-gradient(circle at 12% 7%, rgba(230, 146, 248, .17), transparent 30%),
+    radial-gradient(circle at 94% 22%, rgba(119, 83, 137, .13), transparent 34%),
+    linear-gradient(180deg, #27212a 0%, #1b171d 62%, #151217 100%);
+  background-attachment: local;
 }
 
 @media (max-width: 960px) {

@@ -1,5 +1,31 @@
 .msg-list {
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 18px;
+  padding-block: 4px;
+}
+
+.message-row {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+}
+
+.outgoing-row {
+  justify-content: flex-end;
+}
+
+.incoming-row {
+  justify-content: flex-start;
+}
+
+app-message-card {
+  display: block;
+  max-width: 100%;
+}
+
+@media (max-width: 960px) {
+  .msg-list {
+    gap: 14px;
+  }
 }

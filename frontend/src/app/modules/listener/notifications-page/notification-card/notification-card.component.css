@@ -1,88 +1,273 @@
-.notification-card {
+:host {
+  display: block;
   width: 100%;
-  height: fit-content;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.notification-card {
   position: relative;
-  background-color: #161215;
-  border-radius: 20px;
   display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 94px;
   align-items: center;
   justify-content: space-between;
-  box-sizing: border-box;
-  padding: 1vh;
-  border: 0.1rem solid #4E444B;
-  transition: background-color 0.25s ease-in-out;
+  gap: 16px;
+  padding: 11px 13px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 21px;
+  background:
+    linear-gradient(125deg, rgba(255, 255, 255, .085), rgba(255, 255, 255, .016)),
+    rgba(255, 255, 255, .035);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .13), inset 0 1px 0 rgba(255, 255, 255, .08);
+  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  backdrop-filter: blur(18px) saturate(145%);
+}
+
+.notification-card::before {
+  content: '';
+  position: absolute;
+  inset-block: 14px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 999px 999px 0;
+  background: #e692f8;
+  opacity: 0;
+  box-shadow: 0 0 14px rgba(230, 146, 248, .55);
+}
+
+.notification-card.priority::before {
+  opacity: 1;
 }
 
 .notification-card:hover {
-  background-color: #4D3D50;
-  transition: background-color 0.25s ease-in-out;
-}
-
-.thumbnail {
-  width: 10vh;
-  height: 10vh;
-  border-radius: 15px;
-  background-color: #EEDEE7;
-  background-position: center;
-  background-size: cover;
+  border-color: rgba(230, 146, 248, .23);
+  background-color: rgba(230, 146, 248, .055);
+  transform: translateY(-1px);
 }
 
 .ncard-content {
   display: flex;
-  flex-direction: row;
-  gap: 15px;
+  min-width: 0;
+  flex: 1;
   align-items: center;
+  gap: 14px;
 }
 
-.greyed {
-  color: #A9A9A9;
+.thumbnail {
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 15px;
+  background-color: #312a33;
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, .22);
+}
+
+.ncard-info {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.notification-meta {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.type-label {
+  color: #e9a7f6;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
 }
 
 .time {
-  font-size: 0.8rem;
-  font-style: italic;
+  overflow: hidden;
+  color: rgba(239, 228, 240, .43);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.msg {
-  font-size: 0.9rem;
+.notification-title,
+.artist-name {
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
 }
 
-.title {
-  font-weight: 500;
-  letter-spacing: 0.15rem;
+.notification-title {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: 5px;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 730;
+  letter-spacing: -.015em;
+  line-height: 1.2;
 }
 
-.title:hover {
-  text-decoration: underline;
-  cursor: pointer;
+.notification-title span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+.notification-title mat-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  color: #eb91fa;
+  font-size: 18px;
+}
+
+.notification-title:hover,
 .artist-name:hover {
   text-decoration: underline;
-  cursor: pointer;
+}
+
+.message {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: rgba(241, 231, 242, .67);
+  font-size: 13px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.artist-name {
+  overflow: hidden;
+  color: rgba(239, 228, 240, .5);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ncard-actions {
   display: flex;
-  gap: 5px;
+  flex: 0 0 auto;
   align-items: center;
-  padding-right: 2vh;
+  gap: 7px;
 }
 
-
-.mark-as-read {
-  width: 50px;
-  height: 50px;
-  text-align: center;
+.card-action {
+  display: inline-grid !important;
+  width: 44px !important;
+  height: 44px !important;
+  padding: 0 !important;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .11) !important;
+  background: rgba(255, 255, 255, .045) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
+  color: #f3eaf4 !important;
 }
 
-.mark-as-read > mat-icon {
-  padding-top: 3px;
-  text-align: start;
-  width: 50px;
-  height: 50px;
-  font-size: 30px;
+.card-action mat-icon {
+  display: block;
+  margin: 0;
+}
+
+.primary-action {
+  border-color: rgba(230, 146, 248, .3) !important;
+  background:
+    linear-gradient(145deg, rgba(230, 146, 248, .25), rgba(112, 28, 143, .31)),
+    rgba(255, 255, 255, .045) !important;
+  color: #f9e7fc !important;
+}
+
+@media (max-width: 960px) {
+  .notification-card {
+    min-height: 82px;
+    gap: 9px;
+    padding: 9px 8px;
+    border-color: rgba(255, 255, 255, .07);
+    border-radius: 17px;
+    background: rgba(255, 255, 255, .025);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .055);
+  }
+
+  .notification-card:hover {
+    transform: none;
+  }
+
+  .ncard-content {
+    gap: 10px;
+  }
+
+  .thumbnail {
+    width: 58px;
+    height: 58px;
+    flex-basis: 58px;
+    border-radius: 12px;
+  }
+
+  .notification-title {
+    font-size: 15px;
+  }
+
+  .message {
+    max-width: 100%;
+    font-size: 12px;
+    -webkit-line-clamp: 1;
+  }
+
+  .artist-name {
+    font-size: 11px;
+  }
+
+  .ncard-actions {
+    gap: 4px;
+  }
+
+  .card-action {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .card-action mat-icon {
+    width: 21px;
+    height: 21px;
+    font-size: 21px;
+  }
+}
+
+@media (max-width: 430px) {
+  .mark-as-read {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .primary-action {
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-card {
+    transition: none;
+  }
 }

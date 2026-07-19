@@ -22,11 +22,12 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 })
 export class MessageCardComponent implements OnInit, AfterViewInit {
   @Input() message: MessageGetResponse | null = null;
+  @Input() showStatusByDefault = false;
   userId: number = -1;
-  msgStyle = {
-    backgroundColor: '#3E3F40',
-    'text-align': 'end',
-  }
+  statusRevealed = false;
+  private holdTimer: number | null = null;
+  private holdStartX = 0;
+  private holdStartY = 0;
   result : MessageContent | null = null;
 
   constructor(private auth: MyUserAuthService,
@@ -41,12 +42,6 @@ export class MessageCardComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    if(this.userId != this.message?.senderId)
-    {
-      this.msgStyle['backgroundColor'] = "#4D3D50";
-      this.msgStyle['text-align'] = "start";
-    }
-
     switch (this.message?.contentType)
     {
       case "Album": this.albumGetService.handleAsync(this.message?.contentId).subscribe(data => {
@@ -134,6 +129,37 @@ export class MessageCardComponent implements OnInit, AfterViewInit {
 
   getSeenInfo() {
     return this.message?.seen ? `Seen ${moment(this.message?.seenAt).fromNow()}` : `Sent ${moment(this.message?.sentAt).fromNow()}`;
+  }
+
+  startStatusHold(event: PointerEvent): void {
+    if (this.showStatusByDefault || event.button !== 0) return;
+    if ((event.target as HTMLElement).closest('button, a')) return;
+
+    this.endStatusHold();
+    this.holdStartX = event.clientX;
+    this.holdStartY = event.clientY;
+    this.holdTimer = window.setTimeout(() => {
+      this.statusRevealed = !this.statusRevealed;
+      this.holdTimer = null;
+    }, 460);
+  }
+
+  moveStatusHold(event: PointerEvent): void {
+    if (this.holdTimer === null) return;
+    if (Math.hypot(event.clientX - this.holdStartX, event.clientY - this.holdStartY) > 9) {
+      this.endStatusHold();
+    }
+  }
+
+  endStatusHold(): void {
+    if (this.holdTimer !== null) {
+      window.clearTimeout(this.holdTimer);
+      this.holdTimer = null;
+    }
+  }
+
+  suppressContextMenu(event: MouseEvent): void {
+    if (!this.showStatusByDefault) event.preventDefault();
   }
 
   protected readonly moment = moment;

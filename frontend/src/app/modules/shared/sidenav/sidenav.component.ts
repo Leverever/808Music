@@ -285,11 +285,11 @@ export class SidenavComponent implements OnInit, OnDestroy {
     }
   }
   openDialog(): void {
-    const mobile = window.matchMedia('(max-width: 960px)').matches;
     const dialogRef = this.dialog.open(MonthlyStatsDialogComponent, {
-      width: mobile ? 'calc(100vw - 20px)' : '80%',
-      maxWidth: '100vw',
-      height: mobile ? 'calc(100dvh - 40px)' : '800px',
+      width: 'calc(100vw - 16px)',
+      maxWidth: '548px',
+      maxHeight: 'calc(100dvh - 16px)',
+      autoFocus: false,
     });
 
     dialogRef.afterClosed().subscribe(result => {

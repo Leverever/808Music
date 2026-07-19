@@ -2,7 +2,154 @@ p, h6 {
   margin:0;
 }
 
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.thumbnail {
+  width: 80px;
+  height: 80px;
+  flex: 0 0 80px;
+  border-radius: 10px;
+  background-position: center;
+  background-size: cover;
+}
+
+.result-card {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 15px;
+}
+
+.card-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-self: flex-start;
+}
+
+.type {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #a9a9a9;
+}
+
+.flex-content {
+  display: flex;
+  max-width: 50vw;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hide-overflow {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .name:hover {
   text-decoration: underline;
   cursor: pointer;
+}
+
+.align-text-end .card-info {
+  width: 100%;
+  align-items: stretch;
+  text-align: right;
+}
+
+.align-text-end .name {
+  width: 100%;
+  text-align: right;
+}
+
+.align-text-end .type {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+:host-context(.chat-box) mat-card {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 16px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .018)),
+    rgba(18, 15, 20, .38);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
+}
+
+:host-context(.chat-box) .flex-content {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 9px;
+}
+
+:host-context(.chat-box) .thumbnail {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+}
+
+:host-context(.chat-box) .result-card,
+:host-context(.chat-box) .card-info {
+  min-width: 0;
+}
+
+:host-context(.chat-box) .result-card {
+  width: 100%;
+  flex: 1;
+}
+
+:host-context(.chat-box) .card-info {
+  flex: 1;
+}
+
+:host-context(.chat-box) .flex-content > .flex-controls:first-child {
+  min-width: 0;
+  flex: 1;
+}
+
+:host-context(.chat-box) .flex-content > .flex-controls:last-child {
+  flex: 0 0 auto;
+}
+
+:host-context(.chat-box) .name {
+  white-space: nowrap;
+}
+
+:host-context(.chat-box) .type {
+  color: rgba(241, 231, 242, .58);
+}
+
+:host-context(.chat-box) ::ng-deep .mat-mdc-mini-fab {
+  display: inline-flex !important;
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  padding: 0;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid rgba(230, 146, 248, .24);
+  background: rgba(230, 146, 248, .14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);
+  color: #f0b9fa;
+}
+
+:host-context(.chat-box) ::ng-deep .mat-mdc-mini-fab mat-icon {
+  position: static !important;
+  display: block !important;
+  width: 22px !important;
+  height: 22px !important;
+  margin: 0 !important;
+  font-size: 22px !important;
+  line-height: 22px !important;
+  transform: none !important;
 }

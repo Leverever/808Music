@@ -1,14 +1,23 @@
-<div class="dialog">
-  <h2 mat-dialog-title>{{ data.title }}?</h2>
-  <mat-dialog-content>
+<section class="settings-dialog text-dialog">
+  <header class="dialog-header">
+    <span>{{ 'SETTINGS.DIALOGS.SecurityEyebrow' | translate }}</span>
+    <h2 mat-dialog-title>{{ data.title }}</h2>
     <p>{{ data.content }}</p>
-    <mat-form-field class="dialog-input" [ngStyle]="{'width':'100%'}">
+  </header>
+
+  <mat-dialog-content>
+    <mat-form-field class="dialog-input" appearance="outline" subscriptSizing="dynamic">
       <mat-label>{{ data.inputLabel }}</mat-label>
-      <input matInput [formControl]="inputValue" [placeholder]="data.placeholder" [type]="data.type" name="inputValue">
+      <mat-icon matIconPrefix>lock</mat-icon>
+      <input matInput [formControl]="inputValue" [placeholder]="data.placeholder"
+             [type]="data.type" name="inputValue">
     </mat-form-field>
   </mat-dialog-content>
+
   <mat-dialog-actions>
-    <button mat-button (click)="closeDialog(false)">Cancel</button>
-    <button mat-flat-button (click)="closeDialog(true)">Confirm</button>
+    <button type="button" mat-button (click)="closeDialog(false)">{{ 'SETTINGS.DIALOGS.Cancel' | translate }}</button>
+    <button type="button" mat-flat-button class="dialog-primary" (click)="closeDialog(true)">
+      {{ 'SETTINGS.DIALOGS.Confirm' | translate }}
+    </button>
   </mat-dialog-actions>
-</div>
+</section>

@@ -36,12 +36,25 @@
             @if(!isLikedSongs) {
               <div class="playlist-actions">
                 @if(isOwner) {
-                  <button class="collab-button" (click)="copyInviteLink()"
+                  <button class="collab-button" [matMenuTriggerFor]="collaboratorMenu"
                           [matTooltip]="'Invite a collaborator to ' + playlistDetails!.title!"
                           matTooltipPosition="above" aria-label="Invite a collaborator">
                     <mat-icon class="big-icon material-symbols-outlined"
                               style="font-variation-settings: 'FILL' 0;">group_add</mat-icon>
                   </button>
+
+                  <mat-menu #collaboratorMenu="matMenu">
+                    <button mat-menu-item (click)="copyInviteLink()">
+                      <mat-icon>link</mat-icon>
+                      Copy collaborator invite
+                    </button>
+                    @if(isCollaborative) {
+                      <button mat-menu-item (click)="manageCollaborators()">
+                        <mat-icon>groups</mat-icon>
+                        Manage collaborators
+                      </button>
+                    }
+                  </mat-menu>
                 }
 
                 <button class="collab-button" [matMenuTriggerFor]="menu"

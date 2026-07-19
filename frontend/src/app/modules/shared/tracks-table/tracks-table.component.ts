@@ -708,12 +708,20 @@ export class TracksTableComponent implements OnInit, OnChanges, AfterViewInit, O
   }
 
   openShareSheet() {
-    let matRef = this.btmSheet.open(ShareBottomSheetComponent, {
-      hasBackdrop: true, data: {
-        url: MyConfig.ui_address + "/listener/release/" + this.tracks[0].albumId,
+    if (!this.tracks.length) {
+      return;
+    }
+
+    this.btmSheet.open(ShareBottomSheetComponent, {
+      hasBackdrop: true,
+      panelClass: ['liquid-glass-sheet-pane', 'listener-content-sheet-pane'],
+      backdropClass: 'liquid-glass-sheet-backdrop',
+      data: {
+        url: this.isPlaylist
+          ? `${MyConfig.ui_address}/listener/playlist/${this.playlistId}`
+          : `${MyConfig.ui_address}/listener/release/${this.tracks[0].albumId}`,
       }
     });
-
   }
 
   toggleShuffle() {

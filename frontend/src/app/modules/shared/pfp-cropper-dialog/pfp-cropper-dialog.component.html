@@ -1,30 +1,48 @@
-<h2 mat-dialog-title>Change your Profile Picture</h2>
+<section class="settings-dialog picture-dialog">
+  <header class="dialog-header">
+    <span>{{ 'SETTINGS.DIALOGS.ProfileEyebrow' | translate }}</span>
+    <h2 mat-dialog-title>{{ 'SETTINGS.DIALOGS.PictureTitle' | translate }}</h2>
+    <p>{{ 'SETTINGS.DIALOGS.PictureDescription' | translate }}</p>
+  </header>
 
-<mat-dialog-content>
-  <div
-    class="drop-area"
-    (click)="triggerFileInput()"
-    (dragover)="onDragOver($event)"
-    (dragleave)="onDragLeave($event)"
-    (drop)="onDrop($event)">
-    <p *ngIf="!imageChangedEvent">Drag & drop your image here, or click to select a file</p>
-    <p *ngIf="imageChangedEvent">Image loaded! You can crop it below.</p>
-  </div>
-  <input type="file" #fileInput hidden (change)="fileChangeEvent($event)" />
+  <mat-dialog-content>
+    <div class="drop-area"
+         (click)="triggerFileInput()"
+         (dragover)="onDragOver($event)"
+         (dragleave)="onDragLeave($event)"
+         (drop)="onDrop($event)">
+      <div class="upload-icon"><mat-icon>add_photo_alternate</mat-icon></div>
+      @if (!imageChangedEvent) {
+        <strong>{{ 'SETTINGS.DIALOGS.AddPhoto' | translate }}</strong>
+        <p>{{ 'SETTINGS.DIALOGS.BrowsePhoto' | translate }}</p>
+      } @else {
+        <strong>{{ 'SETTINGS.DIALOGS.PhotoReady' | translate }}</strong>
+        <p>{{ 'SETTINGS.DIALOGS.CropPhoto' | translate }}</p>
+      }
+    </div>
+    <input type="file" #fileInput hidden accept="image/*" (change)="fileChangeEvent($event)">
 
-  <image-cropper
-    class="crop"
-    [imageChangedEvent]="imageChangedEvent"
-    (imageCropped)="imageCropped($event)"
-    [resizeToWidth]="512"
-    [resizeToHeight]="512"
-    [maintainAspectRatio]="true"
-    [cropperMinWidth]="100"
-    [cropperMinHeight]="100">
-  </image-cropper>
-</mat-dialog-content>
+    @if (imageChangedEvent) {
+      <div class="crop-surface">
+        <image-cropper class="crop"
+          [imageChangedEvent]="imageChangedEvent"
+          (imageCropped)="imageCropped($event)"
+          [resizeToWidth]="512"
+          [resizeToHeight]="512"
+          [maintainAspectRatio]="true"
+          [cropperMinWidth]="100"
+          [cropperMinHeight]="100">
+        </image-cropper>
+      </div>
+    }
+  </mat-dialog-content>
 
-<mat-dialog-actions>
-  <button mat-button (click)="closeDialog()">Cancel</button>
-  <button mat-button (click)="saveCroppedImage()">Save</button>
-</mat-dialog-actions>
+  <mat-dialog-actions>
+    <button type="button" mat-button (click)="closeDialog()">{{ 'SETTINGS.DIALOGS.Cancel' | translate }}</button>
+    <button type="button" mat-flat-button class="dialog-primary" [disabled]="!imageChangedEvent"
+            (click)="saveCroppedImage()">
+      <mat-icon>check</mat-icon>
+      {{ 'SETTINGS.DIALOGS.SavePicture' | translate }}
+    </button>
+  </mat-dialog-actions>
+</section>

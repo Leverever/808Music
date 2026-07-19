@@ -26,7 +26,7 @@ import { InfoDialogComponent } from './dialogs/info-dialog/info-dialog.component
 import { AlbumCardComponent } from './album-card/album-card.component';
 import {MatTooltip} from "@angular/material/tooltip";
 import { MyMatInputComponent } from './inputs/my-mat-input/my-mat-input.component';
-import {MatFormField, MatPrefix} from '@angular/material/form-field';
+import {MatFormField, MatPrefix, MatSuffix} from '@angular/material/form-field';
 import {MatInput} from '@angular/material/input';
 import { TextInputDialogComponent } from './dialogs/text-input-dialog/text-input-dialog.component';
 import { TracksTableComponent } from './tracks-table/tracks-table.component';
@@ -212,6 +212,7 @@ import {CardRailDirective} from './directives/card-rail.directive';
         QRCodeModule,
         MatSelect,
         MatPrefix,
+        MatSuffix,
         MatSlideToggle,
         MatChipListbox,
         MatChipOption,

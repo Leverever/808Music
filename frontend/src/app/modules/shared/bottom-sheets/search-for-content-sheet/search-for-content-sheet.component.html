@@ -1,27 +1,53 @@
-<div class="following-page">
-  <h3>Attach Content</h3>
-  <div class="search">
-    <app-search-bar [placeholder]="'Find content to share'" [autoSearch]="true" (onSearchChange)="findContent($event)"></app-search-bar>
+<section class="liquid-sheet attachment-sheet">
+  <header class="liquid-sheet-header">
+    <div>
+      <span class="liquid-sheet-eyebrow">Message attachment</span>
+      <h3>Attach content</h3>
+    </div>
+    <button type="button" mat-icon-button class="liquid-sheet-close" (click)="dismiss()" aria-label="Close attachment picker">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <div class="attachment-search">
+    <app-search-bar
+      [placeholder]="'Find tracks, albums or artists'"
+      [autoSearch]="true"
+      (onSearchChange)="findContent($event)">
+    </app-search-bar>
   </div>
-  <button mat-flat-button (click)="dismiss()" class="cancel">
-    Cancel
-  </button>
-  <div class="following">
-    @if(results.length > 0)
-    {
-      @for (a of results; track i; let i = $index) {
-        <div [ngStyle]="{'width':'100%'}">
-          <div class="flex-list">
-            <app-message-content-card [content]="a" (onButtonClick)="attachContent($event)"></app-message-content-card>
-          </div>
-        </div>
+
+  <div class="liquid-sheet-scroll attachment-results">
+    @if (results.length > 0) {
+      @for (item of results; track item.type + '-' + item.id) {
+        <button type="button" class="liquid-sheet-row attachment-result" (click)="attachContent(item)">
+          <span
+            class="attachment-cover"
+            [class.artist-cover]="item.type === 'Artist'"
+            [style.background-image]="'url(' + item.picture + ')'">
+          </span>
+          <span class="attachment-copy">
+            <strong>{{ item.name }}</strong>
+            <span>
+              <mat-icon>
+                @switch (item.type) {
+                  @case ('Track') { music_note }
+                  @case ('Album') { album }
+                  @case ('Artist') { mic }
+                }
+              </mat-icon>
+              {{ item.type }}
+            </span>
+          </span>
+          <mat-icon class="attach-icon">add_circle</mat-icon>
+        </button>
       }
     } @else {
-      <div class="result-error">
-        <mat-icon>report</mat-icon>
-        <h6>No content that matches your query found</h6>
-        <mat-icon>sentiment_dissatisfied</mat-icon>
+      <div class="liquid-sheet-empty">
+        <mat-icon>search_off</mat-icon>
+        <strong>No matching content</strong>
+        <span>Try another title or artist.</span>
       </div>
     }
   </div>
-</div>
+</section>

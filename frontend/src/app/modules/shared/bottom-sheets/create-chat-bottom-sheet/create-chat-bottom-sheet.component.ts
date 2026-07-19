@@ -9,17 +9,19 @@ import {
   UserSearchResponse
 } from '../../../../endpoints/user-endpoints/user-search-endpoint.service';
 import {MyUserAuthService} from '../../../../services/auth-services/my-user-auth.service';
+import {MyConfig} from '../../../../my-config';
 
 @Component({
   selector: 'app-create-chat-bottom-sheet',
   templateUrl: './create-chat-bottom-sheet.component.html',
-  styleUrls: ['../../search-page/search-page.component.css','../../../artist/manage-users/manage-users.component.css','../manage-following-bottom-sheet/manage-following-bottom-sheet.component.css','./create-chat-bottom-sheet.component.css']
+  styleUrls: ['./create-chat-bottom-sheet.component.css']
 })
 export class CreateChatBottomSheetComponent implements OnInit {
   private sheetRef = inject<MatBottomSheetRef<CreateChatBottomSheetComponent>>(MatBottomSheetRef);
   private searchString: string = "";
   users : UserSearchResponse[] = [];
   username: string = "";
+  readonly mediaAddress = MyConfig.media_address;
 
   constructor(@Inject(MAT_BOTTOM_SHEET_DATA) protected data: {chats: ChatGetResponse[]},
               private chatCreateService : ChatCreateEndpointService,

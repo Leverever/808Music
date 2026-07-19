@@ -1,31 +1,159 @@
-form {
+:host {
+  display: block;
+  min-height: 0;
+}
+
+.preferences-sheet {
+  max-width: 680px;
+}
+
+.preferences-sheet form {
+  display: flex;
+  min-height: 0;
+  max-height: inherit;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.preference-options {
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 10px;
+  padding: 1px 2px;
 }
 
-.form-controls {
+.preference-intro,
+.preference-option {
   display: flex;
-  gap: 5px;
-  justify-content: end;
-  margin-top: 30px;
-}
-
-.slider-check {
-  display: flex;
-  justify-content: space-between;
+  min-width: 0;
   align-items: center;
+  gap: 13px;
+  border-radius: 18px;
 }
 
-.full-width {
-  width: 100%;
+.preference-intro {
+  padding: 12px 13px;
+  border: 1px solid rgba(230, 146, 248, .19);
+  background:
+    radial-gradient(circle at 0 0, rgba(230, 146, 248, .15), transparent 44%),
+    rgba(255, 255, 255, .035);
 }
 
-h3 {
-  margin-bottom: 50px;
+.preference-intro strong,
+.option-copy strong {
+  display: block;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 720;
+  line-height: 1.25;
 }
 
-.user-preference {
-  box-sizing: border-box;
-  padding: 1vh;
+.preference-intro p,
+.option-copy span {
+  display: block;
+  margin: 3px 0 0;
+  color: rgba(241, 231, 242, .57);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.intro-icon,
+.option-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(230, 146, 248, .22);
+  background: rgba(230, 146, 248, .1);
+  color: #e9a1f7;
+}
+
+.intro-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+}
+
+.option-icon {
+  width: 39px;
+  height: 39px;
+  border-radius: 13px;
+}
+
+.intro-icon mat-icon,
+.option-icon mat-icon {
+  margin: 0;
+}
+
+.preference-option {
+  justify-content: space-between;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, .085), rgba(255, 255, 255, .015)),
+    rgba(255, 255, 255, .025);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
+}
+
+.option-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 11px;
+}
+
+.option-copy > div:last-child {
+  min-width: 0;
+}
+
+.priority-option mat-form-field {
+  width: min(190px, 38%);
+  flex: 0 0 auto;
+}
+
+:host ::ng-deep .priority-option .mat-mdc-text-field-wrapper {
+  min-height: 48px;
+  border-radius: 15px !important;
+}
+
+:host ::ng-deep .priority-option .mat-mdc-form-field-infix {
+  min-height: 46px;
+  padding-block: 12px 8px;
+}
+
+:host ::ng-deep .preference-option .mdc-switch {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 600px) {
+  .preferences-sheet {
+    padding: 15px 13px;
+  }
+
+  .preference-options {
+    gap: 8px;
+  }
+
+  .preference-intro {
+    padding: 10px;
+  }
+
+  .preference-option {
+    min-height: 68px;
+    padding: 9px 10px;
+    border-radius: 16px;
+  }
+
+  .priority-option {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .priority-option mat-form-field {
+    width: 100%;
+  }
+
+  .toggle-option .option-copy span {
+    max-width: 230px;
+  }
 }

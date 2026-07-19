@@ -24,10 +24,10 @@ import {
   TrackGetResponse,
   TrackUserInfoDto
 } from '../../../../endpoints/track-endpoints/track-get-by-id-endpoint.service';
-import {PlaylistUpdateDialogComponent} from './playlist-update-dialog/playlist-update-dialog.component';
 import {
-  SocialShareBottomSheetComponent
-} from '../../../shared/social-media-sharing/social-share-bottom-sheet.component';
+  ShareBottomSheetComponent
+} from '../../../shared/bottom-sheets/share-bottom-sheet/share-bottom-sheet.component';
+import {PlaylistCreateDialogComponent} from './playlist-create-dialog/playlist-create-dialog.component';
 import {MatBottomSheet} from '@angular/material/bottom-sheet';
 import {Location} from '@angular/common';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -85,7 +85,7 @@ export class TracksPageComponent implements OnInit {
   ngOnInit(): void {
     this.userId = this.getUserIdFromToken();
     const playlistId = +this.route.snapshot.paramMap.get('id')!;
-    this.playlistUrl = `${window.location.origin}/playlists/${playlistId}`;
+    this.playlistUrl = `${window.location.origin}/listener/playlist/${playlistId}`;
 
     if (playlistId) {
       this.loadPlaylistTracks(playlistId);
@@ -205,11 +205,6 @@ export class TracksPageComponent implements OnInit {
     const playlistId = this.playlistDetails.id;
     const inviteToken = Math.random().toString(36).substr(2, 25);
     const ownerId = this.getUserIdFromToken();
-    this.snackBar.open('Link copied to Clipboard!', 'Close', {
-      duration: 1500,
-      verticalPosition: 'bottom',
-      horizontalPosition: 'center'
-    });
     return `${window.location.origin}/listener/playlist/collaborate?p=${playlistId}&${inviteToken}&oiwd=${ownerId}`;
   }
   copyInviteLink(): void {
@@ -286,9 +281,13 @@ export class TracksPageComponent implements OnInit {
   protected readonly MyConfig = MyConfig;
 
   sharePlaylist() {
-    this.bottomSheet.open(SocialShareBottomSheetComponent, {
+    this.bottomSheet.open(ShareBottomSheetComponent, {
       data: { url: this.playlistUrl },
-    });  }
+      hasBackdrop: true,
+      panelClass: ['liquid-glass-sheet-pane', 'listener-content-sheet-pane'],
+      backdropClass: 'liquid-glass-sheet-backdrop',
+    });
+  }
 
   createFeaturedQueue(e: number) {
     this.musicPlayerService.createQueue(this.featuredTracks);
@@ -299,8 +298,18 @@ export class TracksPageComponent implements OnInit {
   }
 
   editPlaylist(): void {
-    const dialogRef = this.dialog.open(PlaylistUpdateDialogComponent, {
-      width: '900px',
+    if (!this.playlistDetails) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(PlaylistCreateDialogComponent, {
+      width: 'min(680px, calc(100vw - 24px))',
+      maxWidth: '680px',
+      maxHeight: 'calc(100dvh - 24px)',
+      panelClass: 'playlist-create-dialog-pane',
+      backdropClass: 'playlist-create-dialog-backdrop',
+      autoFocus: 'first-tabbable',
+      restoreFocus: true,
       data: {
         playlistDetails: this.playlistDetails,
       },

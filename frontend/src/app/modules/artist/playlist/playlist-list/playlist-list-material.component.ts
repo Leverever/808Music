@@ -9,7 +9,6 @@ import { GetPlaylistsByUserIdEndpointService } from '../../../../endpoints/playl
 import { PlaylistUpdateEndpointService } from '../../../../endpoints/playlist-endpoints/update-playlist-endpoint.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PlaylistResponse } from '../../../../endpoints/playlist-endpoints/get-playlist-by-user-endpoint.service';
-import {PlaylistUpdateDialogComponent} from '../tracks-page/playlist-update-dialog/playlist-update-dialog.component';
 import {PlaylistCreateDialogComponent} from '../tracks-page/playlist-create-dialog/playlist-create-dialog.component';
 import {
   PlaylistTracksGetEndpointService
@@ -152,7 +151,27 @@ export class PlaylistListMaterialComponent implements OnInit {
   }
 
   editPlaylist(id: number) {
-    this.router.navigate([`/listener/playlist/edit`, id]);
+    const playlist = this.playlists?.find(item => item.id === id);
+    if (!playlist) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(PlaylistCreateDialogComponent, {
+      width: 'min(680px, calc(100vw - 24px))',
+      maxWidth: '680px',
+      maxHeight: 'calc(100dvh - 24px)',
+      panelClass: 'playlist-create-dialog-pane',
+      backdropClass: 'playlist-create-dialog-backdrop',
+      autoFocus: 'first-tabbable',
+      restoreFocus: true,
+      data: {playlistDetails: playlist},
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadPlaylists();
+      }
+    });
   }
   createPlaylist() {
     const dialogRef = this.dialog.open(PlaylistCreateDialogComponent, {

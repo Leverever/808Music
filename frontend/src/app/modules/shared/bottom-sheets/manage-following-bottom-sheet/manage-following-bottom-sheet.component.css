@@ -1,17 +1,167 @@
+:host {
+  display: block;
+  min-height: 0;
+}
+
+.following-sheet {
+  max-width: 680px;
+}
+
+.sheet-description {
+  margin: -4px 0 0;
+  color: rgba(241, 231, 242, .59);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .following {
   display: flex;
+  min-height: 160px;
   flex-direction: column;
+  gap: 8px;
+  padding: 1px 3px 1px 1px;
+}
+
+.following-row {
+  min-height: 72px;
+  padding: 8px 10px 8px 12px;
+}
+
+.following-row app-artist-small-card {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+:host ::ng-deep .following-row .artist-small-card {
+  width: 100%;
+  min-width: 0;
   gap: 10px;
 }
 
-.following-page {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-  box-sizing: border-box;
-  padding: 1vh;
+:host ::ng-deep .following-row .artist-small {
+  min-width: 0;
+  flex: 1;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
-h3 {
-  margin: 0;
+:host ::ng-deep .following-row .artist-small-header {
+  min-width: 0;
+  gap: 11px;
+}
+
+:host ::ng-deep .following-row .artist-small-header h6 {
+  overflow: hidden;
+  color: #f8f0f8;
+  font-size: 15px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .following-row .artist-small-header img {
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, .13);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, .22);
+}
+
+:host ::ng-deep .following-row .controls {
+  flex: 0 0 auto;
+  gap: 7px;
+}
+
+:host ::ng-deep .following-row .controls .mat-mdc-icon-button {
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .1);
+  background: rgba(255, 255, 255, .04);
+  color: #eaa0f8;
+}
+
+:host ::ng-deep .following-row .controls .mat-mdc-button {
+  min-height: 40px;
+  border: 1px solid rgba(255, 255, 255, .11);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .055);
+  color: #f5edf6;
+}
+
+.following-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loading-row {
+  height: 72px;
+  border-radius: 17px;
+  background: linear-gradient(100deg, rgba(255, 255, 255, .035) 20%, rgba(255, 255, 255, .09) 42%, rgba(255, 255, 255, .035) 66%);
+  background-size: 230% 100%;
+  animation: loading-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-shimmer {
+  to { background-position-x: -130%; }
+}
+
+@media (max-width: 600px) {
+  .following-sheet {
+    padding: 15px 13px;
+  }
+
+  .following-row {
+    min-height: 66px;
+    padding: 7px 8px;
+    border-radius: 16px;
+  }
+
+  :host ::ng-deep .following-row .artist-small-header img {
+    width: 44px;
+    height: 44px;
+  }
+
+  :host ::ng-deep .following-row .controls {
+    gap: 4px;
+  }
+
+  :host ::ng-deep .following-row .controls .mat-mdc-icon-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  :host ::ng-deep .following-row .controls .mat-mdc-button {
+    min-width: 0;
+    padding-inline: 12px;
+  }
+}
+
+@media (max-width: 390px) {
+  :host ::ng-deep .following-row .controls .mat-mdc-button {
+    width: 42px;
+    padding: 0;
+    overflow: hidden;
+    color: transparent;
+  }
+
+  :host ::ng-deep .following-row .controls .mat-mdc-button::before {
+    content: '×';
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #f5edf6;
+    font-size: 23px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-row {
+    animation: none;
+  }
 }

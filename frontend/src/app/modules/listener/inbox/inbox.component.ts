@@ -164,7 +164,12 @@ export class InboxComponent implements OnInit, OnDestroy {
   }
 
   openCreateSheet() {
-    let ref = this.matBtmSheet.open(CreateChatBottomSheetComponent, {data:{chats: this.chats}});
+    let ref = this.matBtmSheet.open(CreateChatBottomSheetComponent, {
+      data: {chats: this.chats},
+      panelClass: ['liquid-glass-sheet-pane', 'listener-content-sheet-pane'],
+      backdropClass: 'liquid-glass-sheet-backdrop',
+      hasBackdrop: true,
+    });
 
     ref.afterDismissed().subscribe({
       next: value => {

@@ -5,15 +5,15 @@
   <header class="dialog-header">
     <div class="dialog-heading">
       <span class="dialog-eyebrow">Your library</span>
-      <h2 id="playlist-create-title">Create a playlist</h2>
-      <p>Give your next collection a name and a cover of its own.</p>
+      <h2 id="playlist-create-title">{{ dialogTitle }}</h2>
+      <p>{{ dialogDescription }}</p>
     </div>
 
     <button
       mat-icon-button
       type="button"
       class="dialog-close"
-      aria-label="Close create playlist menu"
+      [attr.aria-label]="'Close ' + (isEditMode ? 'edit' : 'create') + ' playlist menu'"
       (click)="onNoClick()">
       <mat-icon>close</mat-icon>
     </button>
@@ -24,7 +24,7 @@
       id="playlist-create-form"
       class="playlist-form"
       [formGroup]="playlistForm"
-      (ngSubmit)="createPlaylist()">
+      (ngSubmit)="submitPlaylist()">
       <div class="cover-column">
         <button
           type="button"
@@ -111,8 +111,8 @@
       form="playlist-create-form"
       class="dialog-primary"
       [disabled]="playlistForm.invalid || isSubmitting">
-      <mat-icon>{{ isSubmitting ? 'hourglass_top' : 'add' }}</mat-icon>
-      {{ isSubmitting ? 'Creating...' : 'Create playlist' }}
+      <mat-icon>{{ isSubmitting ? 'hourglass_top' : (isEditMode ? 'save' : 'add') }}</mat-icon>
+      {{ submitLabel }}
     </button>
   </div>
 </section>

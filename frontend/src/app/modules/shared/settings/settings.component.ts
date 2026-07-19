@@ -123,12 +123,19 @@ export class SettingsComponent implements OnInit {
   }
 
   openNotificationSettings() {
-    this.bottomSheet.open(UserPreferenceBottomSheetComponent, {hasBackdrop: true});
+    this.bottomSheet.open(UserPreferenceBottomSheetComponent, {
+      hasBackdrop: true,
+      panelClass: ['liquid-glass-sheet-pane', 'listener-content-sheet-pane'],
+      backdropClass: 'liquid-glass-sheet-backdrop',
+    });
   }
 
   openImageCropperDialog(): void {
     const dialogRef = this.dialog.open(PfpCropperDialogComponent, {
-      width: '500px',
+      width: 'calc(100vw - 24px)',
+      maxWidth: '560px',
+      panelClass: 'liquid-settings-dialog-pane',
+      backdropClass: 'liquid-settings-dialog-backdrop',
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -154,13 +161,19 @@ export class SettingsComponent implements OnInit {
   protected readonly MyConfig = MyConfig;
 
   openPasswordDialog() {
-    let ref = this.dialog.open(TextInputDialogComponent, {data: {
-        title: 'Save Account data',
-        content: 'Enter your password to proceed.',
+    let ref = this.dialog.open(TextInputDialogComponent, {
+      width: 'calc(100vw - 24px)',
+      maxWidth: '460px',
+      panelClass: 'liquid-settings-dialog-pane',
+      backdropClass: 'liquid-settings-dialog-backdrop',
+      data: {
+        title: this.getTranslation('SETTINGS.DIALOGS.PasswordTitle'),
+        content: this.getTranslation('SETTINGS.DIALOGS.PasswordDescription'),
         type: "password",
-        inputLabel: "Enter your password",
-        placeholder: 'Enter your password',
-      }})
+        inputLabel: this.getTranslation('SETTINGS.DIALOGS.PasswordLabel'),
+        placeholder: this.getTranslation('SETTINGS.DIALOGS.PasswordPlaceholder'),
+      }
+    })
     ref.afterClosed().subscribe({ next: result => {
       if(result) {
         this.form.get('password')!.setValue(result ?? undefined);
@@ -188,7 +201,11 @@ export class SettingsComponent implements OnInit {
   }
 
   openFollowingSettings() {
-    this.bottomSheet.open(ManageFollowingBottomSheetComponent, {hasBackdrop: true});
+    this.bottomSheet.open(ManageFollowingBottomSheetComponent, {
+      hasBackdrop: true,
+      panelClass: ['liquid-glass-sheet-pane', 'listener-content-sheet-pane'],
+      backdropClass: 'liquid-glass-sheet-backdrop',
+    });
   }
 
   getTranslation(key : string) : string {

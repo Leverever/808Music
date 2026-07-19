@@ -16,7 +16,7 @@
     <div class="open-chats">
       @let filteredChats = getFilteredChats();
       @for (c of filteredChats; track c.id) {
-        <div class="chat-card" (click)="openChat(c)">
+        <div class="chat-card" [class.selected]="selectedChat?.id === c.id" (click)="openChat(c)">
           <div class="pfp" [ngStyle]="{'background-image':'url('+MyConfig.api_address+'/media'+c.chatterPfp}"></div>
           <div class="title-and-unreads">
             <div class="title-and-notis">

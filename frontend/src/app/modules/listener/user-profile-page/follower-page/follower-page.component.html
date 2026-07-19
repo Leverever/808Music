@@ -1,20 +1,34 @@
-<div class="followers-container" [@pageAnimation]>
-  <button mat-icon-button class="go-back-button" (click)="goBack()">
-    <mat-icon class="go-back-arrow">arrow_back</mat-icon>
-  </button>
+<main class="followage-page" [style.--profile-accent]="selectedColor" [@pageAnimation]>
+  <header class="followage-header">
+    <button type="button" class="go-back-button" aria-label="Go back" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <span class="page-eyebrow">Community</span>
+      <h1>Followers</h1>
+      <p>{{ followers.length }} {{ followers.length === 1 ? 'listener' : 'listeners' }}</p>
+    </div>
+  </header>
 
-  <h2 class="header-title">Followers</h2>
-  <div class="followage-section" *ngIf="followers.length > 0; else noFollowers" >
-    <div *ngFor="let user of followers" class="user" (click)="openProfile(user.id)">
+  <section class="followage-grid" *ngIf="followers.length; else noFollowers" aria-label="Followers">
+    <button type="button" class="person-card" *ngFor="let user of followers" (click)="openProfile(user.id)">
+      <span
+        class="followage-pfp"
+        [style.background-image]="'url(' + mediaAddress + user.profilePicture + ')'">
+      </span>
+      <span class="person-copy">
+        <strong>{{ user.username }}</strong>
+        <span>Listener profile</span>
+      </span>
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </section>
 
-      <div class="followage-pfp" [ngStyle]="{'background-image': 'url(' + mediaAddress + user.profilePicture + ')'}" ></div>
-
-      <p class="username-followage">{{ user.username }}</p>
-      <p class="profile-undertext">Profile</p>
-
-  </div>
-  </div>
   <ng-template #noFollowers>
-    <p>No one is following this user.</p>
+    <section class="empty-followage">
+      <mat-icon>group</mat-icon>
+      <h2>No followers yet</h2>
+      <p>When listeners follow this profile, they will appear here.</p>
+    </section>
   </ng-template>
-</div>
+</main>
