@@ -1,6 +1,9 @@
-.login-container {
-  width: 60vw;
+.auth-span-two {
+  display: block;
+  grid-column: 1 / -1;
+  margin-top: -7px;
 }
-.login-button {
-  flex-basis: 47%;
+
+@media (max-width: 680px) {
+  .auth-span-two { grid-column: auto; }
 }

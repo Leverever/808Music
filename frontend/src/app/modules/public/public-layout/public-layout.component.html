@@ -1,59 +1,38 @@
+<div class="public-app-layout">
+  <div class="public-orb public-orb--primary" aria-hidden="true"></div>
+  <div class="public-orb public-orb--secondary" aria-hidden="true"></div>
 
+  <header class="public-nav-shell">
+    <a class="public-brand" routerLink="/public/home" aria-label="808 Music home">
+      <img src="/images/logo_qr.png" alt="">
+      <span>
+        <strong>808</strong>
+        <small>Music</small>
+      </span>
+    </a>
 
-<!--
-<link href="/css/shared-style.css" rel="stylesheet"/>
-<link href="/css/1header.css" rel="stylesheet"/>
-<link href="/css/2search.css" rel="stylesheet"/>
-<link href="/css/3offers.css" rel="stylesheet"/>
-<link href="/css/4details.css" rel="stylesheet"/>
-<link href="/css/5cities.css" rel="stylesheet"/>
-<link href="/css/6contact.css" rel="stylesheet"/>
-<link href="/dialog/fit-dialog.css" rel="stylesheet"/>
+    <nav class="public-tabs" aria-label="Public pages">
+      <a routerLink="/public/home" routerLinkActive="active">{{ 'PUBLIC-NAV.Home' | translate }}</a>
+      <a routerLink="/public/about" routerLinkActive="active">{{ 'PUBLIC-NAV.About' | translate }}</a>
+      <a routerLink="/public/contact-us" routerLinkActive="active">{{ 'PUBLIC-NAV.Contact' | translate }}</a>
+    </nav>
 
-<div class="nav">
+    <div class="public-nav-actions">
+      <app-language-selector class="lang-select"></app-language-selector>
+      <a mat-stroked-button class="public-sign-in" routerLink="/auth/login">Sign in</a>
+    </div>
+  </header>
 
-  <div class="logo">
-    808 Music
-  </div>
-  <div class="menu">
-    <ul>
-      <li routerLink="/public/home" routerLinkActive="active">Home</li>
-      <li><a mat-flat-button routerLink="/artist/album" routerLinkActive="active">Albums CRUD</a></li>
-      <li><a mat-flat-button routerLink="/product-list" routerLinkActive="active">Products CRUD</a></li>
-      <li routerLink="/public/blog" routerLinkActive="active">Blog</li>
-      <li routerLink="/public/contact-us" routerLinkActive="active">Contact us</li>
-    </ul>
-    <h3>(Za prvo pokretanje) Pokrenuti DataSeedGenerateEndpoint preko swaggera prije pritupanju CRUD formi</h3>
+  <main class="page-host">
+    <router-outlet></router-outlet>
+  </main>
 
-  </div>
-  <div class="user-profile" routerLink="/auth/login">
-    <span>Login</span>
-    <img src="images/user.png">
-  </div>
-</div>
-
--->
-<div class="base-page">
-<div class="navbar-cont">
-  <div class="nav-logo">
-    <h1 class="nav-logo-text">808</h1>
-    <h6>MUSIC</h6>
-  </div>
-  <div class="nav-links">
-    <div class="nav-link" routerLink="/public/home" routerLinkActive="active">{{'PUBLIC-NAV.Home' | translate}}</div>
-    <div>|</div>
-
-    <div class="nav-link" routerLink="/public/about" routerLinkActive="active">{{'PUBLIC-NAV.About' | translate}}</div>
-    <div>|</div>
-
-    <div class="nav-link" routerLink="/public/contact-us" routerLinkActive="active">{{'PUBLIC-NAV.Contact' | translate}}</div>
-  </div>
-  <app-language-selector class="lang-select"></app-language-selector>
-</div>
-<div class="page-host">
-  <router-outlet></router-outlet>
-</div>
-<div class="footer">
-  <p>{{"PUBLIC-NAV.Copyright" | translate}}</p>
-</div>
+  <footer class="public-footer">
+    <a class="footer-brand" routerLink="/public/home">808 Music</a>
+    <p>{{ 'PUBLIC-NAV.Copyright' | translate }}</p>
+    <div class="footer-links">
+      <a routerLink="/public/about">{{ 'PUBLIC-NAV.About' | translate }}</a>
+      <a routerLink="/public/contact-us">{{ 'PUBLIC-NAV.Contact' | translate }}</a>
+    </div>
+  </footer>
 </div>

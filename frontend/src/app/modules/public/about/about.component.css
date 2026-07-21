@@ -1,33 +1,87 @@
-.headline-card-thumbnail {
-  background-image: url("../../../../../public/images/808AboutUsImage.webp");
-  background-size: cover;
-  top: 40px;
-  right: 40px;
-  border-radius: 20px;
-  width: 55%;
-}
-.headline-card {
-  overflow-y: auto;
+.content-page { padding-top: clamp(64px, 8vw, 116px); }
+
+.public-page-header {
+  max-width: 850px;
+  margin-bottom: clamp(36px, 6vw, 76px);
 }
 
-.headline-card p {
-  padding-top: 0;
-  font-size: 14px;
-  text-align: left;
-  color: white;
+.about-story {
+  display: grid;
+  grid-template-columns: minmax(360px, .95fr) minmax(0, 1.05fr);
+  align-items: center;
+  gap: clamp(34px, 6vw, 86px);
 }
 
-.headline-card-signature {
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
+.about-visual {
+  position: relative;
+  min-width: 0;
+  padding: 8px;
+  overflow: hidden;
+  border-radius: 31px;
+}
+
+.about-image {
+  width: 100%;
+  aspect-ratio: 1.1;
+  border-radius: 24px;
+  background: #211a23 url('/images/808AboutUsImage.webp') center / cover no-repeat;
+}
+
+.about-signature {
   position: absolute;
-  right: 50px;
-  bottom: 50px;
-  z-index: 2;
+  right: 25px;
+  bottom: 20px;
+  color: rgba(255, 255, 255, .92);
+  font-size: clamp(44px, 7vw, 92px);
+  font-weight: 900;
+  letter-spacing: -.08em;
+  line-height: 1;
+  text-shadow: 0 8px 26px rgba(0, 0, 0, .4);
 }
 
-.headline-card-signature h1 {
-  font-family: Monoton;
-  font-size: 100px;
+.about-copy {
+  min-width: 0;
+  color: rgba(245, 235, 246, .72);
+}
+
+.about-copy p {
+  margin: 0;
+  font-size: clamp(14px, 1.25vw, 17px);
+  line-height: 1.72;
+}
+
+.about-copy p + p {
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+}
+
+.about-values {
+  display: grid;
+  margin-top: clamp(48px, 7vw, 92px);
+  padding: clamp(20px, 3vw, 34px);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-radius: 27px;
+}
+
+.about-values > div { padding: 4px clamp(18px, 3vw, 36px); }
+.about-values > div + div { border-left: 1px solid rgba(255, 255, 255, .09); }
+.about-values span { color: #eca0f7; font-size: 10px; font-weight: 820; letter-spacing: .12em; text-transform: uppercase; }
+.about-values strong { display: block; margin-top: 8px; color: rgba(255, 255, 255, .9); font-size: 15px; line-height: 1.45; }
+
+@media (max-width: 900px) {
+  .about-story { grid-template-columns: 1fr; }
+  .about-visual { width: min(100%, 680px); }
+}
+
+@media (max-width: 620px) {
+  .content-page { padding-top: 42px; }
+  .public-page-header { margin-bottom: 30px; }
+  .about-visual { padding: 6px; border-radius: 24px; }
+  .about-image { aspect-ratio: .96; border-radius: 19px; }
+  .about-copy p { font-size: 14px; line-height: 1.65; }
+  .about-copy p + p { margin-top: 18px; padding-top: 18px; }
+  .about-values { grid-template-columns: 1fr; padding: 10px 18px; border-radius: 23px; }
+  .about-values > div { padding: 18px 2px; }
+  .about-values > div + div { border-top: 1px solid rgba(255, 255, 255, .09); border-left: 0; }
 }

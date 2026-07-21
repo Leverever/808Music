@@ -4,7 +4,6 @@ import {
   UserPasswordResetEndpointService
 } from '../../../endpoints/auth-endpoints/user-password-reset-endpoint.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {repeat} from 'rxjs';
 
 @Component({
   selector: 'app-reset-password',

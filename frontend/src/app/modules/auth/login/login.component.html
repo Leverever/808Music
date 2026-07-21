@@ -1,56 +1,64 @@
-<div class="login-page">
-  <div class="login-container">
-    <div class="logo" [ngStyle]="{'background-image': 'url(/images/logo_qr.png)'}"></div>
-    <h2>Login</h2>
-    <form (ngSubmit)="onLogin()">
-      <div class="form-group">
-        <label for="username">Username:</label>
-        <input [(ngModel)]="loginRequest.username" id="username" name="username" required type="text">
+<section class="auth-page">
+  <article class="auth-card auth-card--compact">
+    <header class="auth-card-header">
+      <span class="auth-eyebrow">Welcome back</span>
+      <h1>Sign in to 808 Music</h1>
+      <p>Continue listening, discovering and connecting with artists.</p>
+    </header>
+
+    <form class="auth-form" (ngSubmit)="onLogin()">
+      <label class="auth-field" for="username">
+        <span>Username</span>
+        <input
+          [(ngModel)]="loginRequest.username"
+          id="username"
+          name="username"
+          required
+          type="text"
+          autocomplete="username"
+          placeholder="Your username">
+      </label>
+
+      <label class="auth-field" for="password">
+        <span>Password</span>
+        <input
+          [(ngModel)]="loginRequest.password"
+          id="password"
+          name="password"
+          required
+          type="password"
+          autocomplete="current-password"
+          placeholder="Your password">
+      </label>
+
+      <div class="auth-inline-row">
+        <div class="auth-toggle">
+          <mat-slide-toggle
+            aria-label="Remember me"
+            (change)="loginRequest.rememberMe = $event.checked">
+          </mat-slide-toggle>
+          <span>Remember me</span>
+        </div>
+        <a class="auth-text-link" routerLink="/auth/forgot-password">Forgot password?</a>
       </div>
 
-      <div class="form-group">
-        <label for="password">Password:</label>
-        <input [(ngModel)]="loginRequest.password" id="password" name="password" required type="password">
-        <a routerLink="/auth/forgot-password">Forgot password?</a>
+      <div *ngIf="errorMessage" class="auth-message auth-message--error" role="alert">
+        {{ errorMessage }}
       </div>
 
-      <div class="form-group slide-toggle">
-        <label>Remember me</label>
-        <mat-slide-toggle labelPosition="before" (change)="loginRequest.rememberMe = $event.checked"></mat-slide-toggle>
+      <div class="auth-actions">
+        <button mat-stroked-button type="button" class="auth-secondary" routerLink="/">
+          Back home
+        </button>
+        <button mat-flat-button type="submit" class="auth-primary">
+          Sign in
+        </button>
       </div>
-      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
     </form>
-    <div class="dual-controls">
-      <button mat-stroked-button routerLink="/">Back to home</button>
-      <button mat-flat-button (click)="onLogin()">Login</button>
-    </div>
-    <!--<button class="login-button" type="submit" (click)="LogData()">Show me</button>-->
-  </div>
-</div>
 
-<!--
-<div class="login-container">
-  <h2>Login</h2>
-  <form (ngSubmit)="onLogin()">
-    <div class="form-group">
-      <label for="username">Username:</label>
-      <input [(ngModel)]="loginRequest.username" id="username" name="username" required type="text">
-    </div>
-
-    <div class="form-group">
-      <label for="password">Password:</label>
-      <input [(ngModel)]="loginRequest.password" id="password" name="password" required type="password">
-    </div>
-
-    <div class="form-group">
-      <label for="username">Title:</label>
-      <input [(ngModel)]="albumData.title" id="title" name="title" required type="text">
-    </div>
-
-    <button class="login-button" type="submit">Login</button>
-
-    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
-  </form>
-  <button class="login-button" type="submit" (click)="LogData()">Show me</button>
-</div>
--->
+    <footer class="auth-card-footer">
+      <span>New to 808 Music?</span>
+      <a routerLink="/auth/register">Create an account</a>
+    </footer>
+  </article>
+</section>

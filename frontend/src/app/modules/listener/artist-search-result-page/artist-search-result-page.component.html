@@ -1,13 +1,27 @@
-<div class="artist-results-page">
-  <div class="title">
-      <button mat-icon-button (click)="goBack()">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
-    <h1>{{ title }}</h1>
-  </div>
-  <div class="artists">
-    @for (a of artists; track a.id) {
-      <app-artist-big-card [artist]="a" [numberDescription]="numDescription"></app-artist-big-card>
-    }
-  </div>
-</div>
+<main class="artist-results-page">
+  <header class="results-header">
+    <button type="button" mat-icon-button class="back-button" (click)="goBack()" aria-label="Go back">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+
+    <div class="results-heading">
+      <span>Explore artists</span>
+      <h1>{{ title }}</h1>
+      <p>{{ artists.length }} {{ artists.length === 1 ? 'artist' : 'artists' }}</p>
+    </div>
+  </header>
+
+  @if (artists.length > 0) {
+    <section class="artists" aria-label="Artist results">
+      @for (a of artists; track a.id) {
+        <app-artist-big-card [artist]="a" [numberDescription]="numDescription"></app-artist-big-card>
+      }
+    </section>
+  } @else {
+    <div class="empty-state">
+      <mat-icon>person_search</mat-icon>
+      <h2>No artists found</h2>
+      <p>Try returning to search and using a broader query.</p>
+    </div>
+  }
+</main>

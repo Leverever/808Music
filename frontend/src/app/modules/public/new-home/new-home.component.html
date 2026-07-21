@@ -1,18 +1,50 @@
-<div class="base-page">
-  <div class="headline-card">
-    <h1>{{'HOME.TitleP1' | translate}}<br>{{'HOME.TitleP2' | translate}}<br>{{'HOME.TitleP3' | translate}}</h1>
-    <div class="headline-card-thumbnail"></div>
-    <h6>{{'HOME.Tagline' | translate}}</h6>
-    <div class="controls">
-      <div class="btn8m-prim wpercent30" routerLink="/auth/register" routerLinkActive="active">
-        {{'HOME.Register' | translate}}
+<main class="public-page landing-page">
+  <section class="landing-hero">
+    <div class="hero-copy">
+      <span class="section-eyebrow">Music without boundaries</span>
+      <h1>
+        <span>{{ 'HOME.TitleP1' | translate }}</span>
+        <span>{{ 'HOME.TitleP2' | translate }}</span>
+        <span>{{ 'HOME.TitleP3' | translate }}</span>
+      </h1>
+      <p>{{ 'HOME.Tagline' | translate }}</p>
+
+      <div class="public-actions">
+        <a mat-flat-button class="public-primary" routerLink="/auth/register">
+          {{ 'HOME.Register' | translate }}
+        </a>
+        <a mat-stroked-button class="public-secondary" routerLink="/auth/login">
+          {{ 'HOME.Login' | translate }}
+        </a>
       </div>
-      <div class="btn8m-sec wpercent30" routerLink="/auth/login" routerLinkActive="active">
-        {{'HOME.Login' | translate}}
+
+      <small class="hero-note">{{ 'HOME.AlreadyRegistered' | translate }}</small>
+    </div>
+
+    <div class="hero-visual" aria-label="808 Music listeners and artists">
+      <div class="hero-artwork"></div>
+      <div class="hero-visual-caption">
+        <span>One community</span>
+        <strong>Listeners + creators</strong>
       </div>
     </div>
-      <div style="width: 33%">
-        <p>{{'HOME.AlreadyRegistered' | translate}}</p>
-      </div>
-  </div>
-</div>
+  </section>
+
+  <section class="landing-highlights glass-surface" aria-label="808 Music highlights">
+    <div>
+      <span>01</span>
+      <strong>Made around your taste</strong>
+      <p>Daily recommendations that evolve with every listen.</p>
+    </div>
+    <div>
+      <span>02</span>
+      <strong>Closer to the artists</strong>
+      <p>Follow releases, events, merchandise and the people behind the music.</p>
+    </div>
+    <div>
+      <span>03</span>
+      <strong>More than streaming</strong>
+      <p>Playlists, social sharing and discovery live in one connected experience.</p>
+    </div>
+  </section>
+</main>

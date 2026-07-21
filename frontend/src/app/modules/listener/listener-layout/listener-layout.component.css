@@ -11,6 +11,10 @@
 }
 
 .base-page {
+  --listener-ambient-surface:
+    radial-gradient(ellipse 62% 30% at 8% 0%, rgba(230, 146, 248, .2), transparent 72%),
+    radial-gradient(ellipse 50% 38% at 100% 58%, rgba(99, 29, 143, .14), transparent 74%),
+    linear-gradient(180deg, #29232b 0%, #201b22 48%, #181419 100%);
   display: grid;
   grid-template-columns: max(66px, 4.5vw) minmax(0, 1fr) minmax(300px, 23vw);
   gap: 1vw;
@@ -19,7 +23,7 @@
   min-height: 100vh;
   padding: 0 2vh 2vh 0;
   overflow: hidden;
-  background: #333333;
+  background: var(--listener-ambient-surface);
 }
 
 .navigation,
@@ -36,6 +40,7 @@
   box-sizing: border-box;
   overscroll-behavior-y: contain;
   scrollbar-gutter: stable;
+  background: transparent;
 }
 
 .player {

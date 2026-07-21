@@ -1,3 +1,20 @@
 <div class="auth-app-layout">
-  <router-outlet></router-outlet>
+  <div class="ambient-orb ambient-orb--primary" aria-hidden="true"></div>
+  <div class="ambient-orb ambient-orb--secondary" aria-hidden="true"></div>
+
+  <header class="auth-site-header">
+    <a routerLink="/" class="auth-brand" aria-label="808 Music home">
+      <img src="/images/logo_qr.png" alt="">
+      <span>
+        <strong>808</strong>
+        <small>Music</small>
+      </span>
+    </a>
+  </header>
+
+  <main class="auth-route-stage">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="auth-footer">Music, community and your next favorite sound.</footer>
 </div>

@@ -71,42 +71,42 @@ export class PassStrengthMeterComponent implements OnInit, AfterViewInit, OnChan
             text: "Password is very weak.",
             css: {
             'width': '10%',
-            'background-color': 'red',
+            'background-color': '#ff6f91',
           }}
         case 2:
           return {
             text: "Password is weak.",
             css: {
             'width': '30%',
-            'background-color': 'coral',
+            'background-color': '#ff967a',
           }}
         case 3:
           return {
             text: "Password is moderate.",
             css: {
             'width': '60%',
-            'background-color': 'yellow',
+            'background-color': '#efbb62',
           }}
         case 4:
           return {
             text: "Password is above moderate.",
             css: {
             'width': '80%',
-            'background-color': 'lightgreen',
+            'background-color': '#d887ed',
           }}
         case 5:
           return {
             text: "Password is strong.",
             css: {
             'width': '90%',
-            'background-color': 'lawngreen',
+            'background-color': '#9adfae',
           }}
         case 6:
           return {
             text: "Password is very strong.",
             css: {
             'width': '100%',
-            'background-color': 'green',
+            'background-color': '#65d995',
           }}
     }
   }

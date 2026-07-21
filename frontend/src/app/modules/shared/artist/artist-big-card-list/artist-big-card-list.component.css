@@ -4,8 +4,37 @@ h3 {
 
 .album-cards {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: stretch;
   gap: 18px;
+  padding-bottom: 9px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-color: rgba(230, 146, 248, .62) rgba(255, 255, 255, .055);
+  scrollbar-width: thin;
+}
+
+.album-cards::-webkit-scrollbar {
+  display: block;
+  height: 8px;
+}
+
+.album-cards::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .055);
+}
+
+.album-cards::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(230, 146, 248, .78), rgba(145, 79, 192, .7));
+  background-clip: padding-box;
+}
+
+.view-all {
+  flex: 0 0 clamp(44px, 3vw, 54px);
+  height: auto;
+  align-self: stretch;
 }
 
 @media (max-width: 960px) {

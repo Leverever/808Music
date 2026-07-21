@@ -1,79 +1,88 @@
-<div class="login-page">
-  <div class="login-container">
-    <div class="logo" [ngStyle]="{'background-image': 'url(/images/logo_qr.png)'}"></div>
-    <h2>Register an account</h2>
-    <form *ngIf="!sentRequest" class="dual-control">
-    <div class="form-group">
-      <div class="form-group dual-control">
-        <div class="form-group">
-          <label for="firstName">First name:</label>
-          <input [(ngModel)]="regData.firstName" id="firstName" name="firstName" required type="text" (input)="validateFnLn()" class="">
+<section class="auth-page">
+  <article class="auth-card auth-card--wide">
+    @if (!sentRequest) {
+      <header class="auth-card-header">
+        <span class="auth-eyebrow">Join the community</span>
+        <h1>Create your account</h1>
+        <p>Build your library, follow artists and take 808 Music everywhere.</p>
+      </header>
+
+      <form class="auth-form" (ngSubmit)="registerUser()">
+        <div class="auth-form-grid">
+          <label class="auth-field" for="firstName">
+            <span>First name</span>
+            <input [(ngModel)]="regData.firstName" id="firstName" name="firstName" required type="text"
+                   autocomplete="given-name" placeholder="First name" (input)="validateFnLn()">
+          </label>
+
+          <label class="auth-field" for="lastName">
+            <span>Last name</span>
+            <input [(ngModel)]="regData.lastName" id="lastName" name="lastName" required type="text"
+                   autocomplete="family-name" placeholder="Last name" (input)="validateFnLn()">
+          </label>
+
+          <label class="auth-field" for="username">
+            <span>Username</span>
+            <input [(ngModel)]="regData.username" id="username" name="username" required type="text"
+                   autocomplete="username" placeholder="Choose a username" (input)="validateUsername()">
+          </label>
+
+          <label class="auth-field" for="email">
+            <span>Email</span>
+            <input [(ngModel)]="regData.email" id="email" name="email" required type="email"
+                   autocomplete="email" placeholder="you@example.com" (input)="validateEmail()">
+          </label>
+
+          <label class="auth-field" for="password">
+            <span>Password</span>
+            <input [(ngModel)]="regData.password" id="password" name="password" required type="password"
+                   autocomplete="new-password" placeholder="Create a password" (input)="validatePassword()">
+          </label>
+
+          <label class="auth-field" for="repeatPassword">
+            <span>Repeat password</span>
+            <input [(ngModel)]="repeatPassword" id="repeatPassword" name="repeatPassword" required type="password"
+                   autocomplete="new-password" placeholder="Repeat your password" (input)="validateIfSamePassword()">
+          </label>
+
+          <pass-strength-meter class="auth-span-two" [password]="regData.password"></pass-strength-meter>
+
+          <label class="auth-field" for="dateOfBirth">
+            <span>Date of birth</span>
+            <input [(ngModel)]="regData.dateOfBirth" id="dateOfBirth" name="dateOfBirth" required type="date"
+                   autocomplete="bday" (input)="validateDOB()">
+          </label>
+
+          <label class="auth-field" for="countryId">
+            <span>Country</span>
+            <select [(ngModel)]="regData.countryId" id="countryId" name="countryId" autocomplete="country">
+              @for (c of countries; track c.id) {
+                <option [value]="c.id">{{ c.name }}</option>
+              }
+            </select>
+          </label>
         </div>
-        <div class="form-group">
-          <label for="lastName">Last Name:</label>
-          <input [(ngModel)]="regData.lastName" id="lastName" name="lastName" required type="text" (input)="validateFnLn()" class="">
+
+        <div *ngIf="errorMessage" class="auth-message auth-message--error" role="alert">
+          {{ errorMessage }}
         </div>
+
+        <div class="auth-actions">
+          <button mat-stroked-button type="button" class="auth-secondary" routerLink="/auth/login">
+            Sign in instead
+          </button>
+          <button mat-flat-button type="submit" class="auth-primary" [disabled]="checkButton()">
+            Create account
+          </button>
+        </div>
+      </form>
+    } @else {
+      <div class="auth-success">
+        <span class="auth-eyebrow">Account created</span>
+        <h2>{{ successText }}</h2>
+        <p>Your 808 Music account is ready when you are.</p>
+        <a mat-stroked-button class="auth-secondary" routerLink="../login">Go to sign in</a>
       </div>
-
-      <div class="padder"></div>
-
-      <div class="form-group">
-        <label for="username">Username:</label>
-        <input [(ngModel)]="regData.username" id="username" name="username" required type="text" (input)="validateUsername()" class="">
-      </div>
-
-      <div class="form-group">
-        <label for="email">Email:</label>
-        <input [(ngModel)]="regData.email" id="email" name="email" required type="text" (input)="validateEmail()" class="">
-      </div>
-
-    </div>
-      <div class="form-group">
-
-      <div class="form-group">
-        <label for="password">Password:</label>
-        <input [(ngModel)]="regData.password" id="password" name="password" required type="password" (input)="validatePassword()" class="">
-      </div>
-
-        <pass-strength-meter [password]="regData.password"></pass-strength-meter>
-
-      <div class="form-group">
-        <label for="repeatPassword">Repeat password:</label>
-        <input [(ngModel)]="repeatPassword" id="repeatPassword" name="repeatPassword" required type="password" (input)="validateIfSamePassword()" class="">
-      </div>
-
-      <div class="padder"></div>
-
-      <div class="form-group">
-        <label for="dateOfBirth">Date of birth</label>
-        <input [(ngModel)]="regData.dateOfBirth" id="dateOfBirth" name="dateOfBirth" required type="date" (input)="validateDOB()" class="">
-      </div>
-
-      <div class="form-group">
-        <label>Country:</label>
-        <select [(ngModel)]="regData.countryId" name="countryId">
-          @for (c of countries; track c.id)
-          {
-            <option [value]="c.id">{{c.name}}</option>
-          }
-        </select>
-      </div>
-
-
-      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
-      </div>
-    </form>
-
-    <div *ngIf="!sentRequest" class="dual-controls">
-      <button  mat-stroked-button routerLink="/">Back to home</button>
-      <button mat-flat-button (click)="registerUser()" [disabled]="checkButton()">Register</button>
-    </div>
-
-    <div *ngIf="sentRequest" class="success-div">
-      <h6>{{ successText }}</h6>
-      <button mat-stroked-button routerLink="../login">Go to login</button>
-    </div>
-
-    <!--<button class="login-button" type="submit" (click)="LogData()">Show me</button>-->
-  </div>
-</div>
+    }
+  </article>
+</section>
