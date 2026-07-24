@@ -83,6 +83,10 @@ services:
       WORKSPACE_ROOT: /work
       ESSENTIA_MODEL_DIR: /models/essentia
       ESSENTIA_AUTO_DOWNLOAD_MODELS: "true"
+      ESSENTIA_DISCOGS_TAGS_ENABLED: "true"
+      ESSENTIA_DISCOGS_TOP_K: "8"
+      ESSENTIA_DISCOGS_MIN_SCORE: "0.15"
+      ESSENTIA_CUSTOM_HEAD_MANIFEST: /models/essentia/custom-heads.json
       CUDA_VISIBLE_DEVICES: "-1"
       TF_CPP_MIN_LOG_LEVEL: "2"
     extra_hosts:

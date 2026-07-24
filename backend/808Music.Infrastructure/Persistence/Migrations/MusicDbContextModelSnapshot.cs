@@ -413,6 +413,10 @@ namespace _808Music.Infrastructure.Persistence.Migrations
                     b.Property<int>("Source")
                         .HasColumnType("int");
 
+                    b.Property<string>("TagNamespace")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<Guid>("ThemeId")
                         .HasColumnType("uniqueidentifier");
 
@@ -422,7 +426,12 @@ namespace _808Music.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ThemeId", "Polarity", "Source", "Label")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[TagNamespace] IS NULL");
+
+                    b.HasIndex("ThemeId", "Polarity", "Source", "TagNamespace", "Label")
+                        .IsUnique()
+                        .HasFilter("[TagNamespace] IS NOT NULL");
 
                     b.ToTable("PersonalizedPlaylistThemeLabels", (string)null);
                 });
@@ -813,6 +822,33 @@ namespace _808Music.Infrastructure.Persistence.Migrations
                     b.ToTable("TrackStemSets", (string)null);
                 });
 
+            modelBuilder.Entity("_808Music.Domain.Catalog.TrackStream", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("StreamedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TrackId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrackId", "StreamedAt");
+
+                    b.ToTable("TrackStream", null, t =>
+                        {
+                            t.ExcludeFromMigrations();
+                        });
+                });
+
             modelBuilder.Entity("_808Music.Domain.Catalog.UserMusicProfileCache", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1151,6 +1187,15 @@ namespace _808Music.Infrastructure.Persistence.Migrations
                         .WithMany("StemSets")
                         .HasForeignKey("TrackId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("_808Music.Domain.Catalog.TrackStream", b =>
+                {
+                    b.HasOne("_808Music.Domain.Catalog.Track", null)
+                        .WithMany()
+                        .HasForeignKey("TrackId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 

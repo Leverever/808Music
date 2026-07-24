@@ -64,6 +64,9 @@
       <button type="button" (click)="navigateTo('/listener/settings')">Settings</button>
       <hr>
       <button type="button" (click)="navigateTo('/artist/dashboard')">808 for Artist</button>
+      @if (isAdmin) {
+        <button type="button" (click)="navigateTo('/admin')">808 for Admin</button>
+      }
       <button type="button" (click)="navigateTo('/auth/logout')">Log out</button>
     </div>
   </div>
@@ -184,6 +187,12 @@
           <span class="sheet-icon"><mat-icon>equalizer</mat-icon></span>
           <span>808 for Artist</span>
         </button>
+        @if (isAdmin) {
+          <button type="button" (click)="navigateTo('/admin')">
+            <span class="sheet-icon"><mat-icon>admin_panel_settings</mat-icon></span>
+            <span>808 for Admin</span>
+          </button>
+        }
         <button type="button" (click)="navigateTo('/auth/logout')">
           <span class="sheet-icon"><mat-icon>logout</mat-icon></span>
           <span>Log out</span>

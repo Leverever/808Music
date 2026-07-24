@@ -32,4 +32,5 @@ public sealed record PersonalizedPlaylistThemeLabelDefinition(
     string Label,
     PersonalizedPlaylistThemeLabelPolarity Polarity,
     PersonalizedPlaylistThemeLabelSource Source,
+    string? TagNamespace,
     double Weight);

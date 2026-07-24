@@ -12,10 +12,11 @@ Current job:
 
 The worker can also run the Essentia audio-analysis pipeline in a separate
 process. That pipeline consumes `ml.audio.analysis` jobs, downloads the master
-track, extracts Discogs-EffNet embeddings, runs MTG-Jamendo multi-label heads,
-and reports the result to `/api/internal/audio-analysis/{analysisId}/complete`.
-It can also run `audio-clustering` jobs with interchangeable clustering
-algorithms such as K-Means, HDBSCAN, and agglomerative clustering.
+track, extracts Discogs-EffNet embeddings, emits the strongest labels from the
+built-in Discogs-400 style classifier, runs MTG-Jamendo multi-label heads, and
+reports the result to `/api/internal/audio-analysis/{analysisId}/complete`. It
+can also run `audio-clustering` jobs with interchangeable clustering algorithms
+such as K-Means, HDBSCAN, and agglomerative clustering.
 
 The worker uses ports and adapters:
 
@@ -50,6 +51,49 @@ mtg_jamendo_genre-discogs-effnet-1.json
 mtg_jamendo_moodtheme-discogs-effnet-1.pb
 mtg_jamendo_moodtheme-discogs-effnet-1.json
 ```
+
+Discogs-400 tagging is enabled by default. The model evaluates all 400 classes
+but only emits the strongest configured results. Discogs parent genres are
+stored as namespaces such as `discogs.electronic`, while canonical leaf labels
+such as `Hardstyle` are stored as labels.
+
+```txt
+ESSENTIA_DISCOGS_TAGS_ENABLED=true
+ESSENTIA_DISCOGS_TOP_K=8
+ESSENTIA_DISCOGS_MIN_SCORE=0.15
+```
+
+`Non-Music` Discogs classes are not emitted. The current implementation uses
+separate Essentia predictor instances for embeddings and Discogs probabilities.
+This favors the supported high-level Essentia APIs but runs the base graph
+twice. It can later be optimized to a shared low-level TensorFlow session if
+analysis throughput requires it.
+
+Additional classifier heads can be installed without changing worker code.
+Place their `.pb` and `.json` artifacts in `ESSENTIA_MODEL_DIR` and add
+`custom-heads.json`:
+
+```json
+{
+  "heads": [
+    {
+      "namespace": "modern_genre",
+      "modelName": "808music-modern-genres-discogs-effnet-1",
+      "enabled": true,
+      "topK": 8,
+      "minScore": 0.1
+    }
+  ]
+}
+```
+
+The model metadata may provide a `tagging.thresholds` object for calibrated
+per-label thresholds. Schema input and prediction node names are also read from
+the metadata, allowing newly exported frozen graphs to use their actual node
+names.
+
+The reproducible modern-head dataset, embedding, training, calibration and
+export workflow is documented in [training/README.md](training/README.md).
 
 Then start the analysis worker:
 

@@ -1,0 +1,51 @@
+:host {
+  display: grid;
+  min-height: 100%;
+  padding: 24px;
+  place-items: center;
+  color: #f8f1f9;
+}
+
+.admin-error {
+  width: min(520px, 100%);
+  padding: 52px 24px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 28px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .105), rgba(255, 255, 255, .018)),
+    rgba(27, 22, 29, .58);
+  box-shadow: 0 22px 50px rgba(0, 0, 0, .2), inset 0 1px 0 rgba(255, 255, 255, .12);
+  text-align: center;
+  -webkit-backdrop-filter: blur(24px) saturate(155%);
+  backdrop-filter: blur(24px) saturate(155%);
+}
+
+.admin-error > mat-icon {
+  width: 52px;
+  height: 52px;
+  color: #eaa3f8;
+  font-size: 52px;
+}
+
+.admin-error h1 {
+  margin: 14px 0 6px;
+  font-size: clamp(28px, 5vw, 42px);
+  letter-spacing: -.045em;
+}
+
+.admin-error p {
+  margin: 0 0 20px;
+  color: rgba(242, 232, 243, .56);
+}
+
+.admin-error a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 0 18px;
+  border: 1px solid rgba(230, 146, 248, .3);
+  border-radius: 999px;
+  background: rgba(230, 146, 248, .12);
+  color: #f2b7fc;
+  text-decoration: none;
+}

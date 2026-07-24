@@ -1,0 +1,5 @@
+track_id,artist_id,audio_path,labels,split
+100001,artist-a,/data/audio/100001.wav,phonk|drift_phonk,train
+100002,artist-b,/data/audio/100002.wav,drill|uk_drill,train
+100003,artist-c,/data/audio/100003.wav,amapiano|afro_house,validation
+100004,artist-d,/data/audio/100004.wav,hyperpop,test

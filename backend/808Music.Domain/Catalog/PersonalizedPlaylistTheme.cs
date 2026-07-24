@@ -1,3 +1,5 @@
+using _808Music.Domain.Enums;
+
 namespace _808Music.Domain.Catalog;
 
 public class PersonalizedPlaylistTheme
@@ -60,6 +62,63 @@ public class PersonalizedPlaylistTheme
         UpdatedAt = updatedAt;
     }
 
+    public void ReplaceLabels(
+        IEnumerable<PersonalizedPlaylistThemeLabelSpecification> labels,
+        DateTime updatedAt)
+    {
+        ArgumentNullException.ThrowIfNull(labels);
+
+        var normalizedLabels = labels
+            .Select(label => new PersonalizedPlaylistThemeLabelSpecification(
+                label.Label.Trim(),
+                label.Polarity,
+                label.Source,
+                label.TagNamespace,
+                label.Weight))
+            .ToArray();
+
+        if (normalizedLabels.Length == 0)
+        {
+            throw new ArgumentException("At least one theme label is required.", nameof(labels));
+        }
+
+        if (normalizedLabels
+            .GroupBy(
+                label => new
+                {
+                    Label = label.Label.ToUpperInvariant(),
+                    label.Polarity,
+                    label.Source,
+                    TagNamespace = label.TagNamespace?.ToUpperInvariant()
+                })
+            .Any(group => group.Count() > 1))
+        {
+            throw new ArgumentException(
+                "Theme labels must be unique for each polarity and source.",
+                nameof(labels));
+        }
+
+        if (!normalizedLabels.Any(label =>
+            label.Polarity == PersonalizedPlaylistThemeLabelPolarity.Positive &&
+            label.Source == PersonalizedPlaylistThemeLabelSource.EssentiaTag))
+        {
+            throw new ArgumentException(
+                "At least one positive Essentia tag is required.",
+                nameof(labels));
+        }
+
+        _labels.Clear();
+        _labels.AddRange(normalizedLabels.Select(label =>
+            new PersonalizedPlaylistThemeLabel(
+                Id,
+                label.Label,
+                label.Polarity,
+                label.Source,
+                label.TagNamespace,
+                label.Weight)));
+        UpdatedAt = updatedAt;
+    }
+
     private static int ValidateTrackCount(int trackCount)
     {
         if (trackCount <= 0)
@@ -89,3 +148,10 @@ public class PersonalizedPlaylistTheme
             : normalized[..maxLength];
     }
 }
+
+public sealed record PersonalizedPlaylistThemeLabelSpecification(
+    string Label,
+    PersonalizedPlaylistThemeLabelPolarity Polarity,
+    PersonalizedPlaylistThemeLabelSource Source,
+    string? TagNamespace,
+    decimal Weight);

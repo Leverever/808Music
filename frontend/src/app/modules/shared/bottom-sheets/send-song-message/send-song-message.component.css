@@ -4,7 +4,11 @@
 }
 
 .actions {
+  position: relative;
+  z-index: 2;
+  display: flex;
   width: 100%;
+  flex: 0 0 auto;
 }
 
 .pfp {
@@ -21,6 +25,7 @@
 
 .send-sheet {
   min-height: 0;
+  height: min(720px, 84dvh);
 }
 
 .search {
@@ -50,8 +55,12 @@
 .following {
   display: flex;
   min-height: 0;
+  flex: 1 1 0;
   flex-direction: column;
   gap: 9px;
+  padding: 1px 3px 1px 1px;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .chat-row {
@@ -83,4 +92,19 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+  .send-sheet {
+    width: 100%;
+    height: min(680px, calc(100dvh - 16px));
+    max-height: 100%;
+  }
+
+  .following {
+    min-height: 96px;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
 }

@@ -13,7 +13,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 @Component({
   selector: 'app-send-song-message',
   templateUrl: './send-song-message.component.html',
-  styleUrls: ['../../search-page/search-page.component.css','../../../artist/manage-users/manage-users.component.css','../manage-following-bottom-sheet/manage-following-bottom-sheet.component.css','../create-chat-bottom-sheet/create-chat-bottom-sheet.component.css', './send-song-message.component.css']
+  styleUrls: ['./send-song-message.component.css']
 })
 export class SendSongMessageComponent implements OnInit {
   sheetRef = inject<MatBottomSheetRef<SendSongMessageComponent>>(MatBottomSheetRef);

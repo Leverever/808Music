@@ -916,23 +916,27 @@ button.liquid-sheet-row:hover {
 
 @media (min-width: 1401px) {
   .cdk-overlay-pane.player-action-sheet-pane {
+    --player-column-width: 23vw;
+    --player-sheet-width: min(520px, calc(var(--player-column-width) - 24px));
     position: absolute !important;
-    right: 2vh !important;
+    right: calc(2vh + max(12px, 11.5vw - 260px)) !important;
     bottom: 2vh !important;
-    width: 23vw !important;
-    min-width: 300px;
-    max-width: 520px !important;
+    width: var(--player-sheet-width) !important;
+    min-width: 0 !important;
+    max-width: none !important;
   }
 }
 
 @media (min-width: 961px) and (max-width: 1400px) {
   .cdk-overlay-pane.player-action-sheet-pane {
+    --player-column-width: clamp(340px, 30vw, 400px);
+    --player-sheet-width: calc(var(--player-column-width) - 24px);
     position: absolute !important;
-    right: 2vh !important;
+    right: calc(2vh + 12px) !important;
     bottom: 2vh !important;
-    width: clamp(340px, 30vw, 400px) !important;
-    min-width: 0;
-    max-width: 400px !important;
+    width: var(--player-sheet-width) !important;
+    min-width: 0 !important;
+    max-width: none !important;
   }
 }
 
@@ -956,6 +960,62 @@ button.liquid-sheet-row:hover {
   background: thistle;
 }
 
+.tag-autocomplete-panel.mat-mdc-autocomplete-panel {
+  margin-top: 8px;
+  padding: 6px !important;
+  border: 1px solid rgba(246, 207, 255, .17);
+  border-radius: 18px !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .13), rgba(255, 255, 255, .025)),
+    rgba(30, 23, 33, .9) !important;
+  box-shadow:
+    0 22px 48px rgba(0, 0, 0, .42),
+    inset 0 1px 0 rgba(255, 255, 255, .12) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(155%);
+  backdrop-filter: blur(24px) saturate(155%);
+}
+
+.tag-autocomplete-panel .mat-mdc-option {
+  min-height: 42px;
+  margin: 2px 0;
+  border-radius: 12px;
+  color: rgba(250, 242, 251, .78);
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.tag-autocomplete-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled),
+.tag-autocomplete-panel .mat-mdc-option.mat-mdc-option-active,
+.tag-autocomplete-panel .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+  background: linear-gradient(
+    135deg,
+    rgba(229, 133, 247, .18),
+    rgba(135, 59, 160, .13)
+  ) !important;
+  color: #f8d9fe;
+}
+
+.tag-autocomplete-panel .mdc-list-item__primary-text {
+  width: 100%;
+}
+
+.tag-autocomplete-option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 620;
+}
+
+.tag-autocomplete-option mat-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  color: #e9a1f7;
+  font-size: 18px;
+  line-height: 18px;
+}
+
 @media (max-width: 960px) {
   html,
   body {
@@ -970,12 +1030,25 @@ button.liquid-sheet-row:hover {
 
   .cdk-overlay-pane.player-action-sheet-pane {
     position: absolute !important;
-    right: 8px !important;
+    right: max(8px, env(safe-area-inset-right)) !important;
     bottom: max(8px, env(safe-area-inset-bottom)) !important;
-    left: 8px !important;
+    left: max(8px, env(safe-area-inset-left)) !important;
     width: auto !important;
-    min-width: 0;
+    min-width: 0 !important;
     max-width: none !important;
+    max-height: calc(
+      100dvh -
+      max(8px, env(safe-area-inset-top)) -
+      max(8px, env(safe-area-inset-bottom))
+    ) !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+  }
+
+  .cdk-overlay-pane.player-action-sheet-pane .mat-bottom-sheet-container,
+  .cdk-overlay-pane.player-action-sheet-pane .mat-bottom-sheet-container > *,
+  .cdk-overlay-pane.player-action-sheet-pane .liquid-sheet {
+    max-height: inherit !important;
   }
 
   .cdk-overlay-pane.listener-content-sheet-pane {

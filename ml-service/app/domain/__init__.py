@@ -10,6 +10,15 @@ from app.domain.clustering_result import (
 )
 from app.domain.stem_job import StemSeparationJob
 from app.domain.stem_result import CompletedStem, SeparatedStem
+from app.domain.tagging import (
+    ClassificationHeadSpec,
+    DiscogsClass,
+    RankedLabel,
+    TaggingPolicy,
+    load_custom_head_specs,
+    parse_discogs_class,
+    select_ranked_labels,
+)
 
 __all__ = [
     "AudioAnalysisJob",
@@ -24,4 +33,11 @@ __all__ = [
     "CompletedStem",
     "SeparatedStem",
     "StemSeparationJob",
+    "ClassificationHeadSpec",
+    "DiscogsClass",
+    "RankedLabel",
+    "TaggingPolicy",
+    "load_custom_head_specs",
+    "parse_discogs_class",
+    "select_ranked_labels",
 ]

@@ -1,5 +1,6 @@
 import {Injectable} from '@angular/core';
-import {ActivatedRouteSnapshot, CanActivate, Router} from '@angular/router';
+import {ActivatedRouteSnapshot, CanActivate, Router, UrlTree} from '@angular/router';
+import {MyUserAuthService} from '../services/auth-services/my-user-auth.service';
 import {MyAuthService} from '../services/auth-services/my-auth.service';
 
 export class AuthGuardData {
@@ -11,34 +12,28 @@ export class AuthGuardData {
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
-
-  constructor(private authService: MyAuthService, private router: Router) {
+  constructor(
+    private authService: MyUserAuthService,
+    private legacyAuthService: MyAuthService,
+    private router: Router
+  ) {
   }
 
-  canActivate(route: ActivatedRouteSnapshot): boolean {
-    const guardData = route.data as AuthGuardData;  // Cast to AuthGuardData
+  canActivate(route: ActivatedRouteSnapshot): boolean | UrlTree {
+    const guardData = route.data as AuthGuardData;
 
-
-    // Provjera da li je korisnik prijavljen
-    /*
     if (!this.authService.isLoggedIn()) {
-      this.router.navigate(['/auth/login']);
-      return false;
-    }*/
+      return this.router.createUrlTree(['/auth/login']);
+    }
 
-    // Provjera prava pristupa za administratora
     if (guardData.isAdmin && !this.authService.isAdmin()) {
-      this.router.navigate(['/unauthorized']);
-      return false;
+      return this.router.createUrlTree(['/unauthorized']);
     }
 
-    // Provjera prava pristupa za menadžera
-    if (guardData.isManager && !this.authService.isManager()) {
-      this.router.navigate(['/unauthorized']);
-      return false;
+    if (guardData.isManager && !this.legacyAuthService.isManager()) {
+      return this.router.createUrlTree(['/unauthorized']);
     }
 
-    return true; // Dozvoljen pristup
+    return true;
   }
-
 }

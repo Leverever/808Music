@@ -2,6 +2,7 @@ using _808Music.Application.Common.Scheduling;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NCrontab;
 using RS1_2024_25.API.Services;
 
 namespace RS1_2024_25.API.Controllers.V2;
@@ -36,11 +37,13 @@ public sealed class AdminRecurringTasksController : ControllerBase
             return Forbid();
         }
 
+        var now = DateTime.UtcNow;
         return Ok(_tasks.Select(task => new RecurringTaskAdminItem(
             task.Name,
             task.CronExpression,
             task.IsEnabled,
-            _coordinator.IsRunning(task.Name))).ToArray());
+            _coordinator.IsRunning(task.Name),
+            GetNextScheduledRunUtc(task, now))).ToArray());
     }
 
     [HttpPost("{taskName}/run")]
@@ -90,13 +93,35 @@ public sealed class AdminRecurringTasksController : ControllerBase
                 "Admin",
                 StringComparison.OrdinalIgnoreCase);
     }
+
+    private static DateTime? GetNextScheduledRunUtc(
+        IRecurringApplicationTask task,
+        DateTime fromUtc)
+    {
+        if (!task.IsEnabled)
+        {
+            return null;
+        }
+
+        try
+        {
+            return CrontabSchedule
+                .Parse(task.CronExpression)
+                .GetNextOccurrence(fromUtc);
+        }
+        catch (CrontabException)
+        {
+            return null;
+        }
+    }
 }
 
 public sealed record RecurringTaskAdminItem(
     string Name,
     string CronExpression,
     bool IsScheduled,
-    bool IsRunning);
+    bool IsRunning,
+    DateTime? NextScheduledRunUtc);
 
 public sealed record RecurringTaskManualRunResult(
     string Name,

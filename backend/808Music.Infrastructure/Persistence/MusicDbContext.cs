@@ -390,11 +390,31 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
                 .HasMaxLength(100)
                 .IsRequired();
 
+            entity.Property(x => x.TagNamespace)
+                .HasMaxLength(50);
+
             entity.Property(x => x.Weight)
                 .HasColumnType("decimal(9,4)");
 
-            entity.HasIndex(x => new { x.ThemeId, x.Polarity, x.Source, x.Label })
+            entity.HasIndex(x => new
+                {
+                    x.ThemeId,
+                    x.Polarity,
+                    x.Source,
+                    x.TagNamespace,
+                    x.Label
+                })
                 .IsUnique();
+
+            entity.HasIndex(x => new
+                {
+                    x.ThemeId,
+                    x.Polarity,
+                    x.Source,
+                    x.Label
+                })
+                .IsUnique()
+                .HasFilter("[TagNamespace] IS NULL");
         });
 
         modelBuilder.Entity<GeneratedPersonalizedPlaylist>(entity =>

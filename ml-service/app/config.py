@@ -16,6 +16,11 @@ def _env_bool(name: str, default: bool) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "y", "on"}
 
 
+def _env_optional_path(name: str) -> Path | None:
+    value = os.getenv(name)
+    return Path(value) if value is not None and value.strip() else None
+
+
 @dataclass(frozen=True)
 class Settings:
     rabbitmq_host: str
@@ -42,6 +47,10 @@ class Settings:
     workspace_root: Path
     essentia_model_dir: Path
     essentia_auto_download_models: bool
+    essentia_discogs_tags_enabled: bool
+    essentia_discogs_top_k: int
+    essentia_discogs_min_score: float
+    essentia_custom_head_manifest: Path | None
     demucs_output_format: str
     demucs_device: str
 
@@ -69,6 +78,10 @@ class Settings:
             workspace_root=Path(_env("WORKSPACE_ROOT", "/tmp/808music-ml")),
             essentia_model_dir=Path(_env("ESSENTIA_MODEL_DIR", "/models/essentia")),
             essentia_auto_download_models=_env_bool("ESSENTIA_AUTO_DOWNLOAD_MODELS", True),
+            essentia_discogs_tags_enabled=_env_bool("ESSENTIA_DISCOGS_TAGS_ENABLED", True),
+            essentia_discogs_top_k=int(_env("ESSENTIA_DISCOGS_TOP_K", "8")),
+            essentia_discogs_min_score=float(_env("ESSENTIA_DISCOGS_MIN_SCORE", "0.15")),
+            essentia_custom_head_manifest=_env_optional_path("ESSENTIA_CUSTOM_HEAD_MANIFEST"),
             demucs_output_format=_env("DEMUCS_OUTPUT_FORMAT", "wav"),
             demucs_device=_env("DEMUCS_DEVICE", "cpu"),
         )

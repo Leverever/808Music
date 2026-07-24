@@ -51,6 +51,10 @@ def main() -> None:
         analyzer = EssentiaMtgJamendoAnalyzer(
             settings.essentia_model_dir,
             auto_download=settings.essentia_auto_download_models,
+            discogs_tags_enabled=settings.essentia_discogs_tags_enabled,
+            discogs_top_k=settings.essentia_discogs_top_k,
+            discogs_min_score=settings.essentia_discogs_min_score,
+            custom_head_manifest=settings.essentia_custom_head_manifest,
         )
         pipeline = AudioAnalysisPipeline(
             storage=storage,

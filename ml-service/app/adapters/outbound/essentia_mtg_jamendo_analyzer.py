@@ -6,7 +6,15 @@ import urllib.request
 import numpy as np
 from essentia.standard import MonoLoader, TensorflowPredictEffnetDiscogs, TensorflowPredict2D
 
-from app.domain import AudioAnalysisResult, AudioAnalysisTag
+from app.domain import (
+    AudioAnalysisResult,
+    AudioAnalysisTag,
+    ClassificationHeadSpec,
+    TaggingPolicy,
+    load_custom_head_specs,
+    parse_discogs_class,
+    select_ranked_labels,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -14,14 +22,25 @@ logger = logging.getLogger(__name__)
 class EssentiaMtgJamendoAnalyzer:
     _EMBEDDING_MODEL_NAME = "discogs-effnet-bs64-1"
     _EMBEDDING_OUTPUT = "PartitionedCall:1"
+    _STYLE_OUTPUT = "PartitionedCall:0"
     _SAMPLE_RATE = 16000
     _BASE_URL = "https://essentia.upf.edu/models"
 
-    _HEADS = {
-        "top50tags": "mtg_jamendo_top50tags-discogs-effnet-1",
-        "genre": "mtg_jamendo_genre-discogs-effnet-1",
-        "moodtheme": "mtg_jamendo_moodtheme-discogs-effnet-1",
-    }
+    _DEFAULT_HEADS = (
+        ClassificationHeadSpec(
+            namespace="top50tags",
+            model_name="mtg_jamendo_top50tags-discogs-effnet-1",
+        ),
+        ClassificationHeadSpec(
+            namespace="genre",
+            model_name="mtg_jamendo_genre-discogs-effnet-1",
+        ),
+        ClassificationHeadSpec(
+            namespace="moodtheme",
+            model_name="mtg_jamendo_moodtheme-discogs-effnet-1",
+        ),
+    )
+    _EXCLUDED_DISCOGS_CATEGORIES = frozenset({"Non-Music"})
 
     _MODEL_URLS = {
         "discogs-effnet-bs64-1.pb": (
@@ -62,24 +81,55 @@ class EssentiaMtgJamendoAnalyzer:
         top_k_per_namespace: int = 10,
         min_score: float = 0.10,
         auto_download: bool = True,
+        discogs_tags_enabled: bool = True,
+        discogs_top_k: int = 8,
+        discogs_min_score: float = 0.15,
+        custom_head_manifest: Path | None = None,
     ) -> None:
         self._model_dir = model_dir
-        self._top_k_per_namespace = top_k_per_namespace
-        self._min_score = min_score
         self._auto_download = auto_download
+        self._default_head_policy = TaggingPolicy(
+            top_k=top_k_per_namespace,
+            min_score=min_score,
+        )
+        self._discogs_policy = TaggingPolicy(
+            top_k=discogs_top_k,
+            min_score=discogs_min_score,
+        )
 
         self._ensure_model_file(self._EMBEDDING_MODEL_NAME, ".pb")
         self._ensure_model_file(self._EMBEDDING_MODEL_NAME, ".json")
+        embedding_metadata = self._load_metadata(self._EMBEDDING_MODEL_NAME)
+        self._discogs_labels = self._read_classes(
+            embedding_metadata,
+            self._EMBEDDING_MODEL_NAME,
+        )
 
         self._embedding_model = TensorflowPredictEffnetDiscogs(
             graphFilename=str(model_dir / f"{self._EMBEDDING_MODEL_NAME}.pb"),
             output=self._EMBEDDING_OUTPUT,
         )
+        self._style_model = (
+            TensorflowPredictEffnetDiscogs(
+                graphFilename=str(model_dir / f"{self._EMBEDDING_MODEL_NAME}.pb"),
+                output=self._STYLE_OUTPUT,
+            )
+            if discogs_tags_enabled
+            else None
+        )
 
-        self._heads = {
-            namespace: self._load_head(model_name)
-            for namespace, model_name in self._HEADS.items()
-        }
+        manifest_path = custom_head_manifest or model_dir / "custom-heads.json"
+        head_specs = [
+            ClassificationHeadSpec(
+                namespace=spec.namespace,
+                model_name=spec.model_name,
+                policy=self._default_head_policy,
+            )
+            for spec in self._DEFAULT_HEADS
+        ]
+        head_specs.extend(load_custom_head_specs(manifest_path))
+        self._validate_unique_namespaces(head_specs, manifest_path)
+        self._heads = [self._load_head(spec) for spec in head_specs]
 
     def analyze(self, track_id: int, audio_path: Path) -> AudioAnalysisResult:
         audio = MonoLoader(
@@ -95,15 +145,25 @@ class EssentiaMtgJamendoAnalyzer:
         track_embedding = segment_embeddings.mean(axis=0)
 
         tags: list[AudioAnalysisTag] = []
-        for namespace, head in self._heads.items():
+        if self._style_model is not None:
+            style_predictions = np.asarray(self._style_model(audio), dtype=np.float32)
+            style_scores = (
+                style_predictions
+                if style_predictions.ndim == 1
+                else style_predictions.mean(axis=0)
+            )
+            tags.extend(self._discogs_tags(style_scores))
+
+        for head in self._heads:
             predictions = np.asarray(head["model"](segment_embeddings), dtype=np.float32)
             scores = predictions if predictions.ndim == 1 else predictions.mean(axis=0)
             tags.extend(
                 self._top_labels(
-                    namespace=namespace,
+                    namespace=head["namespace"],
                     model_name=head["model_name"],
                     labels=head["labels"],
                     scores=scores,
+                    policy=head["policy"],
                 )
             )
 
@@ -114,17 +174,46 @@ class EssentiaMtgJamendoAnalyzer:
             tags=tags,
         )
 
-    def _load_head(self, model_name: str) -> dict[str, object]:
+    def _load_head(self, spec: ClassificationHeadSpec) -> dict[str, object]:
+        model_name = spec.model_name
         self._ensure_model_file(model_name, ".pb")
         self._ensure_model_file(model_name, ".json")
 
-        with (self._model_dir / f"{model_name}.json").open("r", encoding="utf-8") as file:
-            labels = json.load(file)["classes"]
+        metadata = self._load_metadata(model_name)
+        labels = self._read_classes(metadata, model_name)
+        tagging_metadata = metadata.get("tagging")
+        if tagging_metadata is not None and not isinstance(tagging_metadata, dict):
+            raise ValueError(f"Model tagging metadata must be an object: {model_name}")
+
+        policy = spec.policy.with_overrides(tagging_metadata)
+        unknown_threshold_labels = set(policy.thresholds).difference(labels)
+        if unknown_threshold_labels:
+            raise ValueError(
+                f"Model tagging metadata contains thresholds for unknown labels "
+                f"({', '.join(sorted(unknown_threshold_labels))}): {model_name}"
+            )
+        input_name = self._schema_node_name(
+            metadata,
+            collection="inputs",
+            default="model/Placeholder",
+        )
+        output_name = self._schema_node_name(
+            metadata,
+            collection="outputs",
+            default="model/Sigmoid",
+            purpose="predictions",
+        )
 
         return {
+            "namespace": spec.namespace,
             "labels": labels,
             "model_name": model_name,
-            "model": TensorflowPredict2D(graphFilename=str(self._model_dir / f"{model_name}.pb")),
+            "policy": policy,
+            "model": TensorflowPredict2D(
+                graphFilename=str(self._model_dir / f"{model_name}.pb"),
+                input=input_name,
+                output=output_name,
+            ),
         }
 
     def _top_labels(
@@ -133,28 +222,107 @@ class EssentiaMtgJamendoAnalyzer:
         model_name: str,
         labels: list[str],
         scores: np.ndarray,
+        policy: TaggingPolicy,
     ) -> list[AudioAnalysisTag]:
-        indexes = np.argsort(scores)[::-1]
-        tags: list[AudioAnalysisTag] = []
+        return [
+            AudioAnalysisTag(
+                namespace=namespace,
+                label=ranked.label,
+                score=ranked.score,
+                model_name=model_name,
+            )
+            for ranked in select_ranked_labels(labels, scores, policy)
+        ]
 
-        for index in indexes:
-            score = float(scores[index])
-            if score < self._min_score:
-                continue
-
-            tags.append(
-                AudioAnalysisTag(
-                    namespace=namespace,
-                    label=labels[index],
-                    score=score,
-                    model_name=model_name,
-                )
+    def _discogs_tags(self, scores: np.ndarray) -> list[AudioAnalysisTag]:
+        if len(self._discogs_labels) != len(scores):
+            raise ValueError(
+                f"Discogs classifier returned {len(scores)} scores for "
+                f"{len(self._discogs_labels)} labels."
             )
 
-            if len(tags) >= self._top_k_per_namespace:
-                break
+        eligible_labels: list[str] = []
+        eligible_scores: list[float] = []
+        parsed_classes = {}
 
-        return tags
+        for raw_label, score in zip(self._discogs_labels, scores):
+            parsed = parse_discogs_class(raw_label)
+            if parsed.category in self._EXCLUDED_DISCOGS_CATEGORIES:
+                continue
+            eligible_labels.append(raw_label)
+            eligible_scores.append(float(score))
+            parsed_classes[raw_label] = parsed
+
+        ranked_labels = select_ranked_labels(
+            eligible_labels,
+            eligible_scores,
+            self._discogs_policy,
+        )
+        return [
+            AudioAnalysisTag(
+                namespace=parsed_classes[ranked.label].namespace,
+                label=parsed_classes[ranked.label].label,
+                score=ranked.score,
+                model_name=self._EMBEDDING_MODEL_NAME,
+            )
+            for ranked in ranked_labels
+        ]
+
+    def _load_metadata(self, model_name: str) -> dict:
+        with (self._model_dir / f"{model_name}.json").open("r", encoding="utf-8") as file:
+            metadata = json.load(file)
+        if not isinstance(metadata, dict):
+            raise ValueError(f"Model metadata must be a JSON object: {model_name}")
+        return metadata
+
+    @staticmethod
+    def _read_classes(metadata: dict, model_name: str) -> list[str]:
+        labels = metadata.get("classes")
+        if not isinstance(labels, list) or not labels or not all(
+            isinstance(label, str) and label.strip() for label in labels
+        ):
+            raise ValueError(f"Model metadata contains no valid classes: {model_name}")
+        return labels
+
+    @staticmethod
+    def _schema_node_name(
+        metadata: dict,
+        collection: str,
+        default: str,
+        purpose: str | None = None,
+    ) -> str:
+        schema = metadata.get("schema")
+        if not isinstance(schema, dict):
+            return default
+        nodes = schema.get(collection)
+        if not isinstance(nodes, list):
+            return default
+
+        if purpose is not None:
+            for node in nodes:
+                if (
+                    isinstance(node, dict)
+                    and node.get("output_purpose") == purpose
+                    and isinstance(node.get("name"), str)
+                ):
+                    return node["name"]
+
+        for node in nodes:
+            if isinstance(node, dict) and isinstance(node.get("name"), str):
+                return node["name"]
+        return default
+
+    @staticmethod
+    def _validate_unique_namespaces(
+        specs: list[ClassificationHeadSpec],
+        manifest_path: Path,
+    ) -> None:
+        namespaces = [spec.namespace for spec in specs]
+        if len(namespaces) != len(set(namespaces)):
+            raise ValueError(
+                "Built-in and custom classification head namespaces must be unique: "
+                f"{manifest_path}"
+            )
 
     def _ensure_model_file(self, model_name: str, suffix: str) -> None:
         file_name = f"{model_name}{suffix}"

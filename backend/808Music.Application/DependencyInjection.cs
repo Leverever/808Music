@@ -5,6 +5,7 @@ using _808Music.Application.AutomaticPlaylists;
 using _808Music.Application.Common.Crud.Contracts;
 using _808Music.Application.Personalization;
 using _808Music.Application.PersonalizedPlaylists;
+using _808Music.Application.PlaylistThemes;
 using _808Music.Application.Playback;
 using _808Music.Application.Recommendations;
 using _808Music.Application.Releases;
@@ -62,6 +63,7 @@ public static class DependencyInjection
         services.AddScoped<IRecordUserTrackInteractionHandler, RecordUserTrackInteractionHandler>();
         services.AddScoped<IGetDailyPersonalizedPlaylistsHandler, GetDailyPersonalizedPlaylistsHandler>();
         services.AddScoped<IGetPersonalizedPlaylistHandler, GetPersonalizedPlaylistHandler>();
+        services.AddScoped<IAdminPlaylistThemeManagementHandler, AdminPlaylistThemeManagementHandler>();
         services.AddScoped<IMarkStemSeparationProcessingHandler, MarkStemSeparationProcessingHandler>();
         services.AddScoped<ICompleteStemSeparationHandler, CompleteStemSeparationHandler>();
         services.AddScoped<IFailStemSeparationHandler, FailStemSeparationHandler>();

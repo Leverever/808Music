@@ -14,6 +14,7 @@ public class PersonalizedPlaylistThemeLabel
         string label,
         PersonalizedPlaylistThemeLabelPolarity polarity,
         PersonalizedPlaylistThemeLabelSource source,
+        string? tagNamespace,
         decimal weight = 1m)
     {
         if (themeId == Guid.Empty)
@@ -35,6 +36,7 @@ public class PersonalizedPlaylistThemeLabel
         Label = label.Trim().Length <= 100 ? label.Trim() : label.Trim()[..100];
         Polarity = polarity;
         Source = source;
+        TagNamespace = NormalizeTagNamespace(tagNamespace, source);
         Weight = weight;
     }
 
@@ -43,5 +45,33 @@ public class PersonalizedPlaylistThemeLabel
     public string Label { get; private set; }
     public PersonalizedPlaylistThemeLabelPolarity Polarity { get; private set; }
     public PersonalizedPlaylistThemeLabelSource Source { get; private set; }
+    public string? TagNamespace { get; private set; }
     public decimal Weight { get; private set; }
+
+    private static string? NormalizeTagNamespace(
+        string? tagNamespace,
+        PersonalizedPlaylistThemeLabelSource source)
+    {
+        if (source != PersonalizedPlaylistThemeLabelSource.EssentiaTag)
+        {
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(tagNamespace))
+        {
+            throw new ArgumentException(
+                "A tag namespace is required for analyzed audio tags.",
+                nameof(tagNamespace));
+        }
+
+        var normalized = tagNamespace.Trim();
+        if (normalized.Length > 50)
+        {
+            throw new ArgumentException(
+                "A tag namespace cannot exceed 50 characters.",
+                nameof(tagNamespace));
+        }
+
+        return normalized;
+    }
 }

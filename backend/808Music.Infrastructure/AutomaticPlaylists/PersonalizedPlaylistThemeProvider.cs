@@ -52,6 +52,7 @@ public sealed class PersonalizedPlaylistThemeProvider : IPersonalizedPlaylistThe
                 x.Label,
                 x.Polarity,
                 x.Source,
+                x.TagNamespace,
                 x.Weight))
             .ToListAsync(cancellationToken);
 
@@ -64,6 +65,7 @@ public sealed class PersonalizedPlaylistThemeProvider : IPersonalizedPlaylistThe
                         label.Label,
                         label.Polarity,
                         label.Source,
+                        label.TagNamespace,
                         (double)label.Weight))
                     .ToArray());
 
@@ -109,5 +111,6 @@ public sealed class PersonalizedPlaylistThemeProvider : IPersonalizedPlaylistThe
         string Label,
         Domain.Enums.PersonalizedPlaylistThemeLabelPolarity Polarity,
         Domain.Enums.PersonalizedPlaylistThemeLabelSource Source,
+        string? TagNamespace,
         decimal Weight);
 }

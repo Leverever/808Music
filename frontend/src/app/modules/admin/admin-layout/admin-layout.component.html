@@ -1,15 +1,80 @@
-<p>admin-layout works!</p>
+<div class="admin-shell">
+  <aside class="admin-rail" aria-label="Admin navigation">
+    <button type="button" class="admin-brand" (click)="returnToListener()"
+            aria-label="Return to 808 Music" title="808 Admin">
+      <img src="/images/808music_white.png" alt="">
+      <span>
+        <strong>808</strong>
+        <small>Admin</small>
+      </span>
+    </button>
 
-<nav>
-  <ul>
-    <li><a routerLink="/admin/dashboard" routerLinkActive="active">Dashboard</a></li>
-    <li><a routerLink="/admin/cities" routerLinkActive="active">Cities</a></li>
-    <li><a routerLink="/admin/destination" routerLinkActive="active">Destination</a></li>
-    <li><a routerLink="/admin/order" routerLinkActive="active">Reservations</a></li>
-    <li><a routerLink="/auth/logout">Logout</a></li>
-  </ul>
-</nav>
+    <nav>
+      <a routerLink="/admin/overview" routerLinkActive="active"
+         aria-label="Overview" title="Overview">
+        <mat-icon>space_dashboard</mat-icon>
+        <span>Overview</span>
+      </a>
+      <a routerLink="/admin/recurring-tasks" routerLinkActive="active"
+         aria-label="Recurring tasks" title="Recurring tasks">
+        <mat-icon>schedule</mat-icon>
+        <span>Recurring tasks</span>
+      </a>
+      <a routerLink="/admin/playlist-themes" routerLinkActive="active"
+         aria-label="Playlist themes" title="Playlist themes">
+        <mat-icon>auto_awesome</mat-icon>
+        <span>Playlist themes</span>
+      </a>
+    </nav>
 
-<div style="border: 1px solid red">
-  <router-outlet></router-outlet>
+    <button type="button" class="listener-link" (click)="returnToListener()"
+            aria-label="Back to 808 Music" title="Back to 808 Music">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Back to 808 Music</span>
+    </button>
+  </aside>
+
+  <header class="mobile-admin-header">
+    <button type="button" class="mobile-brand" (click)="returnToListener()">
+      <img src="/images/808music_white.png" alt="">
+      <span>808 Admin</span>
+    </button>
+    <button type="button" class="mobile-menu-button"
+            (click)="mobileNavigationOpen = !mobileNavigationOpen"
+            [attr.aria-expanded]="mobileNavigationOpen"
+            aria-label="Open admin navigation">
+      <mat-icon>{{mobileNavigationOpen ? 'close' : 'menu'}}</mat-icon>
+    </button>
+  </header>
+
+  @if (mobileNavigationOpen) {
+    <button type="button" class="mobile-nav-backdrop"
+            (click)="closeMobileNavigation()"
+            aria-label="Close navigation"></button>
+    <nav class="mobile-admin-navigation" aria-label="Admin navigation">
+      <a routerLink="/admin/overview" routerLinkActive="active"
+         (click)="closeMobileNavigation()">
+        <mat-icon>space_dashboard</mat-icon>
+        <span>Overview</span>
+      </a>
+      <a routerLink="/admin/recurring-tasks" routerLinkActive="active"
+         (click)="closeMobileNavigation()">
+        <mat-icon>schedule</mat-icon>
+        <span>Recurring tasks</span>
+      </a>
+      <a routerLink="/admin/playlist-themes" routerLinkActive="active"
+         (click)="closeMobileNavigation()">
+        <mat-icon>auto_awesome</mat-icon>
+        <span>Playlist themes</span>
+      </a>
+      <button type="button" (click)="returnToListener()">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Back to 808 Music</span>
+      </button>
+    </nav>
+  }
+
+  <main class="admin-content">
+    <router-outlet></router-outlet>
+  </main>
 </div>

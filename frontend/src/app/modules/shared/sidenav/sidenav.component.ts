@@ -13,6 +13,7 @@ import {
   UnreadsResponse
 } from '../../../endpoints/user-endpoints/get-user-unreads-endpoint.service';
 import {MonthlyStatsDialogComponent} from '../../listener/monthly-stats-dialog/monthly-stats-dialog.component';
+import {MyUserAuthService} from '../../../services/auth-services/my-user-auth.service';
 
 @Component({
   selector: 'app-sidenav',
@@ -31,6 +32,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
   mobileMenuHasDragged = false;
   mobileMenuDismissing = false;
   pathToPfp = MyConfig.media_address;
+  isAdmin = false;
 
   unreads : UnreadsResponse | null = null;
   notiReceive = (noti : RichNotification) => {
@@ -75,7 +77,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
               private artistHandlerService: ArtistHandlerService,
               private notificationService: NotificationsService,
               private chatService: ChatService,
-              private getUserUnreadsService : GetUserUnreadsEndpointService){}
+              private getUserUnreadsService : GetUserUnreadsEndpointService,
+              private authService: MyUserAuthService){}
 
   toggleMenu(): void {
     this.isMenuVisible = !this.isMenuVisible;
@@ -186,6 +189,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.isAdmin = this.authService.isAdmin();
     const userId = this.getUserIdFromToken();
     console.log('User ID:', userId);
     this.mobileRouteIndex = this.getMobileNavIndex(this.router.url);

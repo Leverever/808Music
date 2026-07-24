@@ -290,13 +290,13 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
                 .OrderByDescending(x => x.Value)
                 .Take(50)
                 .Select(x => x.Key))
-            .Concat(theme?.PositiveLabels
-                .Where(x => x.Source == PersonalizedPlaylistThemeLabelSource.EssentiaTag)
-                .Select(x => NormalizeTag(x.Label)) ?? [])
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var themeHints = theme?.PositiveLabels
+            .Where(x => x.Source == PersonalizedPlaylistThemeLabelSource.EssentiaTag)
+            .ToArray() ?? [];
 
-        if (desiredTagKeys.Count == 0)
+        if (desiredTagKeys.Count == 0 && themeHints.Length == 0)
         {
             return [];
         }
@@ -311,12 +311,16 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
                 !excludedTrackIds.Contains(analysis.TrackId)
             select new TrackTagCandidateProjection(
                 analysis.TrackId,
+                tag.Namespace,
                 tag.Label,
                 tag.Score))
             .ToListAsync(cancellationToken);
 
         return tags
-            .Where(x => desiredTagKeys.Contains(NormalizeTag(x.Label)))
+            .Where(x =>
+                desiredTagKeys.Contains(NormalizeTag(x.Label)) ||
+                themeHints.Any(hint =>
+                    TagMatchesHint(x.Namespace, x.Label, hint)))
             .GroupBy(x => x.TrackId)
             .Select(x => new
             {
@@ -449,6 +453,7 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
             .Where(x => analysisIds.Contains(x.TrackAudioAnalysisId))
             .Select(x => new TrackTagProjection(
                 x.TrackAudioAnalysisId,
+                x.Namespace,
                 x.Label,
                 x.Score))
             .ToListAsync(cancellationToken);
@@ -474,11 +479,16 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
                 tagsByTrack[trackId] = trackTags;
             }
 
+            var tagKey = BuildTagKey(tag.Namespace, normalizedLabel);
             var score = (double)tag.Score;
-            if (!trackTags.TryGetValue(normalizedLabel, out var existingTag) ||
+            if (!trackTags.TryGetValue(tagKey, out var existingTag) ||
                 existingTag.Score < score)
             {
-                trackTags[normalizedLabel] = new TrackTag(tag.Label, score);
+                trackTags[tagKey] = new TrackTag(
+                    tag.Namespace,
+                    tag.Label,
+                    normalizedLabel,
+                    score);
             }
         }
 
@@ -591,9 +601,11 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
         {
             if (tagsByTrack.TryGetValue(seed.TrackId, out var tags))
             {
-                foreach (var (normalizedLabel, tag) in tags.Values)
+                foreach (var tag in tags.Values.Values)
                 {
-                    tagScores[normalizedLabel] = tagScores.GetValueOrDefault(normalizedLabel) + tag.Score * seed.Weight;
+                    tagScores[tag.NormalizedLabel] =
+                        tagScores.GetValueOrDefault(tag.NormalizedLabel) +
+                        tag.Score * seed.Weight;
                 }
             }
 
@@ -967,9 +979,9 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
 
         var score = 0d;
 
-        foreach (var (normalizedLabel, tag) in tags.Values)
+        foreach (var tag in tags.Values.Values)
         {
-            if (affinities.TryGetValue(normalizedLabel, out var affinity))
+            if (affinities.TryGetValue(tag.NormalizedLabel, out var affinity))
             {
                 score += tag.Score * affinity;
             }
@@ -1019,9 +1031,9 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
 
         var score = 0d;
 
-        foreach (var (normalizedLabel, tag) in tags.Values)
+        foreach (var tag in tags.Values.Values)
         {
-            if (referenceTagScores.TryGetValue(normalizedLabel, out var referenceScore))
+            if (referenceTagScores.TryGetValue(tag.NormalizedLabel, out var referenceScore))
             {
                 score += tag.Score * referenceScore;
             }
@@ -1080,7 +1092,7 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
             {
                 Weight = Math.Max(0, hint.Weight),
                 Score = tags.Values
-                    .Where(tag => TagsMatch(tag.Key, NormalizeTag(hint.Label)))
+                    .Where(tag => TagMatchesHint(tag.Value, hint))
                     .Select(tag => tag.Value.Score)
                     .DefaultIfEmpty(0)
                     .Max()
@@ -1120,15 +1132,13 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
 
         var themeHints = theme?.PositiveLabels
             .Where(x => x.Source == PersonalizedPlaylistThemeLabelSource.EssentiaTag)
-            .Select(x => NormalizeTag(x.Label))
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
+            .ToArray() ?? [];
 
         return tags.Values
             .Where(tag =>
-                profile.TagAffinities.GetValueOrDefault(tag.Key) > 0 ||
-                seedContext.TagScores.ContainsKey(tag.Key) ||
-                themeHints.Any(hint => TagsMatch(tag.Key, hint)))
+                profile.TagAffinities.GetValueOrDefault(tag.Value.NormalizedLabel) > 0 ||
+                seedContext.TagScores.ContainsKey(tag.Value.NormalizedLabel) ||
+                themeHints.Any(hint => TagMatchesHint(tag.Value, hint)))
             .OrderByDescending(tag => tag.Value.Score)
             .ThenBy(tag => tag.Value.Label)
             .Take(maxMatchedTags)
@@ -1246,6 +1256,30 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
             hint.Contains(candidateTag, StringComparison.OrdinalIgnoreCase);
     }
 
+    private static string BuildTagKey(string tagNamespace, string normalizedLabel)
+    {
+        return $"{tagNamespace.Trim().ToLowerInvariant()}\u001f{normalizedLabel}";
+    }
+
+    private static bool TagMatchesHint(
+        TrackTag tag,
+        PersonalizedPlaylistThemeLabelDefinition hint)
+    {
+        return TagMatchesHint(tag.Namespace, tag.Label, hint);
+    }
+
+    private static bool TagMatchesHint(
+        string candidateNamespace,
+        string candidateLabel,
+        PersonalizedPlaylistThemeLabelDefinition hint)
+    {
+        return !string.IsNullOrWhiteSpace(hint.TagNamespace) &&
+            candidateNamespace.Equals(
+                hint.TagNamespace.Trim(),
+                StringComparison.OrdinalIgnoreCase) &&
+            TagsMatch(NormalizeTag(candidateLabel), NormalizeTag(hint.Label));
+    }
+
     private static string CreateClusterLookupKey(Guid clusterRunId, string clusterKey)
     {
         return $"{clusterRunId:N}:{clusterKey.Trim().ToLowerInvariant()}";
@@ -1280,11 +1314,13 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
 
     private sealed record TrackTagProjection(
         Guid TrackAudioAnalysisId,
+        string Namespace,
         string Label,
         decimal Score);
 
     private sealed record TrackTagCandidateProjection(
         int TrackId,
+        string Namespace,
         string Label,
         decimal Score);
 
@@ -1314,7 +1350,9 @@ public sealed class PersonalizedRecommendationService : IPersonalizedRecommendat
         double Score);
 
     private sealed record TrackTag(
+        string Namespace,
         string Label,
+        string NormalizedLabel,
         double Score);
 
     private sealed record TrackTags(
