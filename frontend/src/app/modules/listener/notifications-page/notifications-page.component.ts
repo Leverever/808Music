@@ -164,7 +164,11 @@ export class NotificationsPageComponent implements OnInit, OnDestroy {
   }
 
   openSettings() {
-    let btmRef = this.bottomSheet.open(UserPreferenceBottomSheetComponent, {hasBackdrop: true});
+    let btmRef = this.bottomSheet.open(UserPreferenceBottomSheetComponent, {
+      hasBackdrop: true,
+      panelClass: ['liquid-glass-sheet-pane', 'listener-content-sheet-pane'],
+      backdropClass: 'liquid-glass-sheet-backdrop',
+    });
     btmRef.afterDismissed().subscribe({
       next: data => {
         if(data)
@@ -186,6 +190,10 @@ export class NotificationsPageComponent implements OnInit, OnDestroy {
   }
 
   openManageFollowing() {
-    this.bottomSheet.open(ManageFollowingBottomSheetComponent, {hasBackdrop: true});
+    this.bottomSheet.open(ManageFollowingBottomSheetComponent, {
+      hasBackdrop: true,
+      panelClass: ['liquid-glass-sheet-pane', 'listener-content-sheet-pane'],
+      backdropClass: 'liquid-glass-sheet-backdrop',
+    });
   }
 }

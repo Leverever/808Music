@@ -28,7 +28,14 @@
   @if (!chat?.blocked)
   {
     <form class="input" [formGroup]="form" (ngSubmit)="sendMessage()">
-      <input class="search-bar-input" type="text" formControlName="message" [placeholder]="'Message '+ chat?.chatter">
+      <textarea
+        #messageField
+        class="search-bar-input"
+        rows="1"
+        formControlName="message"
+        [placeholder]="'Message ' + chat?.chatter"
+        (input)="resizeMessageField($event)"
+        (keydown)="handleMessageKeydown($event)"></textarea>
       <div class="actions2">
         <button mat-mini-fab (click)="attachItems()" type="button">
           <mat-icon>attachment</mat-icon>
@@ -41,7 +48,7 @@
     </form>
     @if (type != 'None') {
       <div class="attached-content">
-        <app-message-content-card [content]="result!" (onButtonClick)="removeContent()" [btnIconName]="'remove'"
+        <app-message-content-card [content]="result!" (onButtonClick)="removeContent()" [btnIconName]="'close'"
                                   [iconButton]="true"></app-message-content-card>
       </div>
     }

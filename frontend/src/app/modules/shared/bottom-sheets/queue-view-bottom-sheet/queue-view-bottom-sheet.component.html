@@ -1,26 +1,53 @@
-<mat-nav-list class="queue-remove-options">
-  @if (data.queue.length > 0) {
-    <div class="dual-control">
-      <h3 class="queue-title">Manage Queue</h3>
-      <button mat-flat-button (click)="dismissSheet()">Ok</button>
+<section class="liquid-sheet queue-remove-options">
+  <header class="liquid-sheet-header">
+    <div>
+      <span class="liquid-sheet-eyebrow">Up next</span>
+      <h3>Manage queue</h3>
     </div>
-    @for (track of data.queue; track track.id; let i = $index; let c = $count) {
-      <div class="queue-remove-option">
-        <div class="track-card">
-          <div class="position">{{i+1 < 10 ? '0'+(i+1) +'. ' : i+1 + '. '}}</div>
-          <div class="queue-cover" [ngStyle]="{'background-image':'url('+MyConfig.api_address + track.coverPath+')'}"></div>
-          <div class="track-title" (click)="skipTo(track)" [matTooltip]="'Skip to ' + track.title" [matTooltipShowDelay]="500">
-            {{track.title}}
-          </div>
+    <button type="button" mat-icon-button class="liquid-sheet-close"
+            (click)="dismissSheet()" aria-label="Close queue">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  @if (data.queue.length > 0) {
+    <div class="liquid-sheet-scroll queue-list"
+         cdkDropList
+         [cdkDropListData]="data.queue"
+         (cdkDropListDropped)="reorderQueue($event)">
+      @for (track of data.queue; track $index; let i = $index) {
+        <div class="queue-remove-option liquid-sheet-row"
+             cdkDrag
+             [cdkDragData]="track"
+             cdkDragLockAxis="y">
+          <button type="button" class="drag-handle" cdkDragHandle
+                  aria-label="Drag to reorder track" matTooltip="Drag to reorder">
+            <mat-icon>drag_indicator</mat-icon>
+          </button>
+          <button type="button" class="track-card"
+                  (click)="skipTo(track)" [matTooltip]="'Skip to ' + track.title"
+                  [matTooltipShowDelay]="500">
+            <span class="position">{{ i + 1 < 10 ? '0' + (i + 1) : i + 1 }}</span>
+            <span class="queue-cover" [ngStyle]="{'background-image':'url('+MyConfig.api_address + track.coverPath+')'}"></span>
+            <span class="track-title">{{ track.title }}</span>
+          </button>
+          <button type="button" mat-icon-button class="remove-button"
+                  (click)="removeSong(track)" matTooltip="Remove from queue"
+                  aria-label="Remove from queue">
+            <mat-icon>do_not_disturb_on</mat-icon>
+          </button>
         </div>
-        <button mat-icon-button (click)="removeSong(track)" matTooltip="Remove from queue"><mat-icon>do_not_disturb_on</mat-icon></button>
-      </div>
-      @if(i + 1 != c) {
-        <mat-divider></mat-divider>
       }
-    }
+    </div>
   } @else {
-    <h3>Queue is empty...</h3>
-    <button mat-flat-button (click)="dismissSheet()">Ok</button>
+    <div class="liquid-sheet-empty">
+      <mat-icon>queue_music</mat-icon>
+      <strong>Queue is empty</strong>
+      <span>Add a track to start listening.</span>
+    </div>
+    <footer class="liquid-sheet-actions">
+      <button type="button" mat-flat-button class="liquid-sheet-primary"
+              (click)="dismissSheet()">Done</button>
+    </footer>
   }
-</mat-nav-list>
+</section>

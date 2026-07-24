@@ -1,49 +1,36 @@
-<div class="order-list">
-  <div *ngIf="errorMessage; else ordersList">
-    <p class="error">{{ errorMessage }}</p>
-  </div>
+<main class="orders-page">
+  <header class="orders-header">
+    <span>Your purchases</span>
+    <h1>Order history</h1>
+    <p *ngIf="userName">Orders placed by {{ userName }}</p>
+  </header>
 
-  <ng-template #ordersList>
-    <h2 class="orders-header">{{ userName }}'S ORDER HISTORY</h2>
+  <div class="orders-state" *ngIf="loading"><mat-spinner diameter="40"></mat-spinner><p>Loading your orders…</p></div>
+  <div class="orders-state" *ngIf="!loading && errorMessage"><mat-icon>error_outline</mat-icon><h2>Orders unavailable</h2><p>{{ errorMessage }}</p></div>
 
-    <div *ngIf="orders.length > 0; else noOrders">
-      <div *ngFor="let order of orders" class="order-card">
+  <section class="orders-list" *ngIf="!loading && !errorMessage && orders.length">
+    <article class="order-card" *ngFor="let order of orders">
+      <header class="order-card__header">
+        <div><span>Order</span><h2>{{ order.orderCode }}</h2></div>
+        <div class="order-status"><span></span>{{ order.status }}</div>
+      </header>
 
-        <h3 class="order-code">{{ order.orderCode }}</h3>
-
-        <div class="order-meta">
-          <p class="order-date">{{ order.dateAdded | date }}</p>
-          <p class="order-price">Total price: {{ order.totalPrice | currency }}</p>
-        </div>
-
-        <table class="product-table">
-          <thead>
-          <tr>
-            <th>Product</th>
-            <th>Quantity</th>
-            <th>Price</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr *ngFor="let detail of order.orderDetails">
-            <td class="product-info">
-              <img [src]="MyConfig.media_address + detail.photoPath" class="product-image" alt="Product Image">
-              <span class="product-name">{{ detail.productName }}</span>
-            </td>
-            <td class="product-quantity">{{ detail.quantity }}</td>
-            <td class="product-total">{{ detail.unitPrice * (1-detail.discount) * detail.quantity| currency }}</td>
-          </tr>
-          </tbody>
-        </table>
-
-        <div class="status-row">
-          <p class="order-status">Status: <p class="status-color">{{ order.status }}...</p>
-        </div>
+      <div class="order-card__meta">
+        <p><span>Placed</span><strong>{{ order.dateAdded | date:'mediumDate' }}</strong></p>
+        <p><span>Total</span><strong>{{ order.totalPrice | currency:'EUR':'symbol':'1.2-2' }}</strong></p>
       </div>
-    </div>
 
-    <ng-template #noOrders>
-      <p class="no-orders">No Orders.</p>
-    </ng-template>
-  </ng-template>
-</div>
+      <div class="order-products">
+        <article *ngFor="let detail of order.orderDetails">
+          <img [src]="detail.photoPath ? MyConfig.media_address + detail.photoPath : 'assets/icons/pattern.svg'" [alt]="detail.productName">
+          <div><h3>{{ detail.productName }}</h3><p>Quantity {{ detail.quantity }}</p></div>
+          <strong>{{ detail.unitPrice * (1 - detail.discount) * detail.quantity | currency:'EUR':'symbol':'1.2-2' }}</strong>
+        </article>
+      </div>
+    </article>
+  </section>
+
+  <div class="orders-state" *ngIf="!loading && !errorMessage && !orders.length">
+    <mat-icon>receipt_long</mat-icon><h2>No orders yet</h2><p>Your completed shop orders will appear here.</p><a routerLink="/listener/store-home">Explore the shop</a>
+  </div>
+</main>

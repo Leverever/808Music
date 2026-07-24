@@ -1,7 +1,16 @@
-<div class="tracks-table">
-  <div class="tracks-search-bar" *ngIf="allowPagination || isPlaylist">
+<div class="tracks-table" [class.listener-detail-list]="listenerDetailList">
+  <div class="tracks-search-bar" [class.album-order-toolbar]="groupAlbumDiscs"
+       *ngIf="allowPagination || isPlaylist">
     <app-search-bar [placeholder]="'Search for a song'" (onSearchChange)="searchTracks($event)"></app-search-bar>
     <div class="controls">
+      @if (showAlbumOrderControls) {
+        <button mat-button class="add-disc-button" (click)="addDisc()"
+                [disabled]="!canReorder || hasEmptyDisc"
+                matTooltip="Create another disc, then drag tracks into it">
+          <mat-icon>album</mat-icon>
+          Add disc
+        </button>
+      }
       @if (!isPlaylist) {
         <button mat-icon-button (click)="openShareSheet()">
           <mat-icon>share</mat-icon>
@@ -36,7 +45,48 @@
       }
     </div>
   </div>
-  <table mat-table matSort [dataSource]="tracks!">
+  @if (showAlbumOrderControls) {
+    <div class="order-help" aria-live="polite">
+      <mat-icon>{{ isSavingOrder ? 'sync' : 'drag_indicator' }}</mat-icon>
+      <span>{{ orderHelpText }}</span>
+    </div>
+  }
+  @for (disc of tableDiscGroups; track disc.dropListId) {
+  <section class="disc-table" [class.disc-table-multiple]="hasMultipleDiscs"
+           cdkDropList
+           [id]="disc.dropListId"
+           [cdkDropListData]="disc.tracks"
+           [cdkDropListConnectedTo]="discDropListIds"
+           [cdkDropListDisabled]="!manageAlbumOrder || !canReorder"
+           (cdkDropListDropped)="dropTrack($event)">
+    @if (groupAlbumDiscs && hasMultipleDiscs) {
+      <div class="disc-heading">
+        <div>
+          <mat-icon>album</mat-icon>
+          <h3>Disc {{ disc.discNumber }}</h3>
+        </div>
+        <span>{{ disc.tracks.length }} {{ disc.tracks.length === 1 ? 'track' : 'tracks' }}</span>
+        @if (disc.tracks.length === 0) {
+          <button mat-icon-button (click)="removeEmptyDisc(disc.discNumber)" aria-label="Remove empty disc">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+    }
+  <table mat-table matSort [dataSource]="disc.tracks">
+
+    <ng-container matColumnDef="reorder">
+      <th mat-header-cell *matHeaderCellDef aria-label="Reorder"></th>
+      <td mat-cell *matCellDef="let track">
+        <button type="button" class="drag-handle" cdkDragHandle
+                mat-icon-button
+                [disabled]="!canReorder"
+                matTooltip="Drag to reorder or move to another disc"
+                [attr.aria-label]="'Reorder ' + track.title">
+          <mat-icon>drag_indicator</mat-icon>
+        </button>
+      </td>
+    </ng-container>
 
     <ng-container matColumnDef="position">
       <th mat-header-cell *matHeaderCellDef>#</th>
@@ -98,7 +148,19 @@
                 <app-clickable-featured-artists [artists]="track.artists"
                                                 (onArtistClick)="goToArtistProfile($event)"></app-clickable-featured-artists>
               </div>
+              @if (showPopularityStats) {
+                <div class="mobile-popularity-stats">
+                  <span>#{{ getPosition(track.id) }}</span>
+                  <span>{{ track.streams | number }} streams</span>
+                </div>
+              }
             </div>
+            @if (!inArtistMode && currentTrack?.id == track.id && playingState) {
+              <div class="mobile-playing-indicator" [class.over-track-artwork]="isPlaylist"
+                   aria-label="Currently playing">
+                <ng-lottie [width]="'24px'" [height]="'24px'" [options]="options"></ng-lottie>
+              </div>
+            }
           </div>
         </div>
       </td>
@@ -149,7 +211,7 @@
     <ng-container matColumnDef="streams">
       <th mat-header-cell *matHeaderCellDef class="track-table-streams-cell"> Streams</th>
       <td mat-cell *matCellDef="let track" class="track-table-streams-cell"
-          (click)="displayControls(true)"> {{ track.streams }}
+          (click)="displayControls(true)"> {{ track.streams | number }}
       </td>
     </ng-container>
 
@@ -191,10 +253,21 @@
 
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns; let track;" (mouseenter)="showHide(false, track)"
-        (mouseleave)="showHide(true,track)"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns; let track;"
+        cdkDrag [cdkDragData]="track" [cdkDragDisabled]="!manageAlbumOrder || !canReorder"
+        (click)="playTrackFromMobileRow($event, track)"
+        (mouseenter)="showHide(false, track)" (mouseleave)="showHide(true,track)">
+    </tr>
   </table>
-  @if (allowPagination) {
+    @if (manageAlbumOrder && disc.tracks.length === 0) {
+      <div class="empty-disc-drop-zone">
+        <mat-icon>move_down</mat-icon>
+        <span>Drop tracks here</span>
+      </div>
+    }
+  </section>
+  }
+  @if (allowPagination && !groupAlbumDiscs) {
     <mat-paginator showFirstLastButtons [pageSize]="pagedRequest.pageSize" [length]="pagedResponse?.totalCount"
                    [pageSizeOptions]="paginationOptions" (page)="setPageOpitions($event)"></mat-paginator>
   }

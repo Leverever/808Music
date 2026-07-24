@@ -1,0 +1,66 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.stem-sheet-content,
+.stem-mixer {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stem-mode-card {
+  flex: 0 0 auto;
+}
+
+.stem-mode-copy,
+.stem-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stem-mode-copy strong,
+.stem-copy strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stem-mode-copy span,
+.stem-copy span {
+  color: rgba(235, 225, 236, .66);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.stem-row {
+  display: grid;
+  grid-template-columns: minmax(88px, .42fr) minmax(120px, 1fr);
+  min-height: 70px;
+}
+
+.stem-volume {
+  width: calc(100% - 16px);
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.stem-empty {
+  min-height: 150px;
+}
+
+@media (max-width: 420px) {
+  .stem-row {
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 8px;
+    padding-right: 9px;
+    padding-left: 9px;
+  }
+}

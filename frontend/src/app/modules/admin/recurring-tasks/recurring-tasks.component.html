@@ -1,0 +1,118 @@
+<section class="tasks-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Operations</span>
+      <h1>Recurring tasks</h1>
+      <p>Inspect the configured UTC schedules or start a task immediately.</p>
+    </div>
+    <aside class="task-context" aria-label="Recurring task status information">
+      <span class="live-indicator">
+        <i></i>
+        Status refreshes every 5 seconds
+      </span>
+      <div class="task-context-copy">
+        <mat-icon>info</mat-icon>
+        <div>
+          <strong>Manual runs do not change the schedule</strong>
+          <p>A task marked “Manual only” can still be run here. Its automatic schedule remains disabled.</p>
+        </div>
+      </div>
+    </aside>
+  </header>
+
+  @if (errorMessage) {
+    <div class="error-banner">
+      <mat-icon>wifi_off</mat-icon>
+      <span>{{errorMessage}}</span>
+    </div>
+  }
+
+  @if (loading) {
+    <div class="loading-state">
+      <mat-spinner diameter="34"></mat-spinner>
+      <span>Loading registered tasks…</span>
+    </div>
+  } @else {
+    <div class="task-list">
+      @for (task of tasks; track task.name) {
+        <article class="task-card" [class.running]="isRunning(task)">
+          <div class="task-main">
+            <span class="task-icon">
+              <mat-icon>{{presentation(task.name).icon}}</mat-icon>
+            </span>
+            <div class="task-copy">
+              <div class="task-heading">
+                <h2>{{presentation(task.name).title}}</h2>
+                <span class="state-pill" [class.disabled]="!task.isScheduled"
+                      [class.is-running]="isRunning(task)">
+                  @if (isRunning(task)) {
+                    Running
+                  } @else if (task.isScheduled) {
+                    Scheduled
+                  } @else {
+                    Manual only
+                  }
+                </span>
+              </div>
+              <p>{{presentation(task.name).description}}</p>
+              <div class="task-meta">
+                <span>
+                  <mat-icon>event</mat-icon>
+                  @if (task.nextScheduledRunUtc) {
+                    <strong>
+                      <time [attr.datetime]="task.nextScheduledRunUtc">
+                        {{task.nextScheduledRunUtc | date:'MMM d, HH:mm':'UTC'}} UTC
+                      </time>
+                    </strong>
+                  } @else {
+                    <strong>Not scheduled</strong>
+                  }
+                  <small>next scheduled run</small>
+                </span>
+                <span>
+                  <mat-icon>schedule</mat-icon>
+                  <strong>{{task.cronExpression}}</strong>
+                  <small>UTC cron</small>
+                </span>
+                <span>
+                  <mat-icon>tag</mat-icon>
+                  <strong>{{task.name}}</strong>
+                  <small>task key</small>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="task-actions">
+            @if (pendingConfirmation === task.name) {
+              <div class="run-confirmation">
+                <span>Start now?</span>
+                <button type="button" class="confirm-button" (click)="run(task)">Run</button>
+                <button type="button" class="cancel-button" (click)="cancelRun()">Cancel</button>
+              </div>
+            } @else {
+              <button type="button" class="run-button"
+                      [disabled]="isRunning(task)"
+                      (click)="askToRun(task)">
+                @if (isRunning(task)) {
+                  <mat-spinner diameter="19"></mat-spinner>
+                  <span>Running</span>
+                } @else {
+                  <mat-icon>play_arrow</mat-icon>
+                  <span>Run now</span>
+                }
+              </button>
+            }
+          </div>
+        </article>
+      } @empty {
+        <div class="empty-state">
+          <mat-icon>event_busy</mat-icon>
+          <h2>No recurring tasks were registered</h2>
+          <p>Check the backend task registrations and scheduler configuration.</p>
+        </div>
+      }
+    </div>
+  }
+
+</section>

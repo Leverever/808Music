@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { MyConfig } from '../../my-config';
+import {buildHttpParams} from '../../helper/http-params.helper';
+import type {PlaylistResponse} from './get-playlist-by-user-endpoint.service';
+export type {PlaylistResponse} from './get-playlist-by-user-endpoint.service';
 
-export interface PlaylistResponse {
-  id: number;
-  title: string;
-  numOfTracks: number;
-  isPublic: boolean;
-  coverPath: string;
+export interface PlaylistSearchRequest {
+  searchString?: string;
+  returnAmount?: number;
+  publicOnly?: boolean;
 }
 
 @Injectable({
@@ -19,7 +20,9 @@ export class GetAllPlaylistsService {
 
   constructor(private httpClient: HttpClient) {}
 
-  handleAsync(): Observable<PlaylistResponse[]> {
-    return this.httpClient.get<PlaylistResponse[]>(this.url);
+  handleAsync(request: PlaylistSearchRequest = {}): Observable<PlaylistResponse[]> {
+    return this.httpClient.get<PlaylistResponse[]>(this.url, {
+      params: buildHttpParams(request)
+    });
   }
 }

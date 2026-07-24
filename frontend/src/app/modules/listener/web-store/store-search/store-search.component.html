@@ -1,71 +1,53 @@
-<div class="container">
-  <div class="logo-container">
-    <img [src]="MyConfig.api_address + '/media/webshop_logo.png'" alt="Logo" class="logo" />
-  </div>
-<div class="heading">
-  <div class="search-bar">
-    <mat-form-field class="full-width">
-      <mat-label>Search products</mat-label>
-      <input #searchInput type="text" matInput placeholder="Did Kanye drop something again?" [formControl]="searchControl" [matAutocomplete]="auto">
-      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="viewProduct($event.option.value)">
-        <mat-option class = "Adnan" *ngFor="let product of filteredProducts" [value]="product.slug">
-          <img [src]="MyConfig.media_address + product.photoPaths[product.photoPaths.length - 1]" alt="{{ product.title }}" class="autocomplete-product-image">
-          {{ product.title }}
-          <p class = "price-opt">{{ updateCalculatedPrice(product)}}$ </p>
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
-    <button class="search-button" (click)="searchProducts(searchInput.value)">
-
-      <mat-icon class="lupa">search</mat-icon>
-    </button>
-  </div>
-
-  <div class="sort-and-results">
-    <p class="results-count">Browse {{ totalResults }} results for {{ keyword }}</p>
-
-    <div class="sort-dropdown">
-      <select [(ngModel)]="selectedSortOption" (ngModelChange)="changeSortOrder()">
-        <option value="" disabled selected>Select Sort Option</option>
-        <option *ngFor="let option of sortOptions" [value]="option.value">
-          {{ option.label }}
-        </option>
-      </select>
-    </div>
-
-  </div>
-</div>
-  <div class="products">
-    <div class="product-row">
-    <div class = "product-size" *ngIf="searchResults.length; else noResults">
-      <div *ngFor="let product of searchResults"
-        class="product" matTooltip="{{ product.title }}" matTooltipPosition="above" (click)="viewProduct(product.slug)">
-          <div class="sale-badge" *ngIf="product.saleAmount > 0">
-            -{{ (product.saleAmount * 100).toFixed(0) }}%
-          </div>
-          <img [src]="MyConfig.media_address + product.photoPaths[0]" alt="{{ product.title }}" class="product-image">
-          <div class="product-info">
-
-          <p class="product-name hide-overflow"> {{ product.title }}</p>
-          <p class="product-price">{{ product.discountedPrice | number: '1.2-2' }}$</p>
-          </div> <div
-        class="wishlist-icon"
-        (click)="toggleWishlist($event, product)">
-        <mat-icon>{{ isOnWishlist(product) ? 'favorite' : 'favorite_border' }}</mat-icon>
-      </div> </div>
+<main class="storefront-catalog">
+  <header class="catalog-header">
+    <div class="catalog-title-row">
+      <a class="catalog-back" routerLink="/listener/store-home" aria-label="Back to shop">
+        <mat-icon>arrow_back</mat-icon>
+      </a>
+      <div class="catalog-title">
+      <span>808 Shop</span>
+      <h1>Search products</h1>
+      <p *ngIf="keyword">{{ totalResults }} result{{ totalResults === 1 ? '' : 's' }} for “{{ keyword }}”</p>
       </div>
     </div>
-    <ng-template #noResults>
-      <p>No results found for "{{ keyword }}"</p>
-    </ng-template>
-  </div>
 
-  <div class="pagination">
-    <button class = "prev_page" *ngIf="currentPage > 1" (click)="changePage(currentPage - 1)"><</button>
-    <span>{{ currentPage }}</span>
-    <button class= "next_page" *ngIf="searchResults.length === pageSize" (click)="changePage(currentPage + 1)">></button>
-  </div>
-  <app-shopping-cart> </app-shopping-cart>
-  <app-wishlist></app-wishlist>
+    <div class="catalog-toolbar">
+      <form class="catalog-search" (ngSubmit)="searchProducts()">
+        <mat-icon>search</mat-icon>
+        <input type="search" aria-label="Search products" placeholder="Search products" [formControl]="searchControl" [matAutocomplete]="auto">
+        <button type="submit" aria-label="Search"><mat-icon>arrow_forward</mat-icon></button>
+      </form>
+      <app-wishlist></app-wishlist>
+      <app-shopping-cart></app-shopping-cart>
+    </div>
 
-</div>
+    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="viewProduct($event.option.value)">
+      <mat-option *ngFor="let product of filteredProducts" [value]="product.slug">
+        <img class="autocomplete-product-image" [src]="mediaAddress + product.photoPaths[product.photoPaths.length - 1]" [alt]="product.title">
+        {{ product.title }}
+      </mat-option>
+    </mat-autocomplete>
+
+    <div class="catalog-controls">
+      <label>
+        <mat-icon>swap_vert</mat-icon>
+        <select [(ngModel)]="selectedSortOption" (ngModelChange)="changeSortOrder()" aria-label="Sort products">
+          <option *ngFor="let option of sortOptions" [value]="option.value">{{ option.label }}</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <div class="catalog-state" *ngIf="loading"><mat-spinner diameter="40"></mat-spinner><p>Finding products…</p></div>
+  <div class="catalog-state" *ngIf="!loading && noResults"><mat-icon>search_off</mat-icon><h2>No products found</h2><p>Try another artist, product, or category.</p></div>
+
+  <section class="catalog-grid" *ngIf="!loading && searchResults.length">
+    <app-store-product-card *ngFor="let product of searchResults" [product]="product"></app-store-product-card>
+  </section>
+
+  <nav class="catalog-pagination" *ngIf="!loading && (currentPage > 1 || searchResults.length === pageSize)" aria-label="Product results pages">
+    <button type="button" [disabled]="currentPage <= 1" (click)="changePage(currentPage - 1)"><mat-icon>chevron_left</mat-icon><span>Previous</span></button>
+    <span>Page {{ currentPage }}</span>
+    <button type="button" [disabled]="searchResults.length < pageSize" (click)="changePage(currentPage + 1)"><span>Next</span><mat-icon>chevron_right</mat-icon></button>
+  </nav>
+</main>

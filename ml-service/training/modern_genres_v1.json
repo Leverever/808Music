@@ -1,0 +1,88 @@
+{
+  "name": "808music-modern-genres",
+  "version": 1,
+  "namespace": "modern_genre",
+  "embeddingModel": "discogs-effnet-bs64-1",
+  "labels": [
+    {
+      "id": "phonk",
+      "displayName": "Phonk",
+      "parents": []
+    },
+    {
+      "id": "drift_phonk",
+      "displayName": "Drift Phonk",
+      "parents": ["phonk"]
+    },
+    {
+      "id": "brazilian_phonk",
+      "displayName": "Brazilian Phonk",
+      "parents": ["phonk"]
+    },
+    {
+      "id": "drill",
+      "displayName": "Drill",
+      "parents": []
+    },
+    {
+      "id": "uk_drill",
+      "displayName": "UK Drill",
+      "parents": ["drill"]
+    },
+    {
+      "id": "amapiano",
+      "displayName": "Amapiano",
+      "parents": []
+    },
+    {
+      "id": "afrobeats",
+      "displayName": "Afrobeats",
+      "parents": []
+    },
+    {
+      "id": "afro_house",
+      "displayName": "Afro House",
+      "parents": []
+    },
+    {
+      "id": "hyperpop",
+      "displayName": "Hyperpop",
+      "parents": []
+    },
+    {
+      "id": "jersey_club",
+      "displayName": "Jersey Club",
+      "parents": []
+    },
+    {
+      "id": "future_bass",
+      "displayName": "Future Bass",
+      "parents": []
+    },
+    {
+      "id": "bass_house",
+      "displayName": "Bass House",
+      "parents": []
+    },
+    {
+      "id": "melodic_techno",
+      "displayName": "Melodic Techno",
+      "parents": []
+    },
+    {
+      "id": "lofi_hiphop",
+      "displayName": "Lo-fi Hip Hop",
+      "parents": []
+    },
+    {
+      "id": "liquid_dnb",
+      "displayName": "Liquid Drum & Bass",
+      "parents": []
+    },
+    {
+      "id": "neurofunk",
+      "displayName": "Neurofunk",
+      "parents": []
+    }
+  ]
+}

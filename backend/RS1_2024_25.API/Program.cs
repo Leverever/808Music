@@ -1,4 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using _808Music.Application;
+using _808Music.Application.Abstractions;
+using _808Music.Infrastructure;
+using _808Music.Infrastructure.Persistence;
+using Asp.Versioning;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
@@ -10,11 +16,13 @@ using RS1_2024_25.API.Helper.Auth;
 using RS1_2024_25.API.Hubs;
 using RS1_2024_25.API.Services;
 using RS1_2024_25.API.Services.Interfaces;
+using RS1_2024_25.API.Services.Recommendations;
 using System.Text;
 using static RS1_2024_25.API.Endpoints.CityEndpoints.ProductGetAllEndpoint;
 using FluentValidation;
 using RS1_2024_25.API.Data.Models.Auth;
 using FluentValidation.AspNetCore;
+using Amazon.S3;
 
 
 var config = new ConfigurationBuilder()
@@ -28,12 +36,55 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(config.GetConnectionString("db1")));
 
+builder.Services.AddDbContext<MusicDbContext>(options =>
+    options.UseSqlServer(config.GetConnectionString("db1"), sql =>
+    {
+        sql.MigrationsAssembly(typeof(MusicDbContext).Assembly.FullName);
+        sql.MigrationsHistoryTable("__EFMigrationsHistory_808MusicClean");
+    }));
 
+builder.Services.AddScoped<IApplicationDbContext>(sp =>
+    sp.GetRequiredService<MusicDbContext>());
 
 builder.Services.AddControllers();
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = new UrlSegmentApiVersionReader();
+})
+.AddMvc()
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(x => {
+    x.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "808 Music API",
+        Version = "v1",
+        Description = "Legacy API surface kept for backward compatibility. Existing routes remain available without a /v1 URL segment."
+    });
+    x.SwaggerDoc("v2", new OpenApiInfo
+    {
+        Title = "808 Music API",
+        Version = "v2",
+        Description = "Clean Architecture API surface for new and refactored 808 Music modules."
+    });
+    x.DocInclusionPredicate((documentName, apiDescription) =>
+    {
+        if (string.IsNullOrWhiteSpace(apiDescription.GroupName))
+        {
+            return documentName == "v1";
+        }
+
+        return string.Equals(apiDescription.GroupName, documentName, StringComparison.OrdinalIgnoreCase);
+    });
+    x.TagActionsBy(apiDescription => [GetSwaggerTag(apiDescription)]);
     x.OperationFilter<MyAuthorizationSwaggerHeader>();
     var security = new OpenApiSecurityScheme
     {
@@ -111,17 +162,25 @@ builder.Services.AddStackExchangeRedisCache(opt =>
     opt.Configuration = config.GetConnectionString("Redis");
 });
 
-//dodajte vaše servise
+// Custom services
 builder.Services.AddTransient<MyAuthService>();
 builder.Services.AddTransient<IMyFileHandler,FileHandler>();
 builder.Services.AddTransient<TokenProvider>();
+builder.Services.AddSingleton<RecurringTaskExecutionCoordinator>();
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("StripeSettings"));
 builder.Services.AddTransient<IMyMailService, MailService>();
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection(nameof(MailSettings)));
 builder.Services.AddTransient<DeleteService>();
+builder.Services.AddScoped<ILegacyPlaylistRecommendationReader, LegacyPlaylistRecommendationReader>();
 builder.Services.AddHostedService<MyBackgroundService>();
+builder.Services.Configure<CleanArchitectureBackgroundServiceOptions>(
+    builder.Configuration.GetSection(CleanArchitectureBackgroundServiceOptions.SectionName));
+builder.Services.AddHostedService<CleanArchitectureBackgroundService>();
 builder.Services.AddSingleton<IMyCacheService, MyRedisCacheService>();
 builder.Services.AddTransient<NotificationTransformerService>();
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddEfCrudPersistence<MusicDbContext>();
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<MyAppUser>();
@@ -130,7 +189,11 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "808 Music API v1 (Legacy)");
+    options.SwaggerEndpoint("/swagger/v2/swagger.json", "808 Music API v2");
+});
 
 app.UseCors(
     options => options
@@ -164,3 +227,56 @@ app.MapHub<ChatHub>("/chatHub");
 
 app.Run();
 app.UseCors("AllowAll");
+
+static string GetSwaggerTag(ApiDescription apiDescription)
+{
+    apiDescription.ActionDescriptor.RouteValues.TryGetValue("controller", out var controllerName);
+
+    var versionLabel = string.Equals(apiDescription.GroupName, "v2", StringComparison.OrdinalIgnoreCase)
+        ? "V2"
+        : "Legacy";
+
+    return $"{versionLabel} - {GetResourceName(controllerName)}";
+}
+
+static string GetResourceName(string? controllerName)
+{
+    if (string.IsNullOrWhiteSpace(controllerName))
+    {
+        return "API";
+    }
+
+    if (controllerName.Equals("AiPlaylists", StringComparison.OrdinalIgnoreCase))
+    {
+        return "AI Playlists";
+    }
+
+    if (controllerName.Contains("Recommendation", StringComparison.OrdinalIgnoreCase))
+    {
+        return "Recommendations";
+    }
+
+    if (controllerName.Contains("Stem", StringComparison.OrdinalIgnoreCase))
+    {
+        return "Stems";
+    }
+
+    if (controllerName.Contains("Track", StringComparison.OrdinalIgnoreCase))
+    {
+        return "Tracks";
+    }
+
+    if (controllerName.Contains("Artist", StringComparison.OrdinalIgnoreCase))
+    {
+        return "Artists";
+    }
+
+    if (controllerName.Contains("Product", StringComparison.OrdinalIgnoreCase))
+    {
+        return "Products";
+    }
+
+    return controllerName.EndsWith("Endpoint", StringComparison.OrdinalIgnoreCase)
+        ? controllerName[..^"Endpoint".Length]
+        : controllerName;
+}

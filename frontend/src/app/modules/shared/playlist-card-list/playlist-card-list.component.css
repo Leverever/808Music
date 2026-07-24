@@ -1,9 +1,39 @@
 .playlist-cards{
   display: flex;
   flex-direction: row;
+  gap: 18px;
+  flex-wrap: wrap;
 }
 .title{
   font-weight: 444;
   margin-top: 1vw;
+}
+
+@media (max-width: 960px) {
+  .title {
+    margin: 0 0 11px;
+    font-size: clamp(20px, 5.8vw, 26px);
+    font-weight: 740;
+    letter-spacing: -0.025em;
+    line-height: 1.12;
+  }
+
+  .playlist-cards {
+    flex-wrap: nowrap;
+    gap: 12px;
+    padding: 2px 2px 10px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .playlist-cards::-webkit-scrollbar {
+    display: none;
+  }
+
+  app-playlist-card {
+    flex: 0 0 clamp(150px, 43vw, 190px);
+    scroll-snap-align: start;
+  }
 }
 

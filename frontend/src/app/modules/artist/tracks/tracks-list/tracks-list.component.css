@@ -23,6 +23,27 @@
   padding-right: 2vw;
 }
 
+.detail-hero,
+.detail-tracks-surface {
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.detail-kicker {
+  margin: 0 0 5px;
+  color: #a9a9a9;
+  font-size: .9rem;
+}
+
+.detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: #a9a9a9;
+  font-size: .9rem;
+}
+
 .track-page-controls {
   display: flex;
   justify-content: space-between;

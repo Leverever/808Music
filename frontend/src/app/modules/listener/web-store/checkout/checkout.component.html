@@ -1,86 +1,66 @@
-<div class="checkout-container">
-  <h1>Checkout</h1>
+<main class="checkout-page">
+  <header class="checkout-header">
+    <a routerLink="/listener/store-home" aria-label="Return to shop"><mat-icon>arrow_back</mat-icon></a>
+    <div><span>Secure checkout</span><h1>Complete your order</h1><p>Review your bag, add delivery details, then pay securely.</p></div>
+  </header>
 
-  <mat-vertical-stepper [(selectedIndex)]="currentStep" linear>
-    <mat-step label="Your Products">
-      <section class="order-summary">
-        <h2>Order Summary</h2>
-        <ul class="order-items">
-          <li *ngFor="let item of cartItems">
-            <img [src]="MyConfig.media_address + item.productPhoto" alt="Product Image" class="product-photo" />
-            <div class="product-information">
-              <h3>{{ item.productTitle }}</h3>
-              <p>{{ item.discountedPrice | number: '1.2-2' }}$</p>
-              <p>Quantity: {{ item.quantity }}</p>
-            </div>
-          </li>
-        </ul>
-        <div class="total">
-          <h3>Total: {{ totalPrice | number: '1.2-2'}}$</h3>
-        </div>
-      </section>
-    </mat-step>
-
-    <mat-step label="Shipping Info">
-      <form [formGroup]="checkoutForm">
-        <div>
-          <label for="name">Name</label>
-          <input id="name" formControlName="name" type="text" required />
-          <div *ngIf="checkoutForm.get('name')?.invalid && checkoutForm.get('name')?.touched">
-            <small class="error" *ngIf="checkoutForm.get('name')?.hasError('required')">Name is required.</small>
-            <small class="error" *ngIf="checkoutForm.get('name')?.hasError('minlength')">Name must be at least 2 characters long.</small>
-            <small class="error" *ngIf="checkoutForm.get('name')?.hasError('pattern')">Name can only contain letters and spaces.</small>
-
+  <section class="checkout-shell">
+    <mat-vertical-stepper [(selectedIndex)]="currentStep" (selectionChange)="onStepChanged($event.selectedIndex)">
+      <mat-step label="Your products">
+        <section class="checkout-step">
+          <div class="checkout-step__heading"><span>Step 1 of 3</span><h2>Order summary</h2></div>
+          <div class="checkout-items">
+            <article *ngFor="let item of cartItems">
+              <img [src]="MyConfig.media_address + item.productPhoto" [alt]="item.productTitle">
+              <div><h3>{{ item.productTitle }}</h3><p>Quantity {{ item.quantity }}</p></div>
+              <strong>{{ item.discountedPrice * item.quantity | currency:'EUR':'symbol':'1.2-2' }}</strong>
+            </article>
           </div>
-        </div>
+          <div class="checkout-total"><span>Total</span><strong>{{ totalPrice | currency:'EUR':'symbol':'1.2-2' }}</strong></div>
+          <div class="checkout-navigation"><span></span><button type="button" class="primary" (click)="goToNextStep()">Delivery details<mat-icon>arrow_forward</mat-icon></button></div>
+        </section>
+      </mat-step>
 
-        <div class="country-place">
-          <label for="country">Country</label>
-          <select id="country" formControlName="country" required>
-            <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
-          </select>
-          <div *ngIf="checkoutForm.get('country')?.invalid && checkoutForm.get('country')?.touched">
-            <small class="error" *ngIf="checkoutForm.get('country')?.hasError('required')">Country is required.</small>
-          </div>
-        </div>
+      <mat-step label="Shipping info">
+        <section class="checkout-step">
+          <div class="checkout-step__heading"><span>Step 2 of 3</span><h2>Delivery details</h2></div>
+          <form class="shipping-form" [formGroup]="checkoutForm">
+            <label><span>Name</span><input formControlName="name" type="text" autocomplete="name" placeholder="Your full name"></label>
+            <small class="error" *ngIf="checkoutForm.get('name')?.touched && checkoutForm.get('name')?.invalid">Enter a valid name using at least two letters.</small>
+            <label><span>Country</span><select formControlName="country" autocomplete="country-name"><option value="" disabled>Choose a country</option><option *ngFor="let country of countries" [value]="country">{{ country }}</option></select></label>
+            <label><span>City</span><input formControlName="city" type="text" autocomplete="address-level2" placeholder="City"></label>
+            <label><span>Phone number</span><input formControlName="phoneNumber" type="tel" autocomplete="tel" inputmode="numeric" placeholder="9 digit phone number"></label>
+            <small class="error" *ngIf="checkoutForm.get('phoneNumber')?.touched && checkoutForm.get('phoneNumber')?.invalid">Enter a 9 digit phone number.</small>
+          </form>
+          <p class="checkout-error" *ngIf="errorMessage">{{ errorMessage }}</p>
+          <div class="checkout-navigation"><button type="button" (click)="goToPreviousStep()"><mat-icon>arrow_back</mat-icon>Back</button><button type="button" class="primary" (click)="goToNextStep()">Payment<mat-icon>arrow_forward</mat-icon></button></div>
+        </section>
+      </mat-step>
 
-        <div>
-          <label for="city">City</label>
-          <input id="city" formControlName="city" type="text" required />
-          <div *ngIf="checkoutForm.get('city')?.invalid && checkoutForm.get('city')?.touched">
-            <small class="error" *ngIf="checkoutForm.get('city')?.hasError('required')">City is required.</small>
-          </div>
-        </div>
+      <mat-step label="Payment">
+        <section class="checkout-step">
+          <div class="checkout-step__heading"><span>Step 3 of 3</span><h2>Payment</h2><p>Your card details are processed securely by Stripe.</p></div>
+          <form class="payment-form" (ngSubmit)="handleSubmit()">
+            <label for="card-element">Card information</label>
+            <div id="card-element"></div>
+            <button type="submit" class="pay-button" [disabled]="processing || totalPrice <= 0"><mat-icon>{{ processing ? 'hourglass_top' : 'lock' }}</mat-icon><span>{{ processing ? 'Processing…' : ('Pay ' + (totalPrice | currency:'EUR':'symbol':'1.2-2')) }}</span></button>
+          </form>
+          <p class="checkout-error" *ngIf="errorMessage">{{ errorMessage }}</p>
+          <p class="payment-success" *ngIf="paymentSuccess"><mat-icon>check_circle</mat-icon>Payment successful</p>
+          <div class="checkout-navigation checkout-navigation--single"><button type="button" (click)="goToPreviousStep()"><mat-icon>arrow_back</mat-icon>Back</button></div>
+        </section>
+      </mat-step>
+    </mat-vertical-stepper>
+  </section>
 
-        <div>
-          <label for="phoneNumber">Phone Number</label>
-          <input id="phoneNumber" formControlName="phoneNumber" type="text" required />
-          <div *ngIf="checkoutForm.get('phoneNumber')?.invalid && checkoutForm.get('phoneNumber')?.touched">
-            <small class="error" *ngIf="checkoutForm.get('phoneNumber')?.hasError('required')">Phone number is required.</small>
-            <small class="error" *ngIf="checkoutForm.get('phoneNumber')?.hasError('pattern')">Phone number must be 9 digits.</small>
-          </div>
-        </div>
-      </form>
-
-
-    </mat-step>
-
-    <mat-step label="Payment">
-      <div class="stripe-container">
-        <h2>Payment</h2>
-        <form (ngSubmit)="handleSubmit()">
-          <div id="card-element"></div>
-          <button type="submit">Pay ${{ totalPrice | number: '1.2-2' }}</button>
-        </form>
-
-        <div *ngIf="errorMessage" class="error-message">
-          {{ errorMessage }}
-        </div>
-
-        <div *ngIf="paymentSuccess" class="payment-success">
-          Payment successful!
-        </div>
-      </div>
-    </mat-step>
-  </mat-vertical-stepper>
-</div>
+  <nav class="checkout-mobile-navigation" aria-label="Checkout steps">
+    <button type="button" *ngIf="currentStep > 0" (click)="goToPreviousStep()">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Back</span>
+    </button>
+    <button type="button" class="primary" *ngIf="currentStep < 2" (click)="goToNextStep()">
+      <span>{{ currentStep === 0 ? 'Delivery details' : 'Payment' }}</span>
+      <mat-icon>arrow_forward</mat-icon>
+    </button>
+  </nav>
+</main>

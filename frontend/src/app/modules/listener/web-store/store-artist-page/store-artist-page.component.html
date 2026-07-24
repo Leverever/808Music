@@ -1,22 +1,27 @@
-<div class="products">
-  <h2>ALL PRODUCTS</h2>
+<section class="artist-storefront">
+  <header>
+    <span>Official merchandise</span>
+    <h2>Shop the artist</h2>
+    <p *ngIf="Products.length">{{ Products.length }} product{{ Products.length === 1 ? '' : 's' }}</p>
+  </header>
 
-  <div *ngIf="Products.length === 0" class="no-products">
-    No products
+  <div class="artist-storefront__state" *ngIf="loading">
+    <mat-spinner diameter="38"></mat-spinner>
+    <p>Loading merchandise…</p>
   </div>
 
-
-  <div class="product-row" *ngIf="Products.length > 0">
-    <div *ngFor="let product of Products" class="product" matTooltip="{{ product.title }}" matTooltipPosition="above" (click)="viewProduct(product.slug)">
-      <div class="sale-badge" *ngIf="product.saleAmount > 0">
-        -{{ (product.saleAmount * 100).toFixed(0) }}%
-      </div>
-      <img [src]="MyConfig.media_address + product.photoPaths[product.photoPaths.length - 1]" alt="{{ product.title }}" class="product-image">
-      <div class="product-info">
-        <p class="product-name hide-overflow">{{ product.title }}</p>
-        <p class="product-price">{{ updateCalculatedPrice(product).toFixed(2)}}$</p>
-      </div>
-    </div>
+  <div class="artist-storefront__state" *ngIf="!loading && errorMessage">
+    <mat-icon>storefront</mat-icon>
+    <p>{{ errorMessage }}</p>
   </div>
 
-</div>
+  <div class="artist-storefront__state" *ngIf="!loading && !errorMessage && !Products.length">
+    <mat-icon>inventory_2</mat-icon>
+    <h3>No merchandise yet</h3>
+    <p>New products will appear here when they are released.</p>
+  </div>
+
+  <div class="artist-storefront__grid" *ngIf="!loading && Products.length">
+    <app-store-product-card *ngFor="let product of Products" [product]="product"></app-store-product-card>
+  </div>
+</section>

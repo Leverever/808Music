@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using _808Music.Application.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using RS1_2024_25.API.Data;
 using RS1_2024_25.API.Data.Models;
@@ -9,7 +10,7 @@ using RS1_2024_25.API.Services.Interfaces;
 
 namespace RS1_2024_25.API.Endpoints.TrackEndpoints
 {
-    public class TrackStreamEndpoint(ApplicationDbContext db, IMyCacheService cs, IMyFileHandler fh, IConfiguration cfg, TokenProvider tp) : MyEndpointBaseAsync.WithRequest<TrackStreamRequest>.WithActionResult
+    public class TrackStreamEndpoint(ApplicationDbContext db, IMyCacheService cs, IMyFileHandler fh, IConfiguration cfg, TokenProvider tp, IMediaStorage mediaStorage) : MyEndpointBaseAsync.WithRequest<TrackStreamRequest>.WithActionResult
     {
         //[Authorize]
         [HttpGet]
@@ -21,11 +22,12 @@ namespace RS1_2024_25.API.Endpoints.TrackEndpoints
             }
             var user = await db.MyAppUsers.Include(u => u.Subscription)
                             .FirstOrDefaultAsync(u => u.ID == userId, cancellationToken);
-
+            /*
             if ((user.Subscription == null || user.Subscription.EndDate < DateTime.UtcNow) && (request.ArtistMode == null || !request.ArtistMode.Value))
             {
                 return Unauthorized(new { message = "Your subscription has expired or is not active." });
             }
+            */
             //TODO Check for active subscription
             
             Track? track = request.TrackId <= 0 ? await db.Tracks.FirstOrDefaultAsync(cancellationToken) : await cs.GetAsync<Track>($"track-{request.TrackId}", cancellationToken);
@@ -42,10 +44,38 @@ namespace RS1_2024_25.API.Endpoints.TrackEndpoints
                 return Unauthorized();
             }
 
-            var stream = await fh.GetFileAsStreamAsync(Path.Combine(cfg["StaticFilePaths:Tracks"]!, track.TrackPath));
+            if (IsObjectStorageKey(track.TrackPath))
+            {
+                var readUrl = await mediaStorage.CreateReadUrlAsync(
+                    track.TrackPath,
+                    TimeSpan.FromMinutes(10),
+                    cancellationToken);
+                return Redirect(readUrl.ToString());
+            }
+            
+            //With file caching
+            var stream = await cs.GetStreamAsync($"track-file-{track.Id}", async () =>
+            {
+                return ((MemoryStream)(await fh.GetFileAsStreamAsync(Path.Combine(cfg["StaticFilePaths:Tracks"]!, track.TrackPath)))).ToArray();
+            }, cancellationToken);
+            
+            //Without caching the file
+            //var stream = await fh.GetFileAsStreamAsync(Path.Combine(cfg["StaticFilePaths:Tracks"]!, track.TrackPath));
             var file = File(stream, "audio/mpeg", enableRangeProcessing: true);
 
             return file;
+        }
+
+        private bool IsObjectStorageKey(string trackPath)
+        {
+            var configuredPrefix = cfg["LegacyTrackMigration:ObjectKeyPrefix"];
+            var prefix = string.IsNullOrWhiteSpace(configuredPrefix)
+                ? "tracks"
+                : configuredPrefix.Trim().Trim('/', '\\');
+
+            return trackPath.Replace('\\', '/').StartsWith(
+                $"{prefix}/",
+                StringComparison.OrdinalIgnoreCase);
         }
     }
 

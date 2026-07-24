@@ -23,7 +23,11 @@ export interface TrackGetResponse {
   coverPath: string;
   trackUserInfo : TrackUserInfoDto[];
   artists: ArtistTrackDto[];
-  albumId: number;
+  albumId: number | null;
+  associationId?: number | null;
+  discNumber?: number;
+  trackNumber?: number;
+  isLegacyAssociation?: boolean;
 }
 
 @Injectable({

@@ -18,9 +18,14 @@ namespace RS1_2024_25.API.Endpoints.AlbumEndpoints
             if(a == null)
                 return NotFound();
 
-            int numOfTracks = await db.Tracks.Where(t => t.AlbumId == id).CountAsync(cancellationToken);
-            bool isExplicit = await db.Tracks.Where(t => t.AlbumId == id && t.isExplicit).CountAsync(cancellationToken) > 0;
-            int seconds = await db.Tracks.Where(t => t.AlbumId == id).Select(t => t.Length).SumAsync();
+            var releaseTracks = db.Tracks.Where(track =>
+                track.AlbumId == id ||
+                db.AlbumTrackAssociations.Any(association =>
+                    association.AlbumId == id && association.TrackId == track.Id));
+
+            int numOfTracks = await releaseTracks.CountAsync(cancellationToken);
+            bool isExplicit = await releaseTracks.AnyAsync(t => t.isExplicit, cancellationToken);
+            int seconds = await releaseTracks.Select(t => t.Length).SumAsync(cancellationToken);
 
             await db.AlbumTypes.LoadAsync(cancellationToken);
             var response = new AlbumGetResponse

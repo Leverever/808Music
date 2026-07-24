@@ -1,0 +1,61 @@
+<div class="tracks-page mobile-artwork-detail" appMobileDetailScroll
+     [style.--detail-artwork]="radioArtworkCss">
+  @if (loading) {
+    <div class="playlist-state">Loading song radio...</div>
+  } @else if (errorMessage) {
+    <div class="playlist-state error-state">
+      <p>{{ errorMessage }}</p>
+      <button (click)="goBack()">Go back</button>
+    </div>
+  } @else if (seedTrack) {
+    <section class="detail-hero">
+      <div class="track-page-controls">
+        <button mat-icon-button class="go-back-button detail-back-button" (click)="goBack()" aria-label="Go back">
+          <mat-icon class="go-back-arrow">arrow_back</mat-icon>
+        </button>
+      </div>
+
+      <header class="playlist-info">
+        <div class="playlist-cover detail-artwork">
+          <img [src]="coverUrl()" [alt]="seedTrack.title + ' radio cover'">
+        </div>
+
+        <div class="playlist-details detail-copy">
+          <p class="playlist-type detail-kicker">Song radio</p>
+          <h1 class="playlist-title detail-title">{{ seedTrack.title }} Radio</h1>
+          <p class="playlist-description">
+            A personalized station based on {{ seedTrack.title }} by {{ getSeedArtists() }}.
+          </p>
+          <div class="playlist-information detail-meta">
+            <span class="ai-owner" matTooltip="Built from this song" matTooltipPosition="above">
+              <mat-icon>radio</mat-icon>
+            </span>
+            <p>{{ tracks.length }} songs, {{ getTotalTrackLength() }}</p>
+            <span class="separator">&bull;</span>
+            <p>Based on {{ seedTrack.title }}</p>
+          </div>
+        </div>
+      </header>
+    </section>
+
+    @if (tracks.length > 0) {
+      <section class="detail-tracks-surface">
+        <app-tracks-table
+          [inArtistMode]="false"
+          [tracks]="tracks"
+          [allowPagination]="false"
+          [isPlaylist]="true"
+          searchMode="client"
+          [isCollaborative]="false"
+          [isUsersPlaylist]="false"
+          (onMainClick)="playTrack($event)"
+          (onCreateClick)="playAll()"
+        ></app-tracks-table>
+      </section>
+    } @else {
+      <div class="playlist-state empty-radio-state">
+        No radio recommendations are available for this song yet.
+      </div>
+    }
+  }
+</div>

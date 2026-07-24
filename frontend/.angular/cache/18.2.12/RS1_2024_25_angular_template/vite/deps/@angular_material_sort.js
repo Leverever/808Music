@@ -1,4 +1,10 @@
 import {
+  AnimationCurves,
+  AnimationDurations,
+  MatCommonModule
+} from "./chunk-3KZBSG6L.js";
+import "./chunk-RP2C3EAY.js";
+import {
   animate,
   animateChild,
   keyframes,
@@ -9,16 +15,11 @@ import {
   trigger
 } from "./chunk-OPRBR5CV.js";
 import {
-  AnimationCurves,
-  AnimationDurations,
-  MatCommonModule
-} from "./chunk-YLGR4HG7.js";
-import {
   AriaDescriber,
   ENTER,
   FocusMonitor,
   SPACE
-} from "./chunk-C3HE3YWP.js";
+} from "./chunk-PVGMN4UN.js";
 import "./chunk-QFPSIRYE.js";
 import {
   ChangeDetectionStrategy,

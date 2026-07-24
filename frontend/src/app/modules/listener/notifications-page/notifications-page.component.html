@@ -1,80 +1,97 @@
-<div class="notifications-page">
-  <div class="title">
-    <h1>Your Notifications</h1>
-  </div>
-  @if (notifications.length > 0) {
-    <div class="controls">
-      <div class="chips">
-        <mat-divider [vertical]="true" [ngStyle]="{'padding-right': '10px'}"></mat-divider>
-        <div>
-          <h6>Type</h6>
-          <mat-chip-listbox>
-            <mat-chip-option [id]="'0'" (selectionChange)="filterSelectedType($event)"
-                             [selected]="filterText === 'All'">All
-            </mat-chip-option>
-            <mat-divider [vertical]="true" [ngStyle]="{'padding-right': '10px'}"></mat-divider>
-            @for (type of notiTypes; track i; let i = $index) {
-              <mat-chip-option [id]="(i+1).toString()" [value]="type"
-                               (selectionChange)="filterSelectedType($event)">{{ type }}
-              </mat-chip-option>
-            }
-          </mat-chip-listbox>
-        </div>
-        <mat-divider [vertical]="true" [ngStyle]="{'padding-right': '10px'}"></mat-divider>
-        <div>
-          <h6>Priority</h6>
-          <mat-chip-listbox>
-            <mat-chip-option [id]="'0'" (selectionChange)="filterPriority($event)"
-                             [selected]="priotity === 0">All
-            </mat-chip-option>
-            <mat-divider [vertical]="true" [ngStyle]="{'padding-right': '10px'}"></mat-divider>
-            <mat-chip-option [id]="'2'" (selectionChange)="filterPriority($event)"
-                             ><div class="priority-chip">
-              <mat-icon>stars</mat-icon>
-              <div>Prioritized</div>
-            </div>
-            </mat-chip-option>
-            <mat-chip-option [id]="'1'" (selectionChange)="filterPriority($event)"
-                             >Not prioritized
-            </mat-chip-option>
-          </mat-chip-listbox>
-        </div>
-        <mat-divider [vertical]="true" [ngStyle]="{'padding-right': '10px'}"></mat-divider>
-      </div>
-      <div class="dual-control">
-        <button mat-icon-button (click)="openManageFollowing()" [matTooltip]="'Manage following'">
-          <mat-icon>manage_accounts</mat-icon>
-        </button>
-        <button mat-icon-button (click)="openSettings()" [matTooltip]="'Notification settings'">
-          <mat-icon>settings</mat-icon>
-        </button>
-        <button mat-flat-button (click)="clearAllNotis()">
-          <mat-icon>checklist</mat-icon>
-          Clear All
-        </button>
-      </div>
+<main class="notifications-page">
+  <header class="notifications-hero">
+    <div>
+      <span class="eyebrow">Your activity</span>
+      <h1>Notifications</h1>
+      <p>Updates from artists, conversations and releases you care about.</p>
     </div>
-    <div class="notifications-panel">
-      @for (n of filteredNotifications; track n.guid; let i = $index) {
+
+    <div class="header-actions">
+      <button type="button" mat-icon-button class="glass-icon-button"
+              (click)="openManageFollowing()" matTooltip="Manage following"
+              aria-label="Manage following">
+        <mat-icon>manage_accounts</mat-icon>
+      </button>
+      <button type="button" mat-icon-button class="glass-icon-button"
+              (click)="openSettings()" matTooltip="Notification preferences"
+              aria-label="Notification preferences">
+        <mat-icon>tune</mat-icon>
+      </button>
+      @if (notifications.length > 0) {
+        <button type="button" mat-flat-button class="clear-button" (click)="clearAllNotis()">
+          <mat-icon>done_all</mat-icon>
+          <span>Clear all</span>
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (notifications.length > 0) {
+    <section class="filter-panel" aria-label="Notification filters">
+      <div class="filter-group">
+        <span class="filter-label">Type</span>
+        <mat-chip-listbox class="filter-list" aria-label="Filter by notification type">
+          <mat-chip-option [id]="'0'" (selectionChange)="filterSelectedType($event)"
+                           [selected]="filterText === 'All'">All</mat-chip-option>
+          @for (type of notiTypes; track type) {
+            <mat-chip-option [value]="type" (selectionChange)="filterSelectedType($event)">
+              {{ type }}
+            </mat-chip-option>
+          }
+        </mat-chip-listbox>
+      </div>
+
+      <div class="filter-group priority-filter">
+        <span class="filter-label">Priority</span>
+        <mat-chip-listbox class="filter-list" aria-label="Filter by priority">
+          <mat-chip-option [id]="'0'" (selectionChange)="filterPriority($event)"
+                           [selected]="priotity === 0">All</mat-chip-option>
+          <mat-chip-option [id]="'2'" (selectionChange)="filterPriority($event)">
+            <span class="priority-chip"><mat-icon>stars</mat-icon>Priority</span>
+          </mat-chip-option>
+          <mat-chip-option [id]="'1'" (selectionChange)="filterPriority($event)">
+            Standard
+          </mat-chip-option>
+        </mat-chip-listbox>
+      </div>
+    </section>
+
+    <section class="notifications-panel" aria-live="polite">
+      @for (n of filteredNotifications; track n.guid) {
         @if (!n.hidden) {
           <app-notification-card [notification]="n" (onRead)="removeNoti($event)"></app-notification-card>
         }
       }
-      <div class="footer">
-        <mat-icon>info</mat-icon>
-        <p>That's all we have for you, follow more artists to receive notifications more frequently...</p>
-      </div>
-    </div>
+
+      @if (filteredNotifications.length === 0) {
+        <div class="empty-state filtered-empty">
+          <mat-icon>filter_alt_off</mat-icon>
+          <strong>No matching notifications</strong>
+          <p>Try changing one of the filters above.</p>
+        </div>
+      } @else {
+        <footer class="notification-footer">
+          <mat-icon>auto_awesome</mat-icon>
+          <p>You are all caught up. Follow more artists to receive more updates.</p>
+        </footer>
+      }
+    </section>
   } @else {
-    <div>
-      <h3 class="info">
-        <mat-icon>info</mat-icon>
-        You have read all your notifications!
-      </h3>
-      <button mat-flat-button (click)="openSettings()">
-        <mat-icon>settings</mat-icon>
-        Change notification settings
-      </button>
-    </div>
+    <section class="empty-state page-empty">
+      <div class="empty-icon"><mat-icon>notifications_none</mat-icon></div>
+      <span class="eyebrow">Inbox zero</span>
+      <h2>You’re all caught up</h2>
+      <p>New releases, messages and artist updates will appear here.</p>
+      <div class="empty-actions">
+        <button type="button" mat-flat-button class="clear-button" (click)="openManageFollowing()">
+          <mat-icon>person_add</mat-icon>
+          Manage following
+        </button>
+        <button type="button" mat-button class="secondary-button" (click)="openSettings()">
+          <mat-icon>tune</mat-icon>
+          Preferences
+        </button>
+      </div>
+    </section>
   }
-</div>
+</main>

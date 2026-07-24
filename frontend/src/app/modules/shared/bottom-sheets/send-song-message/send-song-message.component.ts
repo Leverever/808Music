@@ -13,7 +13,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 @Component({
   selector: 'app-send-song-message',
   templateUrl: './send-song-message.component.html',
-  styleUrls: ['../../search-page/search-page.component.css','../../../artist/manage-users/manage-users.component.css','../manage-following-bottom-sheet/manage-following-bottom-sheet.component.css','../create-chat-bottom-sheet/create-chat-bottom-sheet.component.css', './send-song-message.component.css']
+  styleUrls: ['./send-song-message.component.css']
 })
 export class SendSongMessageComponent implements OnInit {
   sheetRef = inject<MatBottomSheetRef<SendSongMessageComponent>>(MatBottomSheetRef);
@@ -82,13 +82,24 @@ export class SendSongMessageComponent implements OnInit {
   protected readonly MyConfig = MyConfig;
 
   checkChat(event: MatCheckboxChange, a: ChatGetResponse) {
-    if(event.checked)
+    this.setChatSelected(a, event.checked);
+  }
+
+  toggleChat(chat: ChatGetResponse): void {
+    this.setChatSelected(chat, !this.checkIfSelected(chat));
+  }
+
+  private setChatSelected(chat: ChatGetResponse, selected: boolean): void {
+    if(selected)
     {
-      this.chatsToSendTo.push(a)
+      if(!this.checkIfSelected(chat))
+      {
+        this.chatsToSendTo.push(chat);
+      }
     }
     else
     {
-      this.chatsToSendTo = this.chatsToSendTo.filter(c => c.id !== a.id)
+      this.chatsToSendTo = this.chatsToSendTo.filter(c => c.id !== chat.id);
     }
   }
 

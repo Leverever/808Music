@@ -1,0 +1,36 @@
+<section class="liquid-sheet playlist-sheet">
+  <header class="liquid-sheet-header">
+    <div>
+      <span class="liquid-sheet-eyebrow">Track action</span>
+      <h3>Add to playlist</h3>
+    </div>
+    <button type="button" mat-icon-button class="liquid-sheet-close"
+            (click)="dismiss()" aria-label="Close playlist picker">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <div class="liquid-sheet-scroll playlist-list">
+    @if (data.playlists.length > 0) {
+      @for (playlist of data.playlists; track playlist.id) {
+        <button type="button" class="liquid-sheet-row playlist-row"
+                (click)="selectPlaylist(playlist.id)">
+          <img [src]="coverUrl(playlist.coverPath)" alt="">
+          <span class="playlist-copy">
+            <strong>{{ playlist.title }}</strong>
+            <small>{{ playlist.numOfTracks }} tracks</small>
+          </span>
+          <mat-icon class="playlist-state">
+            {{ data.membership[playlist.id] ? 'check_circle' : 'add_circle_outline' }}
+          </mat-icon>
+        </button>
+      }
+    } @else {
+      <div class="liquid-sheet-empty">
+        <mat-icon>playlist_add</mat-icon>
+        <strong>No playlists yet</strong>
+        <span>Create a playlist from your library first.</span>
+      </div>
+    }
+  </div>
+</section>

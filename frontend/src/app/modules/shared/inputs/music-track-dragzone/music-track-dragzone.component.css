@@ -1,6 +1,7 @@
 .img-drag-drop {
   width: 100%;
-  height: 14vh;
+  min-height: 14vh;
+  height: auto;
   border: 1px solid #EEDEE7;
   border-radius: 30px;
   position: relative;
@@ -9,7 +10,11 @@
 
 .dd-landing {
   position: relative;
-  margin-bottom: 4vh;
+  min-height: 14vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .dd-landing p, .dd-landing h6 {
@@ -17,14 +22,21 @@
 }
 
 .dd-landing h6 {
-  padding-top: 1.5vh;
+  padding: 0;
+  margin: 0 0 0.5rem;
+}
+
+.dd-landing p {
+  margin: 0.2rem 0;
 }
 
 .file {
+  inset: 0;
   width: 100%;
-  height: 14vh;
+  height: 100%;
   opacity: 0;
   position: absolute;
+  cursor: pointer;
 }
 
 mat-card-header img {
@@ -37,9 +49,13 @@ mat-card-subtitle {
 }
 
 mat-card {
+  position: static;
+  display: block;
+  margin: 0 12px 12px;
   overflow-x: auto;
 }
 
 mat-card audio {
+  display: block;
   width: 100%;
 }

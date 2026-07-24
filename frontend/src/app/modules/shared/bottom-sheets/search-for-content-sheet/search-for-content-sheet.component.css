@@ -1,93 +1,92 @@
-.thumbnail {
-  width: 80px;
-  height: 80px;
-  background-size: cover;
+.attachment-sheet {
+  min-height: 400px;
+}
+
+.attachment-search {
+  flex: 0 0 auto;
+}
+
+.attachment-results {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.attachment-result {
+  width: 100%;
+  text-align: left;
+}
+
+.attachment-cover {
+  display: block;
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 12px;
+  background-color: #251f27;
   background-position: center;
-  border-radius: 10px;
+  background-size: cover;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, .22);
 }
 
-.following h6, .following p{
-  padding: 0;
-  margin: 0;
+.attachment-cover.artist-cover {
+  border-radius: 50%;
 }
 
-.result-card {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 15px;
+.attachment-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 5px;
 }
 
-.card-info {
-  display: flex;
-  flex-direction: column;
-  justify-self: flex-start;
-}
-
-.type {
-  display: flex;
-  align-items: center;
-  color: #A9A9A9;
-  gap: 3px;
-}
-
-.flex-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  max-width: 50vw;
-}
-
-.hide-overflow {
+.attachment-copy strong {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.following-page {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-h3 {
-  font-weight: 500;
-  margin-bottom: 0;
-  align-self: center;
-}
-
-.search {
-  align-self: center;
-  overflow-x: hidden;
-}
-
-.following {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 1vh;
-}
-
-.following-page {
-  min-width: 40vw;
-  min-height: 40vh;
-}
-
-.result-error {
+.attachment-copy > span {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 5vh;
-  margin-bottom: 10vh;
+  gap: 4px;
+  color: rgba(242, 232, 243, .58);
+  font-size: 12px;
 }
 
-.result-error > h3 {
-  margin: 0;
-  padding: 0;
+.attachment-copy mat-icon {
+  width: 17px;
+  height: 17px;
+  color: #dfa0ec;
+  font-size: 17px;
+  line-height: 17px;
 }
 
-.result-error > mat-icon {
-  width: 50px;
-  height: 50px;
-  font-size: 50px;
+.attach-icon {
+  color: #e9a8f6;
+}
+
+:host ::ng-deep .attachment-search .search-bar-input {
+  min-height: 48px;
+  margin-right: 0;
+  padding-left: 42px;
+  border: 1px solid rgba(255, 255, 255, .13);
+  outline: 0;
+  background: rgba(15, 12, 17, .34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
+}
+
+@media (max-width: 960px) {
+  .attachment-sheet {
+    min-height: min(560px, 72dvh);
+  }
+
+  .attachment-results {
+    gap: 7px;
+  }
+
+  .attachment-result {
+    min-height: 72px;
+  }
 }

@@ -11,7 +11,7 @@ export interface MessageContent {
 @Component({
   selector: 'app-message-content-card',
   templateUrl: './message-content-card.component.html',
-  styleUrls: ['../bottom-sheets/search-for-content-sheet/search-for-content-sheet.component.css','./message-content-card.component.css']
+  styleUrls: ['./message-content-card.component.css']
 })
 export class MessageContentCardComponent {
   @Input("content") a : MessageContent | null = null;
@@ -19,6 +19,7 @@ export class MessageContentCardComponent {
   @Input() btnIconName: string = "play_arrow";
   @Input() iconButton: boolean = false;
   @Input() btnLabel: string = "Attach";
+  @Input() alignTextEnd = false;
 
   constructor(private router: Router) {
   }

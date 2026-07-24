@@ -26,8 +26,7 @@ export class ForgetPasswordComponent {
   sendResetRequest() {
     this.requestForReset.handleAsync(this.resetRequest).subscribe(
       {
-        next: (text) => {
-          alert(text);
+        next: () => {
           this.sentRequest = true;
         },
         error: (err) => {

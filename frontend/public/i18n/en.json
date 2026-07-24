@@ -24,8 +24,12 @@
   },
   "SETTINGS": {
     "Title": "Settings",
+    "HeroEyebrow": "Your experience",
+    "Description": "Manage your account, listening experience and notification preferences.",
     "ACCOUNT": {
       "Title": "Account",
+      "Kicker": "Personal information",
+      "Description": "Keep your account details accurate and secure.",
       "FirstName": "First Name*",
       "LastName": "Last Name*",
       "DateOfBirth" : "Date of birth*",
@@ -34,23 +38,52 @@
       "Country": "Country*",
       "NewPassword": "New password",
       "NewPassPlaceholder": "Leave empty if you don't want to change your password",
-      "SaveChanges": "Save Changes"
+      "SaveChanges": "Save Changes",
+      "PasswordRequired": "Your current password is required before saving."
     },
     "PROFILE": {
       "Title": "Profile",
+      "Kicker": "Identity",
       "ChangePicture": "Change picture"
     },
     "NOTIFICATIONS": {
       "Title": "Notifications",
+      "Kicker": "Stay informed",
       "Preferences": "Change preferences",
-      "Following": "Manage following"
+      "PreferencesDescription": "Choose delivery channels and priority updates.",
+      "Following": "Manage following",
+      "FollowingDescription": "Manage artist follows and release alerts."
     },
     "PLAYBACK": {
       "Title": "Playback",
-      "Autoplay": "Autoplay"
+      "Autoplay": "Autoplay",
+      "AutoplayDescription": "Continue with a related track when your queue ends.",
+      "ToggleAutoplay": "Toggle autoplay"
     },
     "LANGUAGE": {
-      "Title": "Language"
+      "Title": "Language",
+      "Description": "Choose the language used throughout 808 Music."
+    },
+    "APP": {
+      "Kicker": "App behavior",
+      "Title": "Playback & language"
+    },
+    "DIALOGS": {
+      "ProfileEyebrow": "Profile",
+      "PictureTitle": "Change profile picture",
+      "PictureDescription": "Choose an image and crop it to fit your profile.",
+      "AddPhoto": "Add a photo",
+      "BrowsePhoto": "Tap to browse or drop an image here.",
+      "PhotoReady": "Photo ready",
+      "CropPhoto": "Adjust the crop below before saving.",
+      "Cancel": "Cancel",
+      "SavePicture": "Save picture",
+      "SecurityEyebrow": "Account security",
+      "PasswordTitle": "Save account changes",
+      "PasswordDescription": "Enter your password to proceed.",
+      "PasswordLabel": "Current password",
+      "PasswordPlaceholder": "Enter your current password",
+      "Confirm": "Confirm"
     }
   }
 }

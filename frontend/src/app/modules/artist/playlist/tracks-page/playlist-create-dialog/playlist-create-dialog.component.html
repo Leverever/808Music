@@ -1,25 +1,118 @@
-<h1 mat-dialog-title>Create Playlist</h1>
-<div mat-dialog-content>
-  <form [formGroup]="playlistForm">
-    <div class="file-input-container">
-      <div class="image-preview">
-        <img *ngIf="previewUrl" [src]="previewUrl" alt="Cover Image">
-          <div class="change-icon" (click)="triggerFileInput()"><mat-icon>add</mat-icon></div>
-      </div>
-      <div class="input-container">
-        <input type="file" id="coverImage" (change)="onFileSelected($event)" #fileInput hidden>
-        <div class="name-and-privacy">
-          <mat-form-field class="full-width">
-            <input matInput formControlName="title" placeholder="Playlist Title">
-            <mat-error *ngIf="playlistForm.get('title')?.invalid">Title is required</mat-error>
-          </mat-form-field>
-        </div>
-        <mat-slide-toggle formControlName="isPublic">Public</mat-slide-toggle>
-      </div>
+<section class="playlist-create-dialog" aria-labelledby="playlist-create-title">
+  <span class="dialog-glow dialog-glow-primary" aria-hidden="true"></span>
+  <span class="dialog-glow dialog-glow-secondary" aria-hidden="true"></span>
+
+  <header class="dialog-header">
+    <div class="dialog-heading">
+      <span class="dialog-eyebrow">Your library</span>
+      <h2 id="playlist-create-title">{{ dialogTitle }}</h2>
+      <p>{{ dialogDescription }}</p>
     </div>
-  </form>
-</div>
-<div mat-dialog-actions>
-  <button mat-button (click)="onNoClick()">Cancel</button>
-  <button mat-button (click)="createPlaylist()" [disabled]="playlistForm.invalid">Create</button>
-</div>
+
+    <button
+      mat-icon-button
+      type="button"
+      class="dialog-close"
+      [attr.aria-label]="'Close ' + (isEditMode ? 'edit' : 'create') + ' playlist menu'"
+      (click)="onNoClick()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <div mat-dialog-content class="dialog-content">
+    <form
+      id="playlist-create-form"
+      class="playlist-form"
+      [formGroup]="playlistForm"
+      (ngSubmit)="submitPlaylist()">
+      <div class="cover-column">
+        <button
+          type="button"
+          class="cover-picker"
+          [class.has-cover]="previewUrl"
+          aria-label="Choose playlist cover artwork"
+          (click)="triggerFileInput()">
+          <img *ngIf="previewUrl" [src]="previewUrl" alt="Selected playlist cover">
+
+          <span *ngIf="!previewUrl" class="cover-placeholder">
+            <span class="cover-icon"><mat-icon>add_photo_alternate</mat-icon></span>
+            <strong>Add artwork</strong>
+            <small>JPG, PNG or WebP</small>
+          </span>
+
+          <span *ngIf="previewUrl" class="cover-edit">
+            <mat-icon>edit</mat-icon>
+            Change cover
+          </span>
+        </button>
+
+        <input
+          #fileInput
+          id="coverImage"
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          (change)="onFileSelected($event)">
+      </div>
+
+      <div class="form-fields">
+        <label class="field-label" for="playlistTitle">Playlist name</label>
+        <div
+          class="title-field"
+          [class.field-invalid]="playlistForm.get('title')?.touched && playlistForm.get('title')?.invalid">
+          <mat-icon>queue_music</mat-icon>
+          <input
+            id="playlistTitle"
+            type="text"
+            formControlName="title"
+            maxlength="80"
+            autocomplete="off"
+            placeholder="My playlist">
+        </div>
+
+        <div class="field-support">
+          <span
+            [class.validation-error]="playlistForm.get('title')?.touched && playlistForm.get('title')?.invalid">
+            {{ playlistForm.get('title')?.touched && playlistForm.get('title')?.invalid
+              ? 'A playlist name is required'
+              : 'You can change this later' }}
+          </span>
+          <span>{{ titleLength }}/80</span>
+        </div>
+
+        <div class="visibility-control">
+          <span class="visibility-icon"><mat-icon>public</mat-icon></span>
+          <span class="visibility-copy">
+            <strong>Public playlist</strong>
+            <small>{{ playlistForm.get('isPublic')?.value
+              ? 'Anyone can discover this playlist'
+              : 'Only you can see this playlist' }}</small>
+          </span>
+          <mat-slide-toggle
+            formControlName="isPublic"
+            aria-label="Make playlist public">
+          </mat-slide-toggle>
+        </div>
+
+        <p *ngIf="createError" class="create-error" role="alert">
+          <mat-icon>error_outline</mat-icon>
+          {{ createError }}
+        </p>
+      </div>
+    </form>
+  </div>
+
+  <div mat-dialog-actions class="dialog-actions">
+    <button mat-button type="button" class="dialog-secondary" (click)="onNoClick()">
+      Cancel
+    </button>
+    <button
+      mat-flat-button
+      type="submit"
+      form="playlist-create-form"
+      class="dialog-primary"
+      [disabled]="playlistForm.invalid || isSubmitting">
+      <mat-icon>{{ isSubmitting ? 'hourglass_top' : (isEditMode ? 'save' : 'add') }}</mat-icon>
+      {{ submitLabel }}
+    </button>
+  </div>
+</section>

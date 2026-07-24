@@ -141,6 +141,20 @@ p{
   gap: 35px;
   overflow-y: hidden;
 }
+.detail-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.detail-tracks-surface {
+  display: block;
+}
+
+.playlist-users {
+  display: flex;
+}
+
 .cover-more{
   display: flex;
   justify-content: space-between;
@@ -238,6 +252,82 @@ p{
 
 .track-item:hover {
   background-color: #3b3b3b;
+}
+
+@media (max-width: 960px) {
+  :host {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tracks-page {
+    width: 100%;
+    padding: 14px 0 0;
+  }
+
+  .tracks-page.mobile-artwork-detail {
+    margin-inline: -14px !important;
+  }
+
+  .tracks-list {
+    gap: 22px;
+    overflow: visible;
+  }
+
+  .playlist-info {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .cover-more {
+    justify-content: center;
+  }
+
+  .playlist-cover {
+    width: min(72vw, 300px);
+    height: min(72vw, 300px);
+  }
+
+  .playlist-title {
+    font-size: clamp(38px, 12vw, 58px);
+    line-height: .95;
+    overflow-wrap: anywhere;
+  }
+
+  .playlist-details {
+    gap: 10px;
+  }
+
+  .playlist-information {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .songs-h {
+    margin-left: 0;
+    font-size: 14px;
+  }
+
+  .user-pfp,
+  .profile-picture {
+    width: 34px;
+    height: 34px;
+    margin-right: 5px;
+  }
+
+  .collab-button {
+    width: 48px;
+    height: 48px;
+  }
+
+  .big-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 28px;
+  }
 }
 
 .track-number {

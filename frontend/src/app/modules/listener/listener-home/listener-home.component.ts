@@ -1,14 +1,12 @@
 import {Component, OnInit} from '@angular/core';
 import {MyConfig} from '../../../my-config';
 import {Params, Router} from '@angular/router';
-import {TrackGetAllEndpointService} from '../../../endpoints/track-endpoints/track-get-all-endpoint.service';
 import {MusicPlayerService} from '../../../services/music-player.service';
 import {MyPagedList} from '../../../services/auth-services/dto/my-paged-list';
 import {
   AlbumGetAllEndpointService,
   AlbumGetAllResponse, AlbumPagedRequest
 } from '../../../endpoints/album-endpoints/album-get-all-endpoint.service';
-import {AlbumGetByIdEndpointService} from '../../../endpoints/album-endpoints/album-get-by-id-endpoint.service';
 import {
   ArtistGetAutocompleteEndpointService, UserArtistSearchRequest
 } from '../../../endpoints/artist-endpoints/artist-get-autocomplete-endpoint.service';
@@ -18,6 +16,18 @@ import {
   UpcomingEvent
 } from '../../../endpoints/user-artist-endpoints/event-get-upociming.service';
 import {animate, style, transition, trigger} from '@angular/animations';
+import {
+  HomeRecommendationsEndpointService,
+  HomeRecommendationsResponse
+} from '../../../endpoints/personalization-endpoints/home-recommendations-endpoint.service';
+import {RecommendationTrackMapper} from '../../../services/personalization/recommendation-track.mapper';
+import {PlaylistResponse} from '../../../endpoints/playlist-endpoints/get-playlist-by-user-endpoint.service';
+import {TrackGetResponse} from '../../../endpoints/track-endpoints/track-get-by-id-endpoint.service';
+import {
+  PersonalizedPlaylistSummary,
+  PersonalizedPlaylistsEndpointService
+} from '../../../endpoints/personalization-endpoints/personalized-playlists-endpoint.service';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-listener-home',
@@ -70,16 +80,38 @@ export class ListenerHomeComponent implements OnInit {
   events : UpcomingEvent [] = [];
   infinitePage = [1];
   currentSlide: number = 0;
+  eventSwipeOffset = 0;
+  eventSwipeDragging = false;
+  eventSwipeAnimating = false;
+  private eventSwipeCommitDirection: 'previous' | 'next' | null = null;
+  private eventSwipePointerId: number | null = null;
+  private eventSwipeStartX = 0;
+  private eventSwipeStartY = 0;
+  private eventSwipeAxis: 'pending' | 'horizontal' | 'vertical' = 'pending';
+  private eventSwipeTimer: ReturnType<typeof setTimeout> | null = null;
+  homeRecommendations: HomeRecommendationsResponse | null = null;
+  homeRecommendationsLoading = true;
+  recommendedAlbums: MyPagedList<AlbumGetAllResponse> | null = null;
+  recommendedAlbumSubtitles: Record<number, string> = {};
+  recommendedArtists: ArtistSimpleDto[] | null = null;
+  recommendedArtistDescriptions: Record<number, string> = {};
+  recommendedPlaylists: PlaylistResponse[] | null = null;
+  recommendedTracks: TrackGetResponse[] = [];
+  dailyPlaylists: PersonalizedPlaylistSummary[] = [];
   constructor(private router: Router,
-              private trackGetAllService: TrackGetAllEndpointService,
               private musicPlayerService: MusicPlayerService,
               private albumGetService: AlbumGetAllEndpointService,
               private artistGetService: ArtistGetAutocompleteEndpointService,
-              private eventGetUpcoming : EventGetUpcomingService) {
+              private eventGetUpcoming : EventGetUpcomingService,
+              private homeRecommendationsEndpoint: HomeRecommendationsEndpointService,
+              private recommendationTrackMapper: RecommendationTrackMapper,
+              private personalizedPlaylistsEndpoint: PersonalizedPlaylistsEndpointService,
+              private snackBar: MatSnackBar) {
   }
 
   ngOnInit(): void {
     this.loadEvents();
+    this.loadHomeRecommendations();
     this.userId = this.getUserIdFromToken();
     let request: AlbumPagedRequest  = {pageNumber: 1, pageSize: 50, isReleased: true, title: ""};
       this.albumGetService.handleAsync(request).subscribe({
@@ -106,13 +138,165 @@ export class ListenerHomeComponent implements OnInit {
     })
     this.startAutoSlide();
   }
+
+  loadHomeRecommendations(): void {
+    this.homeRecommendationsLoading = true;
+    this.homeRecommendationsEndpoint.handleAsync().subscribe({
+      next: response => {
+        this.applyRecommendationCards(response);
+        this.homeRecommendations = response;
+        this.homeRecommendationsLoading = false;
+      },
+      error: error => {
+        console.warn('Personalized home recommendations are unavailable.', error);
+        this.homeRecommendationsLoading = false;
+      }
+    });
+  }
+
+  openDailyPlaylist(id: string): void {
+    this.router.navigate(['/listener/playlist/daily', id]);
+  }
+
+  startDailyPlaylist(id: string): void {
+    this.personalizedPlaylistsEndpoint.getById(id).subscribe({
+      next: playlist => {
+        const tracks = this.recommendationTrackMapper.toPlayerTracks(playlist.tracks);
+        if(tracks.length === 0)
+        {
+          this.snackBar.open('This daily playlist has no songs yet.', '', {duration: 2000});
+          return;
+        }
+
+        this.musicPlayerService.createQueue(
+          tracks,
+          {
+            display: `${playlist.name} - Daily Mix`,
+            value: `/listener/playlist/daily/${playlist.id}`
+          },
+          'personalized-playlist');
+      },
+      error: error => console.error('Could not start daily playlist.', error)
+    });
+  }
+
+  playRecommendedTracks(startIndex = 0): void {
+    const recommendations = this.homeRecommendations?.recommendedTracks ?? [];
+    if(recommendations.length === 0)
+    {
+      return;
+    }
+
+    const tracks = this.recommendationTrackMapper.toPlayerTracks(recommendations);
+    const orderedTracks = [...tracks.slice(startIndex), ...tracks.slice(0, startIndex)];
+    this.musicPlayerService.createQueue(
+      orderedTracks,
+      {display: 'Recommended for you', value: '/listener/home'},
+      'recommendations');
+  }
+
+  mediaUrl(path: string): string {
+    const normalizedPath = this.normalizeMediaPath(path);
+    if(/^https?:\/\//i.test(normalizedPath))
+    {
+      return normalizedPath;
+    }
+
+    return `${MyConfig.api_address}${normalizedPath}`;
+  }
+
+  private applyRecommendationCards(response: HomeRecommendationsResponse): void {
+    this.dailyPlaylists = response.dailyPersonalizedPlaylists.map(playlist => ({
+      id: playlist.playlistId,
+      themeKey: playlist.themeKey,
+      name: playlist.name,
+      description: playlist.description,
+      coverPath: playlist.coverPath,
+      playlistDate: playlist.playlistDate,
+      createdAt: playlist.createdAt,
+      trackCount: playlist.trackCount
+    }));
+
+    const albums = response.recommendedAlbums.map(album => ({
+      id: album.albumId,
+      title: album.title,
+      coverArt: this.normalizeMediaPath(album.coverPath),
+      releaseDate: response.recommendationDate,
+      artist: album.artistName,
+      artistId: album.artistId,
+      type: 'Album',
+      trackCount: album.trackCount,
+      isHighlighted: false
+    }));
+    this.recommendedAlbums = this.toPagedList(albums);
+    this.recommendedAlbumSubtitles = response.recommendedAlbums.reduce<Record<number, string>>((descriptions, album) => {
+      descriptions[album.albumId] = album.reason;
+      return descriptions;
+    }, {});
+
+    this.recommendedArtists = response.recommendedArtists.map(artist => ({
+      id: artist.artistId,
+      name: artist.name,
+      pfpPath: this.normalizeMediaPath(artist.profilePhotoPath, '/media/Images/ArtistPfps/placeholder.png'),
+      role: '',
+      isFlaggedForDeletion: false,
+      deletionDate: ''
+    }));
+    this.recommendedArtistDescriptions = response.recommendedArtists.reduce<Record<number, string>>((descriptions, artist) => {
+      descriptions[artist.artistId] = artist.reason;
+      return descriptions;
+    }, {});
+
+    this.recommendedPlaylists = response.recommendedPlaylists.map(playlist => ({
+      id: playlist.playlistId,
+      title: playlist.title,
+      numOfTracks: playlist.trackCount,
+      isPublic: playlist.isPublic,
+      coverPath: this.normalizeMediaPath(playlist.coverPath),
+      username: playlist.ownerUsername ?? '808 Music',
+      isLikedSongs: false,
+      userId: playlist.ownerUserId ?? 0,
+      ownerUsername: playlist.ownerUsername ?? '808 Music',
+      isCollaborative: playlist.isCollaborative,
+      description: playlist.reason
+    }));
+    this.recommendedTracks = this.recommendationTrackMapper.toPlayerTracks(response.recommendedTracks);
+  }
+
+  private toPagedList<T>(dataItems: T[]): MyPagedList<T> {
+    return {
+      dataItems,
+      currentPage: 1,
+      totalPages: 1,
+      pageSize: dataItems.length,
+      totalCount: dataItems.length,
+      hasPrevious: false,
+      hasNext: false
+    };
+  }
+
+  private normalizeMediaPath(path: string, fallback = '/media/Images/playlist_placeholder.png'): string {
+    if(!path)
+    {
+      return fallback;
+    }
+
+    if(/^https?:\/\//i.test(path) || path.startsWith('/media/'))
+    {
+      return path;
+    }
+
+    return `/media/${path.replace(/^\/+/, '')}`;
+  }
   ngOnDestroy(): void {
     clearInterval(this.slideInterval);
+    this.clearEventSwipeTimer();
   }
   loadEvents(): void {
     this.eventGetUpcoming.getUpcomingEvents().subscribe({
       next: (data) => {
-        this.events = data;
+        this.events = Array.isArray(data) ? data.filter(Boolean) : [];
+        this.currentSlide = 0;
         console.log(this.events);
       },
       error: (err) => {
@@ -133,12 +317,155 @@ export class ListenerHomeComponent implements OnInit {
     }
   }
   private startAutoSlide(): void {
+    clearInterval(this.slideInterval);
     this.slideInterval = setInterval(() => {
       this.nextSlide();
     }, 10000);
   }
   changeSlide(index: number): void {
     this.currentSlide = index;
+  }
+
+  get previousEvent(): UpcomingEvent | null {
+    if(this.events.length === 0)
+    {
+      return null;
+    }
+
+    return this.events[(this.currentSlide - 1 + this.events.length) % this.events.length];
+  }
+
+  get nextEvent(): UpcomingEvent | null {
+    if(this.events.length === 0)
+    {
+      return null;
+    }
+
+    return this.events[(this.currentSlide + 1) % this.events.length];
+  }
+
+  getEventCoverBackground(event: UpcomingEvent | null): string {
+    return event ? `url("${MyConfig.media_address}${event.eventCover}")` : 'none';
+  }
+
+  getEventSwipeTransform(): string {
+    if(this.eventSwipeCommitDirection === 'previous')
+    {
+      return 'translate3d(0, 0, 0)';
+    }
+
+    if(this.eventSwipeCommitDirection === 'next')
+    {
+      return 'translate3d(-66.666667%, 0, 0)';
+    }
+
+    return `translate3d(calc(-33.333333% + ${this.eventSwipeOffset}px), 0, 0)`;
+  }
+
+  startEventSwipe(event: PointerEvent): void {
+    if(
+      !this.isMobileView() ||
+      this.events.length < 2 ||
+      this.eventSwipeAnimating ||
+      (event.pointerType === 'mouse' && event.button !== 0)
+    )
+    {
+      return;
+    }
+
+    clearInterval(this.slideInterval);
+    this.eventSwipePointerId = event.pointerId;
+    this.eventSwipeStartX = event.clientX;
+    this.eventSwipeStartY = event.clientY;
+    this.eventSwipeOffset = 0;
+    this.eventSwipeCommitDirection = null;
+    this.eventSwipeAxis = 'pending';
+    this.eventSwipeDragging = true;
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+  }
+
+  moveEventSwipe(event: PointerEvent): void {
+    if(this.eventSwipePointerId !== event.pointerId)
+    {
+      return;
+    }
+
+    const deltaX = event.clientX - this.eventSwipeStartX;
+    const deltaY = event.clientY - this.eventSwipeStartY;
+
+    if(this.eventSwipeAxis === 'pending' && Math.max(Math.abs(deltaX), Math.abs(deltaY)) >= 7)
+    {
+      this.eventSwipeAxis = Math.abs(deltaX) > Math.abs(deltaY) ? 'horizontal' : 'vertical';
+    }
+
+    if(this.eventSwipeAxis === 'vertical')
+    {
+      this.eventSwipeOffset = 0;
+      this.eventSwipeDragging = false;
+      return;
+    }
+
+    if(this.eventSwipeAxis !== 'horizontal')
+    {
+      return;
+    }
+
+    event.preventDefault();
+    const carouselWidth = (event.currentTarget as HTMLElement).clientWidth;
+    const maxOffset = carouselWidth * .34;
+    this.eventSwipeOffset = Math.max(-maxOffset, Math.min(maxOffset, deltaX));
+  }
+
+  finishEventSwipe(event: PointerEvent): void {
+    if(this.eventSwipePointerId !== event.pointerId)
+    {
+      return;
+    }
+
+    const target = event.currentTarget as HTMLElement;
+    if(target.hasPointerCapture(event.pointerId))
+    {
+      target.releasePointerCapture(event.pointerId);
+    }
+
+    const carouselWidth = target.clientWidth;
+    const threshold = Math.max(48, carouselWidth * .14);
+    const offset = this.eventSwipeOffset;
+    const axis = this.eventSwipeAxis;
+    this.eventSwipePointerId = null;
+    this.eventSwipeDragging = false;
+
+    if(axis !== 'horizontal' || Math.abs(offset) < 8)
+    {
+      this.resetEventSwipe();
+      this.startAutoSlide();
+      return;
+    }
+
+    if(offset <= -threshold)
+    {
+      this.animateEventSwipe('next');
+      return;
+    }
+
+    if(offset >= threshold)
+    {
+      this.animateEventSwipe('previous');
+      return;
+    }
+
+    this.animateEventSwipe(null);
+  }
+
+  cancelEventSwipe(event: PointerEvent): void {
+    if(this.eventSwipePointerId !== event.pointerId)
+    {
+      return;
+    }
+
+    this.eventSwipePointerId = null;
+    this.eventSwipeDragging = false;
+    this.animateEventSwipe(null);
   }
   private getUserIdFromToken(): number {
     let authToken = sessionStorage.getItem('authToken');
@@ -163,5 +490,51 @@ export class ListenerHomeComponent implements OnInit {
   loadMore() {
     this.infinitePage.push(this.infinitePage[this.infinitePage.length-1]+1);
     console.log("Scrolled")
+  }
+
+  private resetEventSwipe(): void {
+    this.eventSwipePointerId = null;
+    this.eventSwipeOffset = 0;
+    this.eventSwipeDragging = false;
+    this.eventSwipeAnimating = false;
+    this.eventSwipeCommitDirection = null;
+    this.eventSwipeAxis = 'pending';
+  }
+
+  private animateEventSwipe(direction: 'previous' | 'next' | null): void {
+    this.eventSwipeAnimating = true;
+    this.eventSwipeCommitDirection = direction;
+    if(direction === null)
+    {
+      this.eventSwipeOffset = 0;
+    }
+
+    this.clearEventSwipeTimer();
+    this.eventSwipeTimer = setTimeout(() => {
+      if(direction === 'previous')
+      {
+        this.prevSlide();
+      }
+      else if(direction === 'next')
+      {
+        this.nextSlide();
+      }
+
+      this.resetEventSwipe();
+      this.startAutoSlide();
+      this.eventSwipeTimer = null;
+    }, 240);
+  }
+
+  private clearEventSwipeTimer(): void {
+    if(this.eventSwipeTimer !== null)
+    {
+      clearTimeout(this.eventSwipeTimer);
+      this.eventSwipeTimer = null;
+    }
+  }
+
+  private isMobileView(): boolean {
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 960px)').matches;
   }
 }

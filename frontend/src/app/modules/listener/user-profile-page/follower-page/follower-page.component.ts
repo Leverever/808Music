@@ -4,11 +4,12 @@ import {MyConfig} from '../../../../my-config';
 import {UserFollowService} from '../../../../endpoints/user-endpoints/get-user-followage-endpoint.service';
 import { Location } from '@angular/common';
 import {animate, style, transition, trigger} from '@angular/animations';
+import {UserHeaderColorService} from '../../../../endpoints/user-endpoints/user-header-color-endpoint.service';
 
 @Component({
   selector: 'app-followers-page',
   templateUrl: './follower-page.component.html',
-  styleUrls: ['./follower-page.component.css'],
+  styleUrls: ['../followage-page.css'],
   animations: [
     trigger('pageAnimation', [
       transition(':enter', [
@@ -31,6 +32,7 @@ import {animate, style, transition, trigger} from '@angular/animations';
 export class FollowersPageComponent implements OnInit {
   followers: any[] = [];
   userId: number = 0;
+  selectedColor = '#e692f8';
   readonly mediaAddress = MyConfig.media_address;
 
   constructor(
@@ -38,10 +40,15 @@ export class FollowersPageComponent implements OnInit {
     private userFollowService: UserFollowService,
     private location : Location,
     private router : Router,
+    private userHeaderColorService: UserHeaderColorService,
   ) {}
 
   ngOnInit(): void {
     this.userId = Number(this.route.snapshot.params['id']);
+    this.userHeaderColorService.getHeaderColor(this.userId).subscribe({
+      next: response => this.selectedColor = response.headerColor || this.selectedColor,
+      error: err => console.error('Error fetching header color:', err),
+    });
     this.loadFollowers();
   }
 

@@ -1,0 +1,53 @@
+<div class="tracks-page mobile-artwork-detail" appMobileDetailScroll
+     [style.--detail-artwork]="playlistArtworkCss">
+  @if (loading) {
+    <div class="playlist-state">Loading daily playlist...</div>
+  } @else if (errorMessage) {
+    <div class="playlist-state error-state">
+      <p>{{ errorMessage }}</p>
+      <button (click)="goBack()">Back to playlists</button>
+    </div>
+  } @else if (playlist) {
+    <section class="detail-hero">
+      <div class="track-page-controls">
+        <button mat-icon-button class="go-back-button detail-back-button" (click)="goBack()" aria-label="Go back">
+          <mat-icon class="go-back-arrow">arrow_back</mat-icon>
+        </button>
+      </div>
+
+      <header class="playlist-info">
+        <div class="playlist-cover detail-artwork">
+          <img [src]="playlistCoverUrl()" [alt]="playlist.name">
+        </div>
+
+        <div class="playlist-details detail-copy">
+          <p class="playlist-type detail-kicker">Personalized daily playlist</p>
+          <h1 class="playlist-title detail-title">{{ playlist.name }}</h1>
+          <p class="playlist-description">{{ playlist.description }}</p>
+          <div class="playlist-information detail-meta">
+            <span class="ai-owner" matTooltip="Generated for you" matTooltipPosition="above">
+              <mat-icon>auto_awesome</mat-icon>
+            </span>
+            <p>{{ playlist.tracks.length }} songs, {{ getTotalTrackLength() }}</p>
+            <span class="separator">&bull;</span>
+            <p>{{ playlist.playlistDate | date }}</p>
+          </div>
+        </div>
+      </header>
+    </section>
+
+    <section class="detail-tracks-surface">
+      <app-tracks-table
+        [inArtistMode]="false"
+        [tracks]="tracks"
+        [allowPagination]="false"
+        [isPlaylist]="true"
+        searchMode="client"
+        [isCollaborative]="false"
+        [isUsersPlaylist]="false"
+        (onMainClick)="playTrack($event)"
+        (onCreateClick)="playAll()"
+      ></app-tracks-table>
+    </section>
+  }
+</div>

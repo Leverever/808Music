@@ -18,6 +18,9 @@ import {ConfirmDialogComponent} from '../../modules/shared/dialogs/confirm-dialo
 
 @Injectable({providedIn: 'root'})
 export class MyUserAuthService {
+  private static readonly dotNetRoleClaim =
+    'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+
   constructor(private httpClient: HttpClient,
               private router: Router,
               private myDialog: MatDialog,) {
@@ -31,7 +34,8 @@ export class MyUserAuthService {
   }
 
   isAdmin(): boolean {
-    return this.getAuthToken()?.isAdmin ?? false;
+    const token = this.getAuthToken(true)?.token;
+    return token ? this.hasAdminRole(token) : false;
   }
 
   /*
@@ -107,11 +111,27 @@ export class MyUserAuthService {
     return {
       userId: Number.parseInt(decodedJwt.sub!),
       email: decodedJwt.email,
-      isAdmin: true,
+      isAdmin: this.hasAdminRole(lr.token),
       token: lr.token,
       refreshToken: lr.refreshToken,
       rememberMe: rememberMe,
       username: decodedJwt.Username
+    }
+  }
+
+  private hasAdminRole(token: string): boolean {
+    try {
+      const decodedJwt = jwtDecode<Record<string, unknown>>(token);
+      const roleClaim =
+        decodedJwt['role'] ??
+        decodedJwt[MyUserAuthService.dotNetRoleClaim];
+      const roles = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
+
+      return roles.some(role =>
+        typeof role === 'string' && role.toLowerCase() === 'admin'
+      );
+    } catch {
+      return false;
     }
   }
 

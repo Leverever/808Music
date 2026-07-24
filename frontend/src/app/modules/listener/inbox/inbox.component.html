@@ -1,4 +1,4 @@
-<div class="inbox-page">
+<div class="inbox-page" [class.chat-open]="selectedChat != null">
   <div class="chats">
     <h3 class="title">Chats</h3>
     <div class="actions">
@@ -16,7 +16,7 @@
     <div class="open-chats">
       @let filteredChats = getFilteredChats();
       @for (c of filteredChats; track c.id) {
-        <div class="chat-card" (click)="openChat(c)">
+        <div class="chat-card" [class.selected]="selectedChat?.id === c.id" (click)="openChat(c)">
           <div class="pfp" [ngStyle]="{'background-image':'url('+MyConfig.api_address+'/media'+c.chatterPfp}"></div>
           <div class="title-and-unreads">
             <div class="title-and-notis">
@@ -40,6 +40,10 @@
     </div>
   </div>
   <div class="messages">
+    <button type="button" mat-icon-button class="mobile-chat-back" (click)="closeChatMobile()"
+            aria-label="Back to chats">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
     <app-chat-box [chat]="selectedChat" [messages]="selectedChatMessages" [scroll]="shouldScroll"
                   (msgSent)="scroll()" (loadMoreMessages)="loadNewBatch($event)"></app-chat-box>
   </div>

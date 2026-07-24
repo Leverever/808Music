@@ -1,55 +1,50 @@
-@if(!userSubscribed){
+<main class="subscription-page">
+  <header class="subscription-header">
+    <span>808 Music membership</span>
+    <h1>Hear more. Get closer.</h1>
+    <p>Choose a plan that keeps the music going without interruption.</p>
+  </header>
 
+  <div class="subscription-state" *ngIf="loading"><mat-spinner diameter="42"></mat-spinner><p>Loading membership…</p></div>
 
-  <div class="plans-container" [@pageAnimation]>
-<div class="stripe-container" *ngIf="selectedSubscription">
-  <h2>{{ selectedSubscription.title }}</h2>
-  <div class="stripe-form">
-  <form (ngSubmit)="handleSubmit()">
-    <label for="amount">Amount (in EUR):</label>
-    <input
-      type="text"
-      id="amount"
-      [value]="getPrice() | number:'1.2-2'"
-      disabled
-    />
-    <div *ngIf="selectedSubscription">
+  <section class="current-plan" *ngIf="!loading && userSubscribed && subscriptionDetails.subscription as currentSubscription">
+    <div class="current-plan__icon"><mat-icon>workspace_premium</mat-icon></div>
+    <div class="current-plan__content"><span>Your current plan</span><h2>{{ currentSubscription.title }}</h2><p>{{ currentSubscription.description }}</p></div>
+    <div class="current-plan__billing"><span>Next renewal</span><strong>{{ currentSubscription.endDate | date:'mediumDate' }}</strong><p>{{ currentSubscription.price | currency:'EUR':'symbol':'1.2-2' }}</p></div>
+  </section>
 
-      <div id="card-element"></div>
-    </div>
-    <button type="submit" [disabled]="!selectedSubscription">Submit Payment</button>
-  </form>
-  </div>
-  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
-  <div *ngIf="paymentSuccess" class="payment-success">Payment successful!</div>
-</div>
+  <ng-container *ngIf="!loading && !userSubscribed">
+    <section class="plans-section">
+      <div class="plans-heading"><span>Available plans</span><h2>Pick your rhythm</h2></div>
+      <div class="plans-grid">
+        <article
+          class="plan-card"
+          *ngFor="let subscription of subscriptions"
+          [class.plan-card--selected]="selectedSubscription?.id === subscription.id"
+          [style.--plan-accent]="planColor(subscription)"
+          (click)="selectPlan(subscription)"
+        >
+          <div class="plan-card__top"><div class="plan-card__icon"><mat-icon>{{ planIcon(subscription) }}</mat-icon></div><span *ngIf="selectedSubscription?.id === subscription.id"><mat-icon>check</mat-icon>Selected</span></div>
+          <h3>{{ subscription.title }}</h3>
+          <p class="plan-card__description">{{ subscription.description }}</p>
+          <div class="plan-card__price"><strong>{{ subscription.price | currency:'EUR':'symbol':'1.2-2' }}</strong><span>/ month</span></div>
+          <p class="plan-card__cadence">{{ planCadence(subscription) }} · {{ totalPrice(subscription) | currency:'EUR':'symbol':'1.2-2' }} total</p>
+          <button type="button" (click)="$event.stopPropagation(); selectPlan(subscription)">{{ selectedSubscription?.id === subscription.id ? 'Selected plan' : 'Choose plan' }}</button>
+        </article>
+      </div>
+    </section>
 
-  <h2>Available plans:</h2>
-  <div *ngFor="let subscription of subscriptions" class="subscription-card"
-       [ngStyle]="{'background-color': getPlanBackgroundColor(subscription.subscriptionType)}">>
-    <div class="plan-header">
-      <h3 class="subscription-title">{{ subscription.title }}</h3>
-    </div>
-    <div class="plan-body">
-      <p class="subscription-price">€{{ subscription.price | number:'1.2-2' }}</p>
-      <p class="subscription-add">per month</p>
-      <p class="subscription-description">{{ subscription.description }}</p>
-      <button class="subscribe-button" (click)="selectPlan(subscription)">Select</button>
+    <section class="subscription-payment" *ngIf="selectedSubscription">
+      <div class="subscription-payment__heading"><div><span>Secure payment</span><h2>Activate {{ selectedSubscription.title }}</h2></div><strong>{{ totalPrice(selectedSubscription) | currency:'EUR':'symbol':'1.2-2' }}</strong></div>
+      <form (ngSubmit)="handleSubmit()">
+        <label for="subscription-card-element">Card information</label>
+        <div id="subscription-card-element"></div>
+        <button type="submit" [disabled]="processing"><mat-icon>{{ processing ? 'hourglass_top' : 'lock' }}</mat-icon>{{ processing ? 'Processing…' : 'Activate membership' }}</button>
+      </form>
+      <p class="subscription-error" *ngIf="errorMessage">{{ errorMessage }}</p>
+      <p class="subscription-success" *ngIf="paymentSuccess"><mat-icon>check_circle</mat-icon>Payment successful</p>
+    </section>
+  </ng-container>
 
-    </div>
-  </div>
-</div>
-}
-<div *ngIf="userSubscribed && subscriptionDetails.subscription.subscriptionType">
-  <div class="plan-container">
-
-
-  <div class="subscription-card-current"
-> <div class="top"><p class="your-plan">Your plan</p><img class="logo" [src]="MyConfig.api_address + '/media/808music_blue.png'" alt="Dado"></div>
-      <h3 class="subscription-title-current">{{ subscriptionDetails.subscription.title }}</h3>
-      <p class="subscription-price-current">Your next bill is  for <strong>€{{ subscriptionDetails.subscription.price | number:'1.2-2' }}</strong> on <strong>{{ moment(subscriptionDetails.subscription.endDate).format('DD/MM/YY') }}</strong></p>
-
-    </div>
-  </div>
-  </div>
-
+  <div class="subscription-state" *ngIf="!loading && errorMessage && !selectedSubscription"><mat-icon>error_outline</mat-icon><p>{{ errorMessage }}</p></div>
+</main>

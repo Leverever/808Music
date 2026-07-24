@@ -19,6 +19,7 @@ export class ArtistBigCardComponent implements OnInit, OnDestroy {
   @Input() numberDescription = "followers";
   @Input() artists : ArtistInfoResponse | null = null;
   @Input() isForProfile = false;
+  @Input() description: string | null | undefined = null;
   isPlayingThisAlbum: boolean = false;
   playingState: boolean = false;
 
@@ -45,6 +46,10 @@ export class ArtistBigCardComponent implements OnInit, OnDestroy {
               private router : Router,) {}
 
   getFollowCount() {
+    if(this.description !== null && this.description !== undefined) {
+      return this.description;
+    }
+
     if(this.numberDescription === "followers") {
       if(!this.isForProfile)
       return `${formatNumber(this.artist?.followers ?? 0,'en')} ${this.numberDescription}`;
@@ -57,6 +62,16 @@ export class ArtistBigCardComponent implements OnInit, OnDestroy {
   }
 
   protected readonly MyConfig = MyConfig;
+
+  getImageUrl(path: string | undefined): string {
+    if(!path)
+    {
+      return `${MyConfig.api_address}/media/Images/ArtistPfps/placeholder.png`;
+    }
+
+    return /^https?:\/\//i.test(path) ? path : MyConfig.api_address + path;
+  }
+
   playBtnSyle = {
     'display': 'none',
   };
@@ -127,9 +142,25 @@ export class ArtistBigCardComponent implements OnInit, OnDestroy {
 
   }
   goToArtist() {
-    if (!this.isForProfile)
-    this.router.navigate(["/listener/profile", this.artist?.id]);
-    this.router.navigate(["/listener/profile", this.artists?.artistId]);
+    const artistId = this.isForProfile ? this.artists?.artistId : this.artist?.id;
+    if(artistId !== undefined)
+    {
+      this.router.navigate(["/listener/profile", artistId]);
+    }
+  }
 
+  openCardOnMobile(event: MouseEvent): void {
+    if(typeof window === 'undefined' || !window.matchMedia('(max-width: 960px)').matches)
+    {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    if(target?.closest('.play-button, .artist-name'))
+    {
+      return;
+    }
+
+    this.goToArtist();
   }
 }

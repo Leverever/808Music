@@ -1,70 +1,44 @@
-<div class="container">
-
-  <div class="logo-container">
-    <img [src]="MyConfig.api_address + '/media/webshop_logo.png'" alt="Logo" class="logo" />
-  </div>
-
-  <div class="heading">
-    <div class="search-bar">
-      <div class="sort-dropdown">
-        <select [(ngModel)]="productType" (change)="searchByType()">
-          <option value="" disabled selected>Select Product Type</option>
-          <option *ngFor="let type of productTypes" [value]="type.value">
-            {{ type.label }}
-          </option>
-        </select>
-      </div>
-
-      <div class="sort-and-results">
-
-        <div class="sort-dropdown">
-          <select [(ngModel)]="selectedSortOption" (ngModelChange)="changeSortOrder()">
-            <option value="" disabled selected>Select Sort Option</option>
-            <option *ngFor="let option of sortOptions" [value]="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-        </div>
-
-
-
-      </div>
-
-
-
-    </div><p class="results-count">Browse {{ totalResults }} results for type {{ getProductTypeLabel(productType) }}</p>
-  </div>
-
-  <div class="products">
-    <div class="product-row">
-      <div class = "product-size" *ngIf="searchResults.length; else noResults">
-        <div *ngFor="let product of searchResults" matTooltip="{{ product.title }}" matTooltipPosition="above" class="product" (click)="viewProduct(product.slug)">
-          <div class="sale-badge" *ngIf="product.saleAmount > 0">
-            -{{ (product.saleAmount * 100).toFixed(0) }}%
-          </div>
-          <img [src]="MyConfig.media_address + product.photoPaths[0]" alt="{{ product.title }}" class="product-image">
-          <div class="product-info">
-            <p class="product-name hide-overflow">{{ product.title }}</p>
-            <p class="product-price">{{ product.discountedPrice | number: '1.2-2' }}$</p>
-          </div>
-          <div
-            class="wishlist-icon"
-            (click)="toggleWishlist($event, product)">
-            <mat-icon>{{ isOnWishlist(product) ? 'favorite' : 'favorite_border' }}</mat-icon>
-          </div>
-        </div>
-      </div>
+<main class="storefront-catalog">
+  <header class="catalog-header">
+    <div class="catalog-title">
+      <span>Browse the shop</span>
+      <h1>{{ categoryLabel }}</h1>
+      <p>{{ totalResults }} product{{ totalResults === 1 ? '' : 's' }}</p>
     </div>
-    <ng-template #noResults>
-      <p>No results found for the selected product type</p>
-    </ng-template>
-  </div>
 
-  <div class="pagination">
-    <button class = "prev_page" *ngIf="currentPage > 1" (click)="changePage(currentPage - 1)"><</button>
-    <span>{{ currentPage }}</span>
-      <button class= "next_page" *ngIf="searchResults.length === pageSize" (click)="changePage(currentPage + 1)">></button>
-  </div>
-</div><app-wishlist></app-wishlist>
+    <div class="catalog-toolbar catalog-toolbar--compact">
+      <a class="catalog-home" routerLink="/listener/store-home"><mat-icon>arrow_back</mat-icon><span>Shop home</span></a>
+      <div class="catalog-toolbar-spacer"></div>
+      <app-wishlist></app-wishlist>
+      <app-shopping-cart></app-shopping-cart>
+    </div>
 
-<app-shopping-cart> </app-shopping-cart>
+    <div class="catalog-controls">
+      <label>
+        <mat-icon>category</mat-icon>
+        <select [(ngModel)]="productType" (ngModelChange)="changeCategory()" aria-label="Product category">
+          <option *ngFor="let type of productTypes" [ngValue]="type.value">{{ type.label }}</option>
+        </select>
+      </label>
+      <label>
+        <mat-icon>swap_vert</mat-icon>
+        <select [(ngModel)]="selectedSortOption" (ngModelChange)="changeSortOrder()" aria-label="Sort products">
+          <option *ngFor="let option of sortOptions" [value]="option.value">{{ option.label }}</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <div class="catalog-state" *ngIf="loading"><mat-spinner diameter="40"></mat-spinner><p>Loading {{ categoryLabel | lowercase }}…</p></div>
+  <div class="catalog-state" *ngIf="!loading && noResults"><mat-icon>inventory_2</mat-icon><h2>Nothing here yet</h2><p>Try another category or come back later.</p></div>
+
+  <section class="catalog-grid" *ngIf="!loading && searchResults.length">
+    <app-store-product-card *ngFor="let product of searchResults" [product]="product"></app-store-product-card>
+  </section>
+
+  <nav class="catalog-pagination" *ngIf="!loading && (currentPage > 1 || searchResults.length === pageSize)" aria-label="Product category pages">
+    <button type="button" [disabled]="currentPage <= 1" (click)="changePage(currentPage - 1)"><mat-icon>chevron_left</mat-icon><span>Previous</span></button>
+    <span>Page {{ currentPage }}</span>
+    <button type="button" [disabled]="searchResults.length < pageSize" (click)="changePage(currentPage + 1)"><span>Next</span><mat-icon>chevron_right</mat-icon></button>
+  </nav>
+</main>

@@ -1,0 +1,79 @@
+:host {
+  display: block;
+  width: 10vw;
+}
+
+.album-mat-card {
+  cursor: pointer;
+}
+
+mat-card-header,
+.album-mat-card-title {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.album-mat-card-title {
+  display: block;
+}
+
+.playlist-cover {
+  height: auto;
+  aspect-ratio: 1;
+  position: relative;
+  background-position: center;
+  background-size: cover;
+}
+
+.ai-generated-badge {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  border: 1px solid #f2b4ff;
+  border-radius: 14px;
+  background: rgba(22, 18, 21, .92);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .7);
+  color: #f0a0ff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ai-generated-badge mat-icon {
+  width: 16px;
+  height: 16px;
+  color: #f0a0ff;
+  font-size: 16px;
+}
+
+@media only screen and (max-width: 1300px) {
+  :host { width: 15vw; }
+  .playlist-cover { height: auto; }
+}
+
+@media only screen and (max-width: 960px) {
+  :host {
+    width: clamp(150px, 43vw, 190px);
+    min-width: clamp(150px, 43vw, 190px);
+  }
+
+  .playlist-cover {
+    height: auto;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 14px !important;
+  }
+
+  mat-card-header {
+    padding: 11px 11px 0;
+  }
+
+  .ai-generated-badge {
+    padding: 4px 6px;
+    font-size: 10px;
+  }
+}

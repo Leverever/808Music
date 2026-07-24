@@ -1,5 +1,7 @@
 <mat-card appearance="outlined" class="album-mat-card"
+          (click)="openCardOnMobile($event)"
           [matTooltip]="tooltip"
+          matTooltipTouchGestures="off"
           #tooltipElement="matTooltip"
           matTooltipPosition="above"
           matTooltipShowDelay="500" matTooltipHideDelay="250"
@@ -32,15 +34,15 @@
   @if (hasControls) {
     @if (role !== "Viewer") {
       <mat-card-actions class="album-mat-card-controls">
-        <button mat-icon-button (click)="emitDelete()" matTooltip="Delete">
+        <button mat-icon-button (click)="emitDelete()" matTooltip="Delete" matTooltipTouchGestures="off">
           <mat-icon>delete</mat-icon>
         </button>
         @if (!isHighLighted && releaseDate < Date.now() && numOfTracks > 0) {
-          <button mat-icon-button (click)="emitStats()" matTooltip="Highlight release">
+          <button mat-icon-button (click)="emitStats()" matTooltip="Highlight release" matTooltipTouchGestures="off">
             <mat-icon>star</mat-icon>
           </button>
         }
-        <button mat-icon-button (click)="emitEdit()" matTooltip="Edit">
+        <button mat-icon-button (click)="emitEdit()" matTooltip="Edit" matTooltipTouchGestures="off">
           <mat-icon>edit</mat-icon>
         </button>
       </mat-card-actions>

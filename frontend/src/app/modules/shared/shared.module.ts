@@ -26,7 +26,7 @@ import { InfoDialogComponent } from './dialogs/info-dialog/info-dialog.component
 import { AlbumCardComponent } from './album-card/album-card.component';
 import {MatTooltip} from "@angular/material/tooltip";
 import { MyMatInputComponent } from './inputs/my-mat-input/my-mat-input.component';
-import {MatFormField, MatPrefix} from '@angular/material/form-field';
+import {MatFormField, MatPrefix, MatSuffix} from '@angular/material/form-field';
 import {MatInput} from '@angular/material/input';
 import { TextInputDialogComponent } from './dialogs/text-input-dialog/text-input-dialog.component';
 import { TracksTableComponent } from './tracks-table/tracks-table.component';
@@ -97,6 +97,16 @@ import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {CartUpdateService} from './shopping-cart/shopping-cart.service';
 import {TranslatePipe} from "@ngx-translate/core";
 import {LottieComponent} from 'ngx-lottie';
+import {CdkDrag, CdkDragHandle, CdkDropList} from '@angular/cdk/drag-drop';
+import {
+  PersonalizedPlaylistCardComponent
+} from './personalized-playlist-card/personalized-playlist-card.component';
+import {
+  AddToPlaylistBottomSheetComponent
+} from './bottom-sheets/add-to-playlist-bottom-sheet/add-to-playlist-bottom-sheet.component';
+import {OverflowMarqueeDirective} from './directives/overflow-marquee.directive';
+import {MobileDetailScrollDirective} from './directives/mobile-detail-scroll.directive';
+import {CardRailDirective} from './directives/card-rail.directive';
 
 @NgModule({
   declarations: [
@@ -105,6 +115,7 @@ import {LottieComponent} from 'ngx-lottie';
     ConfirmDialogComponent,
     InfoDialogComponent,
     AlbumCardComponent,
+    PersonalizedPlaylistCardComponent,
     MyMatInputComponent,
     TextInputDialogComponent,
     TracksTableComponent,
@@ -148,6 +159,9 @@ import {LottieComponent} from 'ngx-lottie';
     SendSongMessageComponent,
     SettingsComponent,
     SocialShareBottomSheetComponent,
+    AddToPlaylistBottomSheetComponent,
+    MobileDetailScrollDirective,
+    CardRailDirective,
 // Dodajemo UnauthorizedComponent u deklaracije
   ],
     imports: [
@@ -198,6 +212,7 @@ import {LottieComponent} from 'ngx-lottie';
         QRCodeModule,
         MatSelect,
         MatPrefix,
+        MatSuffix,
         MatSlideToggle,
         MatChipListbox,
         MatChipOption,
@@ -217,6 +232,10 @@ import {LottieComponent} from 'ngx-lottie';
         TranslatePipe,
         LottieComponent,
         MatListItem,
+        CdkDropList,
+        CdkDrag,
+        CdkDragHandle,
+        OverflowMarqueeDirective,
     ],
 
   exports: [
@@ -226,6 +245,7 @@ import {LottieComponent} from 'ngx-lottie';
     ReactiveFormsModule,
     ArtistPicDragzoneComponent,
     AlbumCardComponent,
+    PersonalizedPlaylistCardComponent,
     TracksTableComponent,
     ArtistSmallCardComponent,
     SearchBarComponent,
@@ -251,9 +271,13 @@ import {LottieComponent} from 'ngx-lottie';
     AlbumCardListComponent,
     ArtistBigCardComponent,
     ArtistBigCardListComponent,
+    TrackCardListComponent,
     MessageContentCardComponent,
     PlaylistCardListComponent,
     SocialShareBottomSheetComponent,
+    OverflowMarqueeDirective,
+    MobileDetailScrollDirective,
+    CardRailDirective,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

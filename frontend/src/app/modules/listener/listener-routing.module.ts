@@ -37,6 +37,8 @@ import {
 import {AddCollaboratorDialogComponent} from '../artist/playlist/tracks-page/add-collaborator-dialog/add-collaborator-dialog.component';
 import {AddCollaboratorComponent} from '../artist/playlist/add-collaborator/add-collaborator.component';
 import {UserMonthlyStatsComponent} from './user-monthly-stats/user-monthly-stats.component';
+import {PersonalizedPlaylistDetailComponent} from './personalized-playlist-detail/personalized-playlist-detail.component';
+import {RadioDetailComponent} from './radio-detail/radio-detail.component';
 const routes: Routes = [{
   path: '', component: ListenerLayoutComponent,
   children: [
@@ -56,6 +58,9 @@ const routes: Routes = [{
     },
     {
       path: 'track/:id', component: PlayTrackComponent
+    },
+    {
+      path: 'radio/:trackId', component: RadioDetailComponent
     },
     {
       path: 'user/:id/followers', component: FollowersPageComponent
@@ -98,6 +103,7 @@ const routes: Routes = [{
       path: 'playlist',
       children: [
         { path: '', component: PlaylistListMaterialComponent },
+        { path: 'daily/:id', component: PersonalizedPlaylistDetailComponent },
         { path: 'create', component: PlaylistCreateOrEditComponent },
         { path: 'edit/:id', component: PlaylistCreateOrEditComponent },
         { path: ':id', component: TracksPageComponent }

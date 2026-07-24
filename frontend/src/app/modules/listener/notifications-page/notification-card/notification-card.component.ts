@@ -23,9 +23,6 @@ export class NotificationCardComponent implements AfterViewInit {
   @Input() notification: RichNotification | null = null;
   @Output() onRead: EventEmitter<RichNotification | null> = new EventEmitter();
   thumbnail: { [p: string]: any } | null | undefined;
-  actionStyle = {
-    display: 'none',
-  }
 
   constructor(private router: Router,
               private tracksGetService : TrackGetAllEndpointService,
@@ -51,14 +48,6 @@ export class NotificationCardComponent implements AfterViewInit {
       return moment(this.notification.createdAt).fromNow();
     }
     return "";
-  }
-
-  showHidden() {
-    this.actionStyle['display'] = 'block';
-  }
-
-  hideHidden() {
-    this.actionStyle['display'] = 'none';
   }
 
   emitReadNotification() {

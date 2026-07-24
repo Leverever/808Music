@@ -1,171 +1,77 @@
-import { Component, Input, OnInit } from '@angular/core';
-import {HttpErrorResponse} from '@angular/common/http';
-import {
-  GetWishlistEndpointService, GetWishlistResponse,
-  WishlistItem
-} from '../../../../endpoints/products-endpoints/get-wishlist-endpoint.service';
-import {
-  RemoveProductFromWishlistService
-} from '../../../../endpoints/products-endpoints/remove-item-from-wishlist-endpoint.service';
-import {
-  AddToShoppingCartEndpointService
-} from '../../../../endpoints/products-endpoints/add-to-shopping-cart-endpoint.service';
-import {Product} from '../product.model';
-import {MyConfig} from '../../../../my-config';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {animate, style, transition, trigger} from '@angular/animations';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { finalize } from 'rxjs/operators';
+import { AddToShoppingCartEndpointService } from '../../../../endpoints/products-endpoints/add-to-shopping-cart-endpoint.service';
+import { MyConfig } from '../../../../my-config';
+import { CartUpdateService } from '../../../shared/shopping-cart/shopping-cart.service';
+import { StorefrontWishlistService } from '../storefront-wishlist.service';
 
 @Component({
   selector: 'app-product-wishlist',
   templateUrl: './product-wishlist.component.html',
   styleUrls: ['./product-wishlist.component.css'],
-  animations: [
-    trigger('pageAnimation', [
-      transition(':enter', [
-        style({ opacity: 0 }),
-        animate('0.4s ease-out', style({ opacity: 1 }))
-      ]),
-      transition(':leave', [
-        style({ opacity: 1 }),
-        animate('0.5s ease-in', style({ opacity: 0 }))
-      ])
-    ]),
-    trigger('profileImageAnimation', [
-      transition(':enter', [
-        style({ transform: 'scale(0)', opacity: 0 }),
-        animate('0.3s ease-out', style({ transform: 'scale(1)', opacity: 1 }))
-      ])
-    ])
-  ]
 })
 export class ProductWishlistComponent implements OnInit {
-  @Input()
-  wishlistItems: WishlistItem[] = [];
-  userName: string = ''; //
+  loading = true;
+  readonly mediaAddress = MyConfig.media_address;
 
-
-  constructor(private wishlistService: GetWishlistEndpointService,
-              private removeProductFromWishlistService : RemoveProductFromWishlistService,
-              private addToShoppingCartService : AddToShoppingCartEndpointService,
-              private snackBar: MatSnackBar
-
+  constructor(
+    private readonly wishlist: StorefrontWishlistService,
+    private readonly addToShoppingCart: AddToShoppingCartEndpointService,
+    private readonly cart: CartUpdateService,
+    private readonly snackBar: MatSnackBar,
+    private readonly router: Router,
   ) {}
+
+  get items$() {
+    return this.wishlist.items$;
+  }
+
   ngOnInit(): void {
-    this.loadWishlist();
+    this.wishlist.ensureLoaded().pipe(finalize(() => this.loading = false)).subscribe({
+      error: () => this.snackBar.open('Could not load your wishlist.', 'Close', { duration: 2200 }),
+    });
   }
 
-  loadWishlist(): void {
-    const userId = this.getUserIdFromToken();
-    if (userId > 0) {
-      const request = { userId: userId };
-      this.wishlistService.handleAsync(request).subscribe({
-        next: (response) => {
-          console.log('Wishlist response:', response);
-          if (response.success) {
-            this.wishlistItems = response.wishlistItems;
-            this.userName = response.userName;
-          } else {
-            console.error('Failed to load wishlist');
-          }
-        },
-        error: (error) => console.error('Error fetching wishlist', error)
-      });
-    } else {
-      console.error('User ID not found');
-    }
+  openProduct(slug: string): void {
+    this.router.navigate(['/listener/product', slug]);
   }
 
-  private getUserIdFromToken(): number {
-    let authToken = sessionStorage.getItem('authToken');
-
-    if (!authToken) {
-      authToken = localStorage.getItem('authToken');
-    }
-
-    if (!authToken) {
-      return 0;
-    }
-
-    try {
-      const parsedToken = JSON.parse(authToken);
-      return parsedToken.userId;
-    } catch (error) {
-      console.error('Error parsing authToken:', error);
-      return 0;
-    }
+  removeFromWishlist(event: Event, slug: string): void {
+    event.stopPropagation();
+    this.wishlist.toggle(slug).subscribe({
+      next: () => this.snackBar.open('Removed from wishlist', 'Close', { duration: 1600 }),
+      error: () => this.snackBar.open('Could not update your wishlist.', 'Close', { duration: 2200 }),
+    });
   }
 
-
-
-  getDiscountPercentage(saleAmount: number): number {
-    return Math.round(saleAmount * 100);
-  }
-
-  addToCart(productId: number): void {
-    const userId = this.getUserIdFromToken();
-
-      const quantity = 1;
-      const request = {
-        productId: productId,
-        userId: userId,
-        quantity: quantity
-      };
-
-      this.addToShoppingCartService.handleAsync(request).subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.snackBar.open('Product added to Shopping Cart successfully', 'Close', {
-              duration: 1500,
-              verticalPosition: 'bottom',
-              horizontalPosition: 'center'
-            });
-            console.log('Product added to cart:', response.message);
-            this.ngOnInit()          } else {
-            console.error('Failed to add product to cart:', response.message);
-          }
-        },
-        error: (err) => {
-          console.error('Error adding to cart', err);
-        }
-      });
-  }
-  removeFromWishlist(slug: string) {
-    const userId = this.getUserIdFromToken();
-    if (userId === null) {
-      alert('You must be logged in to add items to the wishlist.');
+  addToCart(event: Event, productId: number): void {
+    event.stopPropagation();
+    const userId = this.getUserId();
+    if (!userId) {
+      this.snackBar.open('You must be logged in to add products to your cart.', 'Close', { duration: 2200 });
       return;
     }
 
-      this.removeProductFromWishlistService.removeProductFromWishlist({
-        productSlug: slug,
-        userId: userId
-      }).subscribe(
-        (response) => {
-          if (response.success) {
-            this.wishlistItems = this.wishlistItems.filter(item => item.slug !== slug);
-
-            this.snackBar.open('Product removed from Wishlist successfully', 'Close', {
-              duration: 1500,
-              verticalPosition: 'bottom',
-              horizontalPosition: 'center'
-            });
-
-              console.log(response.message);
-          } else {
-            console.log(response.message);
-          }
-        },
-        (error) => {
-          console.error('Error removing from wishlist:', error);
+    this.addToShoppingCart.handleAsync({ productId, userId, quantity: 1 }).subscribe({
+      next: response => {
+        if (response.success) {
+          this.cart.notifyCartUpdated();
+          this.snackBar.open('Added to cart', 'Close', { duration: 1600 });
         }
-      );
+      },
+      error: () => this.snackBar.open('Could not add this product to your cart.', 'Close', { duration: 2200 }),
+    });
   }
 
-  protected readonly MyConfig = MyConfig;
-
-  goToProfile() {
-
+  discountPercent(sale: number): number {
+    return Math.round((sale > 1 ? sale / 100 : sale) * 100);
   }
 
-
+  private getUserId(): number {
+    const token = sessionStorage.getItem('authToken') ?? localStorage.getItem('authToken');
+    if (!token) return 0;
+    try { return Number(JSON.parse(token).userId) || 0; } catch { return 0; }
+  }
 }

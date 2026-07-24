@@ -19,11 +19,16 @@ export class ClickableFeaturedArtistsComponent implements OnInit{
   }
   @Input() artists: ArtistSimpleDto[] | ArtistTrackDto[] | null = null;
   @Input() separator = ", ";
+  @Input() replaceUrlOnNavigate = false;
+  @Input() scrollWhenOverflow = false;
   @Output() onArtistClick: EventEmitter<ArtistSimpleDto | ArtistTrackDto> = new EventEmitter();
 
   emitArtist(artist : ArtistSimpleDto | ArtistTrackDto) {
     this.onArtistClick.emit(artist);
-    this.router.navigate(["/listener/profile", artist.id])
+    this.router.navigate(
+      ["/listener/profile", artist.id],
+      {replaceUrl: this.replaceUrlOnNavigate}
+    );
   }
 
   handleRightClick(event: MouseEvent) {

@@ -1,6 +1,10 @@
-<div class="clickable-artists" (contextmenu)="handleRightClick($event)">
-  @for (artist of artists; track artist.id; let i = $index) {
-      <div *ngIf="i != 0">{{separator}}</div>
-      <div class="clickable-artist" (click)="emitArtist(artist)">{{artist.name}}</div>
-  }
+<div class="artists-viewport" [class.scroll-when-overflow]="scrollWhenOverflow">
+  <div class="clickable-artists"
+       [appOverflowMarquee]="scrollWhenOverflow"
+       (contextmenu)="handleRightClick($event)">
+    @for (artist of artists; track artist.id; let i = $index) {
+      <span *ngIf="i != 0" class="artist-separator">{{ separator }}</span>
+      <span class="clickable-artist" (click)="emitArtist(artist)">{{ artist.name }}</span>
+    }
+  </div>
 </div>

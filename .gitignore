@@ -307,3 +307,15 @@ __pycache__/
 #static files
 backend/RS1_2024_25.API/TrackFiles
 backend/RS1_2024_25.API/wwwroot/*/
+backend/.verify-build
+.chrome-recap-test
+.chrome-recap-test-2
+.chrome-recap-test-3
+
+# ML training work products
+ml-service/training/work/
+ml-service/training/artifacts/
+ml-service/training/**/*.npy
+ml-service/training/**/*.npz
+ml-service/training/**/*.keras
+ml-service/training/**/*.h5

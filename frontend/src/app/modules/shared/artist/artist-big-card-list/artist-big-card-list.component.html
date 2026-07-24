@@ -4,14 +4,16 @@
 <div class="artist-music-page">
   <div>
     <h3>{{title}}</h3>
-    <div class="album-cards">
+    <div class="album-cards" appCardRail>
       @for (artist of artists; track artist.id; let i = $index) {
         @if (i < 6) {
-          <app-artist-big-card [artist]="artist" [numberDescription]="numberDescription"></app-artist-big-card>
+          <app-artist-big-card [artist]="artist"
+                               [numberDescription]="numberDescription"
+                               [description]="cardDescriptions[artist.id]"></app-artist-big-card>
         }
       }
       @if (artists != null) {
-        @if (artists.length >= 6) {
+        @if (showViewAll && artists.length >= 6) {
           <div class="view-all" (click)="viewAll(false)">...</div>
         }
       }
@@ -23,7 +25,7 @@
   <div class="artist-music-page">
     <div>
       <h3>{{title}}</h3>
-      <div class="album-cards">
+      <div class="album-cards" appCardRail>
         @for (artist of artist; track artist.artistId; let i = $index) {
           @if (i < 6) {
             <app-artist-big-card [isForProfile]="true" [artists]="artist" [numberDescription]="numberDescription"></app-artist-big-card>

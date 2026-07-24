@@ -1,23 +1,31 @@
-<div class="base-page flex-page">
+<div class="base-page flex-page" [class.listener-catalog]="!hasControls">
   <div class="select-page" [ngStyle]="{'flex-basis':'100vw'}">
-    <div class="title">
+    <header class="title catalog-title">
       @if (!hasControls) {
-        <button mat-icon-button (click)="goBack()">
+        <button type="button" mat-icon-button class="catalog-back-button" (click)="goBack()" aria-label="Go back">
           <mat-icon>arrow_back</mat-icon>
         </button>
       }
-      <h1>{{ title }}</h1>
-    </div>
-    <div *ngIf="!isResult">
-      <h6>Search:</h6>
+      <div class="catalog-title-copy">
+        @if (!hasControls) {
+          <span>Explore releases</span>
+        }
+        <h1>{{ title }}</h1>
+        @if (!hasControls && pagedList) {
+          <p>{{ pagedList.totalCount }} {{ pagedList.totalCount === 1 ? 'release' : 'releases' }}</p>
+        }
+      </div>
+    </header>
+    <div *ngIf="!isResult" class="catalog-search">
+      <h6>Search</h6>
       <app-search-bar placeholder="Search for a release" (onSearchChange)="filterSearch($event)"></app-search-bar>
     </div>
 
-    <div class="dual-control">
+    <div class="dual-control catalog-filter-bar">
       <mat-divider [vertical]="true"></mat-divider>
-      <div>
-        <h6>Type:</h6>
-        <mat-chip-listbox>
+      <div class="catalog-filter-group">
+        <h6>Type</h6>
+        <mat-chip-listbox aria-label="Filter releases by type">
           <mat-chip-option [id]="'0'" (selectionChange)="filterSelectedType($event)"
                            [selected]="pagedRequest.typeId == undefined">All
           </mat-chip-option>
@@ -111,7 +119,14 @@
         </div>
       }
     }
-    <div class="flex-container">
+    @if (albums?.length === 0) {
+      <div class="catalog-empty-state">
+        <mat-icon>album</mat-icon>
+        <h2>No releases found</h2>
+        <p>Try another title or release type.</p>
+      </div>
+    }
+    <div class="flex-container catalog-grid">
       @for (a of albums; track a.id) {
         <app-album-card [title]="a.title" [subtitle]="a.type + ' • ' + getReleaseYear(a.releaseDate)"
                         [imageUrl]="MyConfig.api_address + a.coverArt" [id]="a.id"
@@ -122,7 +137,7 @@
                         [releaseDate]="getMillis(a.releaseDate)" [artistName]="hasControls ? '' : a.artist" [artistId]="a.artistId"></app-album-card>
       }
     </div>
-    <mat-paginator [length]="pagedList?.totalCount"
+    <mat-paginator class="catalog-paginator" [length]="pagedList?.totalCount"
                    [pageSize]="defaultPageSize" [pageSizeOptions]="[12, 18, 36, 60]" showFirstLastButtons
                    (page)="switchPage($event)"></mat-paginator>
   </div>

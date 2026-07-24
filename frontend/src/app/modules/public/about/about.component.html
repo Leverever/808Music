@@ -1,18 +1,35 @@
-<div class="base-page">
-  <div class="headline-card">
-    <h1>{{'PUBLIC-NAV.About' | translate}}</h1>
-    <div class="headline-card-thumbnail"></div>
-    <div class="headline-card-signature"><h1>808</h1></div>
-    <div style="width: 40%">
-      <p>{{'ABOUT.P1' | translate}}</p>
+<main class="public-page content-page about-page">
+  <header class="public-page-header">
+    <span class="section-eyebrow">The story behind the sound</span>
+    <h1 class="public-page-title">{{ 'PUBLIC-NAV.About' | translate }}</h1>
+    <p class="public-page-intro">A music platform built to connect listeners, creators and the culture growing around them.</p>
+  </header>
+
+  <section class="about-story">
+    <div class="about-visual glass-surface" role="img" aria-label="A vibrant community creating and enjoying music">
+      <div class="about-image"></div>
+      <span class="about-signature">808</span>
     </div>
-    <br>
-    <div style="width: 40%">
-      <p>{{'ABOUT.P2' | translate}}</p>
+
+    <article class="about-copy">
+      <p>{{ 'ABOUT.P1' | translate }}</p>
+      <p>{{ 'ABOUT.P2' | translate }}</p>
+      <p>{{ 'ABOUT.P3' | translate }}</p>
+    </article>
+  </section>
+
+  <section class="about-values glass-surface" aria-label="What guides 808 Music">
+    <div>
+      <span>Discover</span>
+      <strong>Every taste has somewhere new to go.</strong>
     </div>
-    <br>
-    <div style="width: 40%">
-      <p>{{'ABOUT.P3' | translate}}</p>
+    <div>
+      <span>Connect</span>
+      <strong>Listeners and artists share one community.</strong>
     </div>
-  </div>
-</div>
+    <div>
+      <span>Empower</span>
+      <strong>Creators stay close to the people who listen.</strong>
+    </div>
+  </section>
+</main>

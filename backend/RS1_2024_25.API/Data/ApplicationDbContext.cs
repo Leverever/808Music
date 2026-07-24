@@ -7,7 +7,7 @@ using RS1_2024_25.API.Endpoints.ProductEndpoints;
 namespace RS1_2024_25.API.Data
 {
     public class ApplicationDbContext(
-        DbContextOptions options) : DbContext(options)
+        DbContextOptions<ApplicationDbContext> options) : DbContext(options)
     {
         public DbSet<City> Cities { get; set; }
         public DbSet<MyAuthenticationToken> MyAuthenticationTokens { get; set; }
@@ -25,6 +25,7 @@ namespace RS1_2024_25.API.Data
         public DbSet<UserArtist> UserArtists { get; set; }
         public DbSet<UserArtistRole> UserArtistRoles { get; set; }
         public DbSet<Album> Albums { get; set; }
+        public DbSet<AlbumTrackAssociation> AlbumTrackAssociations { get; set; }
         public DbSet<AlbumType> AlbumTypes { get; set; }
         public DbSet<MyRefreshToken> MyRefreshTokens { get; set; }
         public DbSet<MyResetToken> MyResetTokens { get; set; }
@@ -56,6 +57,12 @@ namespace RS1_2024_25.API.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<AlbumTrackAssociation>(entity =>
+            {
+                entity.ToTable("AlbumTracks", table => table.ExcludeFromMigrations());
+                entity.Property(x => x.TitleOverride).HasMaxLength(200);
+            });
 
             foreach (var relationship in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
             {

@@ -47,7 +47,7 @@ export class ListenerLayoutComponent implements OnInit, OnDestroy {
   constructor(private auth: MyUserAuthService,
               private router: Router,
               private notificationsService: NotificationsService,
-              private snackBar: MatSnackBar, private musicPlayerService : MusicPlayerService,
+              private snackBar: MatSnackBar, protected musicPlayerService : MusicPlayerService,
               private isSubscribedService : IsSubscribedService,
               private dialog : MatDialog,
               private chatService : ChatService,) {

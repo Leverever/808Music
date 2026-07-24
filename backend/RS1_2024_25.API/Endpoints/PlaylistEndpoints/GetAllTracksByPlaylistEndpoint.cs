@@ -51,9 +51,13 @@ namespace RS1_2024_25.API.Endpoints.PlaylistEndpoints
             tracks = tracks.Where(t => t.Album.ArtistId == request.LeadArtistId);
         }
 
-        if (!string.IsNullOrEmpty(request.Title))
+        if (!string.IsNullOrWhiteSpace(request.Title))
         {
-            tracks = tracks.Where(t => t.Title.ToLower().Contains(request.Title.ToLower()));
+            var searchTerm = request.Title.Trim().ToLower();
+            tracks = tracks.Where(t =>
+                t.Title.ToLower().Contains(searchTerm)
+                || db.ArtistsTracks.Any(at =>
+                    at.TrackId == t.Id && at.Artist.Name.ToLower().Contains(searchTerm)));
         }
 
         if (request.SortByStreams)

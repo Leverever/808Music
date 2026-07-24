@@ -1,3 +1,11 @@
 .tracks-list {
   flex-basis: 70vw;
 }
+
+@media (max-width: 960px) {
+  .tracks-list {
+    width: 100%;
+    flex-basis: auto;
+    padding-top: 14px;
+  }
+}

@@ -6,7 +6,9 @@ import {
   OnChanges,
   OnDestroy,
   OnInit, Output,
-  SimpleChanges
+  SimpleChanges,
+  ElementRef,
+  ViewChild
 } from '@angular/core';
 import {ChatGetResponse} from '../../../../endpoints/chat-endpoints/chat-create-endpoint.service';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
@@ -36,6 +38,7 @@ import {Subscription} from 'rxjs';
   styleUrl: './chat-box.component.css'
 })
 export class ChatBoxComponent implements AfterViewInit, OnChanges, OnDestroy {
+  @ViewChild('messageField') messageField?: ElementRef<HTMLTextAreaElement>;
   @Input() chat: ChatGetResponse | null = null;
   form = new FormGroup({
     message: new FormControl('', [Validators.required]),
@@ -78,6 +81,7 @@ export class ChatBoxComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   ngAfterViewInit(): void {
     this.msgDiv = document.getElementById("messageBox") as HTMLDivElement;
+    requestAnimationFrame(() => this.resetMessageFieldHeight());
     setTimeout(() => {this.msgDiv.scrollTop = this.msgDiv.scrollHeight}, 100);
     this.changeDetectorRef.detectChanges();
     this.msgReceive$ = this.chatService.msgReceived$.subscribe(msg => {
@@ -124,6 +128,8 @@ export class ChatBoxComponent implements AfterViewInit, OnChanges, OnDestroy {
           contentId: -1,
           contentType: 'None'
         });
+        this.result = null;
+        requestAnimationFrame(() => this.resetMessageFieldHeight());
       }
     });
   }
@@ -131,7 +137,11 @@ export class ChatBoxComponent implements AfterViewInit, OnChanges, OnDestroy {
   protected readonly JSON = JSON;
 
   attachItems() {
-    let ref = this.bottomSheet.open(SearchForContentSheetComponent, {hasBackdrop: true});
+    let ref = this.bottomSheet.open(SearchForContentSheetComponent, {
+      hasBackdrop: true,
+      panelClass: ['liquid-glass-sheet-pane', 'listener-content-sheet-pane'],
+      backdropClass: 'liquid-glass-sheet-backdrop',
+    });
     ref.afterDismissed().subscribe({
       next: (data: MessageContent | null) => {
         if(data != null) {
@@ -148,6 +158,29 @@ export class ChatBoxComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.form.get('contentType')!.setValue('None');
     this.form.get('contentId')!.setValue(-1);
     this.form.get('message')!.setValue(this.form.get('message')!.value);
+  }
+
+  resizeMessageField(event: Event): void {
+    this.resizeTextarea(event.target as HTMLTextAreaElement);
+  }
+
+  handleMessageKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
+    event.preventDefault();
+    if (this.form.valid) this.sendMessage();
+  }
+
+  private resetMessageFieldHeight(): void {
+    if (this.messageField) this.resizeTextarea(this.messageField.nativeElement);
+  }
+
+  private resizeTextarea(textarea: HTMLTextAreaElement): void {
+    const minHeight = 44;
+    const maxHeight = 132;
+    textarea.style.height = `${minHeight}px`;
+    const nextHeight = Math.min(Math.max(textarea.scrollHeight, minHeight), maxHeight);
+    textarea.style.height = `${nextHeight}px`;
+    textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
   }
 
   protected readonly MyConfig = MyConfig;

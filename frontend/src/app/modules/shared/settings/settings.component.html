@@ -1,90 +1,169 @@
-<div class="base-page">
-  <h1>{{'SETTINGS.Title' | translate}}</h1>
-  <mat-divider></mat-divider>
-  <div class="options">
-    <div class="section">
-      <h3>{{'SETTINGS.ACCOUNT.Title' | translate}}</h3>
-      <form [formGroup]="form" (ngSubmit)="updateUser()">
-        <div class="first-last">
-          <div>
-            <app-my-mat-input [placeholder]="getTranslation('SETTINGS.ACCOUNT.FirstName')" [title]="getTranslation('SETTINGS.ACCOUNT.FirstName')" [name]="'firstName'"
-                              formControlName="firstName"></app-my-mat-input>
-          </div>
-          <div>
-            <app-my-mat-input [placeholder]="getTranslation('SETTINGS.ACCOUNT.LastName')" [title]="getTranslation('SETTINGS.ACCOUNT.LastName')" [name]="'lastName'"
-                              formControlName="lastName"></app-my-mat-input>
-          </div>
-        </div>
-        <div class="full-width">
-          <h6>{{'SETTINGS.ACCOUNT.DateOfBirth' | translate}}</h6>
-          <mat-form-field>
-            <input matInput required formControlName="dateOfBirth" [matDatepicker]="datepicker">
-            <mat-datepicker-toggle matIconPrefix [for]="datepicker"></mat-datepicker-toggle>
-            <mat-datepicker #datepicker></mat-datepicker>
-          </mat-form-field>
-        </div>
-        <app-my-mat-input [placeholder]="getTranslation('SETTINGS.ACCOUNT.Username')" [title]="getTranslation('SETTINGS.ACCOUNT.Username')" [name]="'username'"
-                          formControlName="username"></app-my-mat-input>
-        <app-my-mat-input [placeholder]="getTranslation('SETTINGS.ACCOUNT.Email')" [title]="getTranslation('SETTINGS.ACCOUNT.Email')" [name]="'email'"
-                          formControlName="email"></app-my-mat-input>
-        <div class="full-width">
-          <h6>{{'SETTINGS.ACCOUNT.Country' | translate}}</h6>
-          <mat-form-field>
-            <mat-select formControlName="countryId">
-              @for (c of countries; track c.id) {
-                <mat-option [value]="c.id">{{ c.name }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-        </div>
-        <app-my-mat-input [placeholder]="getTranslation('SETTINGS.ACCOUNT.NewPassPlaceholder')" [title]="getTranslation('SETTINGS.ACCOUNT.NewPassword')" [name]="'newPassword'"
-                          formControlName="newPassword" [type]="'password'"></app-my-mat-input>
+<main class="settings-page">
+  <header class="settings-hero">
+    <span class="eyebrow">{{ 'SETTINGS.HeroEyebrow' | translate }}</span>
+    <h1>{{ 'SETTINGS.Title' | translate }}</h1>
+    <p>{{ 'SETTINGS.Description' | translate }}</p>
+  </header>
 
-        <button mat-flat-button (click)="openPasswordDialog()">{{'SETTINGS.ACCOUNT.SaveChanges' | translate}}</button>
+  <div class="settings-layout">
+    <section class="settings-section account-section">
+      <header class="section-heading">
+        <div class="section-icon"><mat-icon>person</mat-icon></div>
+        <div>
+          <span class="section-kicker">{{ 'SETTINGS.ACCOUNT.Kicker' | translate }}</span>
+          <h2>{{ 'SETTINGS.ACCOUNT.Title' | translate }}</h2>
+          <p>{{ 'SETTINGS.ACCOUNT.Description' | translate }}</p>
+        </div>
+      </header>
+
+      <form [formGroup]="form" class="account-form">
+        <div class="form-grid name-grid">
+          <app-my-mat-input
+            [placeholder]="getTranslation('SETTINGS.ACCOUNT.FirstName')"
+            [title]="getTranslation('SETTINGS.ACCOUNT.FirstName')"
+            [name]="'firstName'" formControlName="firstName"></app-my-mat-input>
+          <app-my-mat-input
+            [placeholder]="getTranslation('SETTINGS.ACCOUNT.LastName')"
+            [title]="getTranslation('SETTINGS.ACCOUNT.LastName')"
+            [name]="'lastName'" formControlName="lastName"></app-my-mat-input>
+        </div>
+
+        <div class="form-grid">
+          <app-my-mat-input
+            [placeholder]="getTranslation('SETTINGS.ACCOUNT.Username')"
+            [title]="getTranslation('SETTINGS.ACCOUNT.Username')"
+            [name]="'username'" formControlName="username"></app-my-mat-input>
+          <app-my-mat-input
+            [placeholder]="getTranslation('SETTINGS.ACCOUNT.Email')"
+            [title]="getTranslation('SETTINGS.ACCOUNT.Email')"
+            [name]="'email'" formControlName="email"></app-my-mat-input>
+        </div>
+
+        <div class="form-grid">
+          <div class="native-field">
+            <h6>{{ 'SETTINGS.ACCOUNT.DateOfBirth' | translate }}</h6>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>{{ 'SETTINGS.ACCOUNT.DateOfBirth' | translate }}</mat-label>
+              <input matInput required formControlName="dateOfBirth" [matDatepicker]="datepicker">
+              <mat-datepicker-toggle matIconSuffix [for]="datepicker"></mat-datepicker-toggle>
+              <mat-datepicker #datepicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <div class="native-field">
+            <h6>{{ 'SETTINGS.ACCOUNT.Country' | translate }}</h6>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>{{ 'SETTINGS.ACCOUNT.Country' | translate }}</mat-label>
+              <mat-select formControlName="countryId">
+                @for (c of countries; track c.id) {
+                  <mat-option [value]="c.id">{{ c.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <app-my-mat-input class="password-field"
+          [placeholder]="getTranslation('SETTINGS.ACCOUNT.NewPassPlaceholder')"
+          [title]="getTranslation('SETTINGS.ACCOUNT.NewPassword')"
+          [name]="'newPassword'" formControlName="newPassword" [type]="'password'"></app-my-mat-input>
+
+        <div class="account-actions">
+          <p><mat-icon>lock</mat-icon>{{ 'SETTINGS.ACCOUNT.PasswordRequired' | translate }}</p>
+          <button type="button" mat-flat-button class="primary-action" (click)="openPasswordDialog()">
+            <mat-icon>check</mat-icon>
+            {{ 'SETTINGS.ACCOUNT.SaveChanges' | translate }}
+          </button>
+        </div>
       </form>
+    </section>
+
+    <div class="settings-stack">
+      <section class="settings-section profile-section">
+        <header class="section-heading compact-heading">
+          <div class="section-icon"><mat-icon>account_circle</mat-icon></div>
+          <div>
+            <span class="section-kicker">{{ 'SETTINGS.PROFILE.Kicker' | translate }}</span>
+            <h2>{{ 'SETTINGS.PROFILE.Title' | translate }}</h2>
+          </div>
+        </header>
+
+        <div class="profile-setting">
+          <div class="profile-picture"
+               [ngStyle]="{'background-image': 'url('+MyConfig.api_address+user?.pathToPfp+')'}">
+            <span><mat-icon>photo_camera</mat-icon></span>
+          </div>
+          <div class="profile-copy">
+            <strong>{{ user?.firstName }} {{ user?.lastName }}</strong>
+            <span>&#64;{{ user?.username }}</span>
+          </div>
+          <button type="button" mat-flat-button class="secondary-action" (click)="openImageCropperDialog()">
+            <mat-icon>edit</mat-icon>
+            <span>{{ 'SETTINGS.PROFILE.ChangePicture' | translate }}</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="settings-section notification-section">
+        <header class="section-heading compact-heading">
+          <div class="section-icon"><mat-icon>notifications</mat-icon></div>
+          <div>
+            <span class="section-kicker">{{ 'SETTINGS.NOTIFICATIONS.Kicker' | translate }}</span>
+            <h2>{{ 'SETTINGS.NOTIFICATIONS.Title' | translate }}</h2>
+          </div>
+        </header>
+
+        <div class="settings-rows">
+          <button type="button" class="settings-link" (click)="openNotificationSettings()">
+            <span class="row-icon"><mat-icon>tune</mat-icon></span>
+            <span class="row-copy">
+              <strong>{{ 'SETTINGS.NOTIFICATIONS.Preferences' | translate }}</strong>
+              <small>{{ 'SETTINGS.NOTIFICATIONS.PreferencesDescription' | translate }}</small>
+            </span>
+            <mat-icon class="row-arrow">chevron_right</mat-icon>
+          </button>
+
+          <button type="button" class="settings-link" (click)="openFollowingSettings()">
+            <span class="row-icon"><mat-icon>manage_accounts</mat-icon></span>
+            <span class="row-copy">
+              <strong>{{ 'SETTINGS.NOTIFICATIONS.Following' | translate }}</strong>
+              <small>{{ 'SETTINGS.NOTIFICATIONS.FollowingDescription' | translate }}</small>
+            </span>
+            <mat-icon class="row-arrow">chevron_right</mat-icon>
+          </button>
+        </div>
+      </section>
+
+      <section class="settings-section app-section">
+        <header class="section-heading compact-heading">
+          <div class="section-icon"><mat-icon>headphones</mat-icon></div>
+          <div>
+            <span class="section-kicker">{{ 'SETTINGS.APP.Kicker' | translate }}</span>
+            <h2>{{ 'SETTINGS.APP.Title' | translate }}</h2>
+          </div>
+        </header>
+
+        <div class="settings-rows">
+          <div class="settings-row">
+            <span class="row-icon"><mat-icon>play_circle</mat-icon></span>
+            <span class="row-copy">
+              <strong>{{ 'SETTINGS.PLAYBACK.Autoplay' | translate }}</strong>
+              <small>{{ 'SETTINGS.PLAYBACK.AutoplayDescription' | translate }}</small>
+            </span>
+            <mat-slide-toggle [checked]="autoplayStatus" (change)="changeAutoplayStatus($event)"
+                              [attr.aria-label]="'SETTINGS.PLAYBACK.ToggleAutoplay' | translate"></mat-slide-toggle>
+          </div>
+
+          <div class="settings-row language-row">
+            <span class="row-icon"><mat-icon>language</mat-icon></span>
+            <span class="row-copy">
+              <strong>{{ 'SETTINGS.LANGUAGE.Title' | translate }}</strong>
+              <small>{{ 'SETTINGS.LANGUAGE.Description' | translate }}</small>
+            </span>
+            <app-language-selector></app-language-selector>
+          </div>
+        </div>
+      </section>
     </div>
-
-    <div class="section general-options">
-      <div>
-        <h3>{{'SETTINGS.PROFILE.Title' | translate}}</h3>
-        <div class="autoplay">
-          <div class="pfp" [ngStyle]="{'background-image': 'url('+MyConfig.api_address+user?.pathToPfp+')'}"></div>
-          <button mat-flat-button (click)="openImageCropperDialog()">
-            <mat-icon>account_circle</mat-icon>
-            {{'SETTINGS.PROFILE.ChangePicture' | translate}}
-          </button>
-        </div>
-      </div>
-      <div>
-        <h3>{{'SETTINGS.NOTIFICATIONS.Title' | translate}}</h3>
-        <div class="autoplay col-controls">
-          <button mat-flat-button (click)="openNotificationSettings()">
-            <mat-icon>settings</mat-icon>
-            {{'SETTINGS.NOTIFICATIONS.Preferences' | translate}}
-          </button>
-          <button mat-flat-button (click)="openFollowingSettings()">
-            <mat-icon>manage_accounts</mat-icon>
-            {{'SETTINGS.NOTIFICATIONS.Following' | translate}}
-          </button>
-        </div>
-      </div>
-      <div>
-        <h3>{{'SETTINGS.PLAYBACK.Title' | translate}}</h3>
-        <div class="autoplay">
-          <h6>{{'SETTINGS.PLAYBACK.Autoplay' | translate}}</h6>
-          <mat-slide-toggle [checked]="autoplayStatus" (change)="changeAutoplayStatus($event)"></mat-slide-toggle>
-        </div>
-      </div>
-
-      <div>
-        <h3>{{'SETTINGS.LANGUAGE.Title' | translate}}</h3>
-        <div class="autoplay">
-          <app-language-selector></app-language-selector>
-        </div>
-      </div>
-    </div>
-
-
   </div>
-
-</div>
+</main>

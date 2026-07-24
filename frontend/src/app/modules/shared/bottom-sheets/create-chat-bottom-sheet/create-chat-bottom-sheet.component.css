@@ -1,18 +1,83 @@
-.search {
-  width: 20vw;
+.create-chat-sheet {
+  min-height: 340px;
+}
+
+.chat-search {
+  flex: 0 0 auto;
+}
+
+.user-results {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.user-result {
+  width: 100%;
+  text-align: left;
+}
+
+.user-avatar {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .13);
+  border-radius: 50%;
+  background-color: #28212a;
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, .22);
+}
+
+.user-avatar mat-icon {
+  color: rgba(245, 235, 246, .66);
+}
+
+.user-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 3px;
+}
+
+.user-copy strong,
+.user-copy span {
   overflow: hidden;
-  align-self: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.cancel {
-  width: 20vw;
-  align-self: center;
+.user-copy span {
+  color: rgba(241, 231, 242, .57);
+  font-size: 12px;
 }
 
-h3 {
-  align-self: center;
+.user-result > mat-icon {
+  color: #e8a4f5;
 }
 
-.result-error {
-  height: 10vh;
+:host ::ng-deep .chat-search .search-bar-input {
+  min-height: 48px;
+  margin-right: 0;
+  padding-left: 42px;
+  border: 1px solid rgba(255, 255, 255, .13);
+  outline: 0;
+  background: rgba(15, 12, 17, .34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
+}
+
+@media (max-width: 960px) {
+  .create-chat-sheet {
+    min-height: min(520px, 70dvh);
+  }
+
+  .user-results {
+    gap: 7px;
+  }
+
+  .user-result {
+    min-height: 68px;
+  }
 }

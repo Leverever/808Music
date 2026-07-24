@@ -20,7 +20,7 @@ namespace RS1_2024_25.API.Endpoints.UserEndpoints
 
             var readNotis = await db.ReadNotifications.Where(rn => rn.MyAppUserId == userId).Select(rn => rn.NotificationId).ToListAsync(cancellationToken);
             var artistIds = await db.Follows.Where(f => f.WantsNotifications && f.MyAppUserId == userId).Select(f => f.ArtistId).ToListAsync(cancellationToken);
-            var unreadNotisCount = await db.Notifications.Where(n => !readNotis.Contains(n.Id) && artistIds.Contains(n.ArtistId) && n.Sent && n.CreatedAt.AddDays(60) > DateTime.Now).CountAsync(cancellationToken);
+            var unreadNotisCount = await db.Notifications.Where(n => !readNotis.Contains(n.Id) && artistIds.Contains(n.ArtistId) && n.Sent && n.CreatedAt.AddDays(90) > DateTime.Now).CountAsync(cancellationToken);
 
             return Ok(new UnreadsResponse
             {

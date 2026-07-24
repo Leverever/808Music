@@ -1,21 +1,38 @@
-<div class="following-container" [@pageAnimation]>
-  <button mat-icon-button class="go-back-button" (click)="goBack()">
-    <mat-icon class="go-back-arrow">arrow_back</mat-icon>
-  </button>
-  <h2 class="header-title">Following</h2>
-  <div class="followage-section"  *ngIf="following.length > 0; else noFollowing">
-    <div *ngFor="let user of following" class="user" (click)="user.artistId ? openArtistProfile(user.artistId) : openProfile(user.userId)">
-      <div class="followage-pfp" [ngStyle]="{'background-image': 'url(' + mediaAddress + (user.artistId ? '/Images/Artistpfps/' + user.profilePicture : user.profilePicture) + ')'}" ></div>
-
-      <div class="username-profiletype">
-        <p class="username-followage">{{ user.username }}</p>
-        <p class="profile-undertext">
-          {{ user.artistId ? 'Artist' : 'Profile' }}
-        </p>
-      </div>
+<main class="followage-page" [style.--profile-accent]="selectedColor" [@pageAnimation]>
+  <header class="followage-header">
+    <button type="button" class="go-back-button" aria-label="Go back" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <span class="page-eyebrow">Connections</span>
+      <h1>Following</h1>
+      <p>{{ following.length }} {{ following.length === 1 ? 'profile' : 'profiles' }}</p>
     </div>
-  </div>
+  </header>
+
+  <section class="followage-grid" *ngIf="following.length; else noFollowing" aria-label="Following">
+    <button
+      type="button"
+      class="person-card"
+      *ngFor="let user of following"
+      (click)="user.artistId ? openArtistProfile(user.artistId) : openProfile(user.userId)">
+      <span
+        class="followage-pfp"
+        [style.background-image]="'url(' + mediaAddress + (user.artistId ? '/Images/Artistpfps/' + user.profilePicture : user.profilePicture) + ')'">
+      </span>
+      <span class="person-copy">
+        <strong>{{ user.username }}</strong>
+        <span>{{ user.artistId ? 'Artist' : 'Listener profile' }}</span>
+      </span>
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </section>
+
   <ng-template #noFollowing>
-    <p>This user is not following anyone.</p>
+    <section class="empty-followage">
+      <mat-icon>person_search</mat-icon>
+      <h2>Not following anyone yet</h2>
+      <p>Artists and listeners followed by this profile will appear here.</p>
+    </section>
   </ng-template>
-</div>
+</main>

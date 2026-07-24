@@ -28,13 +28,11 @@ export class AlbumCardComponent implements OnInit, OnDestroy {
   @Output() onClick: EventEmitter<number> = new EventEmitter();
   @Output() onPlayClick: EventEmitter<number> = new EventEmitter();
   playBtnStyle = {
-    'display': 'none',
-    'bottom': '7vh'
+    'display': 'none'
   }
 
   pauseBtnStyle = {
-    'display': 'block',
-    'bottom': '7vh'
+    'display': 'block'
   }
 
   isPlayingThisAlbum: boolean = false;
@@ -60,14 +58,6 @@ export class AlbumCardComponent implements OnInit, OnDestroy {
     this.trackChange$ = this.musicPlayerService.trackEvent.subscribe(track =>
       this.isPlayingThisAlbum = track.albumId == this.id && this.musicPlayerService.getQueueType() === "album");
 
-    if(this.artistName != ""){
-      this.playBtnStyle['bottom'] = '10vh';
-      this.pauseBtnStyle['bottom'] = '10vh';
-    }
-    else {
-      this.playBtnStyle['bottom'] = '7vh';
-      this.pauseBtnStyle['bottom'] = '7vh';
-    }
   }
 
   replaceWithPlaceholder() {
@@ -87,23 +77,30 @@ export class AlbumCardComponent implements OnInit, OnDestroy {
   }
 
   getTitle() {
-    return this.title.length > 16 ? this.title.slice(0,13) + "..." : this.title;
+    return this.title;
   }
 
   emitClick() {
     this.onClick.emit(this.id);
   }
 
+  openCardOnMobile(event: MouseEvent): void {
+    if(typeof window === 'undefined' || !window.matchMedia('(max-width: 960px)').matches)
+    {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    if(target?.closest('button, .album-mat-card-title, .artist-name'))
+    {
+      return;
+    }
+
+    this.emitClick();
+  }
+
   showPlayButton() {
     this.playBtnStyle['display'] = 'block';
-    if(this.artistName != ""){
-      this.playBtnStyle['bottom'] = '10vh';
-      this.pauseBtnStyle['bottom'] = '10vh';
-    }
-    else {
-      this.playBtnStyle['bottom'] = '7vh';
-      this.pauseBtnStyle['bottom'] = '7vh';
-    }
   }
 
   hidePlayButton() {

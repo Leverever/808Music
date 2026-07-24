@@ -1,0 +1,262 @@
+<section class="editor-page">
+  <header class="page-header">
+    <button type="button" class="back-button" (click)="cancel()" aria-label="Back to playlist themes">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <span class="eyebrow">{{isEditMode ? 'Edit playlist theme' : 'New playlist theme'}}</span>
+      <h1>{{isEditMode ? 'Tune the theme.' : 'Create a new mood.'}}</h1>
+      <p>Theme edits affect future playlist generation and preserve existing playlist snapshots.</p>
+    </div>
+  </header>
+
+  @if (loading) {
+    <div class="loading-state">
+      <mat-spinner diameter="38"></mat-spinner>
+      <span>Loading theme…</span>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <div class="editor-layout">
+        <div class="form-stack">
+          <section class="glass-section">
+            <header class="section-header">
+              <span class="section-icon"><mat-icon>badge</mat-icon></span>
+              <div>
+                <h2>Identity</h2>
+                <p>The listener-facing copy and permanent machine key.</p>
+              </div>
+            </header>
+
+            <div class="field-grid">
+              <label class="field">
+                <span>Theme name</span>
+                <input type="text" formControlName="name" maxlength="200"
+                       placeholder="Late Night Drive">
+                @if (controlHasError('name')) {
+                  <small class="field-error">A name is required.</small>
+                }
+              </label>
+
+              <label class="field">
+                <span>Theme key</span>
+                <input type="text" formControlName="themeKey" maxlength="100"
+                       placeholder="late-night-drive">
+                <small class="field-hint">
+                  {{isEditMode ? 'Permanent after creation' : 'Lowercase letters, numbers and hyphens'}}
+                </small>
+                @if (controlHasError('themeKey')) {
+                  <small class="field-error">Enter a valid lowercase slug.</small>
+                }
+              </label>
+            </div>
+
+            <label class="field">
+              <span>Description</span>
+              <textarea formControlName="description" rows="4" maxlength="500"
+                        placeholder="Describe what listeners should expect…"></textarea>
+              <small class="character-count">{{descriptionLength}} / 500</small>
+            </label>
+          </section>
+
+          <section class="glass-section labels-section">
+            <header class="section-header labels-heading">
+              <span class="section-icon"><mat-icon>label</mat-icon></span>
+              <div>
+                <h2>Recommendation labels</h2>
+                <p>Positive labels pull matching tracks in; negative labels reduce their score.</p>
+              </div>
+              <div class="labels-actions">
+                <div class="polarity-filter" aria-label="Filter recommendation labels">
+                  @for (filter of labelFilters; track filter) {
+                    <button
+                      type="button"
+                      [class.active]="labelFilter === filter"
+                      [attr.aria-pressed]="labelFilter === filter"
+                      (click)="setLabelFilter(filter)">
+                      <span>{{filter}}</span>
+                      <small>{{labelCount(filter)}}</small>
+                    </button>
+                  }
+                </div>
+
+                <button type="button" class="add-label-button" (click)="addNewLabel()">
+                  <mat-icon>add</mat-icon>
+                  <span>Add label</span>
+                </button>
+              </div>
+            </header>
+
+            <div class="label-list" formArrayName="labels">
+              @for (labelGroup of labels.controls; track labelGroup; let index = $index) {
+                @if (labelMatchesFilter(labelGroup)) {
+                  <div class="label-row" [formGroupName]="index">
+                    <label class="field label-value">
+                      <span>Label</span>
+                      <div class="autocomplete-control">
+                        <input
+                          #labelInput
+                          type="text"
+                          formControlName="label"
+                          maxlength="100"
+                          autocomplete="off"
+                          [matAutocomplete]="tagAutocomplete"
+                          placeholder="energetic">
+                        <mat-icon class="autocomplete-indicator">expand_more</mat-icon>
+                        <mat-autocomplete
+                          #tagAutocomplete="matAutocomplete"
+                          class="tag-autocomplete-panel"
+                          [autoActiveFirstOption]="true">
+                          @for (tag of filteredTagSuggestionsFor(labelGroup); track tag) {
+                            <mat-option [value]="tag">
+                              <span class="tag-autocomplete-option">
+                                <mat-icon>sell</mat-icon>
+                                <span>{{tag}}</span>
+                              </span>
+                            </mat-option>
+                          }
+                        </mat-autocomplete>
+                      </div>
+                    </label>
+
+                    <label class="field">
+                      <span>Effect</span>
+                      <select formControlName="polarity">
+                        @for (polarity of polarityOptions; track polarity) {
+                          <option [value]="polarity">{{polarity}}</option>
+                        }
+                      </select>
+                    </label>
+
+                    <label class="field">
+                      <span>Source</span>
+                      <select formControlName="source"
+                              (change)="onSourceChanged(labelGroup)">
+                        @for (source of sourceOptions; track source) {
+                          <option [value]="source">{{source === 'EssentiaTag' ? 'Analyzed tag' : 'CLAP text'}}</option>
+                        }
+                      </select>
+                    </label>
+
+                    <label class="field namespace-field">
+                      <span>Namespace</span>
+                      <select formControlName="tagNamespace">
+                        <option value="" disabled>Select namespace</option>
+                        @for (tagNamespace of namespaceOptionsFor(labelGroup);
+                          track tagNamespace) {
+                          <option [value]="tagNamespace">
+                            {{namespaceLabel(tagNamespace)}}
+                          </option>
+                        }
+                      </select>
+                      <small class="field-hint">
+                        {{sourceDescription(labelGroup)}}
+                      </small>
+                    </label>
+
+                    <label class="field weight-field">
+                      <span>Weight</span>
+                      <input type="number" formControlName="weight"
+                             min="0.0001" max="100" step="0.1">
+                    </label>
+
+                    <button type="button" class="remove-label-button"
+                            [disabled]="labels.length === 1"
+                            (click)="removeLabel(index)"
+                            aria-label="Remove label">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </div>
+                }
+              }
+
+              @if (labelCount(labelFilter) === 0) {
+                <div class="empty-label-filter">
+                  No {{labelFilter.toLowerCase()}} labels in this theme yet.
+                </div>
+              }
+            </div>
+
+            <aside class="source-note">
+              <mat-icon>science</mat-icon>
+              @if (tagCatalogUnavailable) {
+                <span>The tag catalog could not be loaded. Existing namespace values remain available.</span>
+              } @else {
+                <span>Namespaces and autocomplete labels are synchronized from analyzed tracks and existing themes.</span>
+              }
+            </aside>
+          </section>
+        </div>
+
+        <aside class="settings-column">
+          <section class="glass-section compact-section">
+            <header class="section-header">
+              <span class="section-icon"><mat-icon>tune</mat-icon></span>
+              <div>
+                <h2>Generation</h2>
+                <p>Control output size and ordering.</p>
+              </div>
+            </header>
+
+            <label class="field">
+              <span>Tracks per playlist</span>
+              <input type="number" formControlName="trackCount" min="1" max="50">
+              <small class="field-hint">Between 1 and 50 tracks</small>
+            </label>
+
+            <label class="field">
+              <span>Sort order</span>
+              <input type="number" formControlName="sortOrder" min="0" max="100000">
+              <small class="field-hint">Lower numbers appear and generate first</small>
+            </label>
+          </section>
+
+          <section class="glass-section compact-section state-section">
+            <div>
+              <span class="section-icon"><mat-icon>power_settings_new</mat-icon></span>
+              <div>
+                <h2>Active theme</h2>
+                <p>Inactive themes are excluded from future daily generation.</p>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" formControlName="isActive">
+              <span aria-hidden="true"></span>
+              <strong>{{form.get('isActive')?.value ? 'Active' : 'Inactive'}}</strong>
+            </label>
+          </section>
+
+          <aside class="future-note">
+            <mat-icon>event_repeat</mat-icon>
+            <div>
+              <strong>Future playlists only</strong>
+              <p>Saving does not rebuild playlists that already contain tracks.</p>
+            </div>
+          </aside>
+        </aside>
+      </div>
+
+      @if (errorMessage) {
+        <div class="form-error" role="alert">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{errorMessage}}</span>
+        </div>
+      }
+
+      <footer class="form-actions">
+        <button type="button" class="cancel-button" (click)="cancel()" [disabled]="saving">
+          Cancel
+        </button>
+        <button type="submit" class="save-button" [disabled]="saving">
+          @if (saving) {
+            <mat-spinner diameter="19"></mat-spinner>
+            <span>Saving…</span>
+          } @else {
+            <mat-icon>check</mat-icon>
+            <span>{{isEditMode ? 'Save changes' : 'Create theme'}}</span>
+          }
+        </button>
+      </footer>
+    </form>
+  }
+</section>

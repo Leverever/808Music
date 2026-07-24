@@ -1,93 +1,203 @@
-<div class="sidenav">
+<nav class="desktop-sidenav" aria-label="Listener navigation">
   <div class="logo-container">
-    <img class="logo-image" (click)="goHome()" [src]="MyConfig.media_address + '/808music_logo.png'" alt="Logo">
+    <button type="button" class="logo-button" (click)="goHome()" aria-label="Go to home">
+      <img class="logo-image" [src]="MyConfig.media_address + '/808music_logo.png'" alt="">
+    </button>
     <hr class="divider">
   </div>
-  <div class="sidenav-icons">
-    <button mat-icon-button routerLink="/listener/home" aria-label="Home" matTooltip="Home" matTooltipPosition="right">
+
+  <div class="desktop-nav-items">
+    <button type="button" mat-icon-button routerLink="/listener/home" routerLinkActive="active"
+            [routerLinkActiveOptions]="{exact: true}" aria-label="Home" matTooltip="Home"
+            matTooltipPosition="right">
       <mat-icon>home</mat-icon>
-
-      <div routerLink="/listener/home" class="hidden" routerLinkActive="display">
-        <mat-icon>play_arrow</mat-icon>
-      </div>
     </button>
 
-    <button mat-icon-button routerLink="/listener/search" aria-label="Search" matTooltip="Search" matTooltipPosition="right">
+    <button type="button" mat-icon-button routerLink="/listener/search" routerLinkActive="active"
+            aria-label="Search" matTooltip="Search" matTooltipPosition="right">
       <mat-icon>search</mat-icon>
-
-      <div routerLink="/listener/search" class="hidden" routerLinkActive="display" >
-        <mat-icon>play_arrow</mat-icon>
-      </div>
     </button>
 
-    <button mat-icon-button routerLink="/listener/playlist" aria-label="Playlists" matTooltip="Playlists" matTooltipPosition="right">
+    <button type="button" mat-icon-button routerLink="/listener/playlist" routerLinkActive="active"
+            aria-label="Library" matTooltip="Library" matTooltipPosition="right">
       <mat-icon>library_music</mat-icon>
-
-      <div routerLink="/listener/playlist" class="hidden" routerLinkActive="display">
-        <mat-icon>play_arrow</mat-icon>
-      </div>
     </button>
 
-    <button mat-icon-button routerLink="/listener/store-home" aria-label="Shopping Cart" matTooltip="Shop" matTooltipPosition="right">
-      <mat-icon>shopping_cart</mat-icon>
-
-      <div routerLink="/listener/store-home" class="hidden" routerLinkActive="display">
-        <mat-icon>play_arrow</mat-icon>
-      </div>
+    <button type="button" mat-icon-button routerLink="/listener/store-home" routerLinkActive="active"
+            aria-label="Store" matTooltip="Store" matTooltipPosition="right">
+      <mat-icon>shopping_bag</mat-icon>
     </button>
 
-    <button mat-icon-button routerLink="/listener/notifications" aria-label="Notifications" matTooltip="Notifications" matTooltipPosition="right">
+    <button type="button" mat-icon-button routerLink="/listener/notifications" routerLinkActive="active"
+            aria-label="Notifications" matTooltip="Notifications" matTooltipPosition="right">
       <mat-icon>notifications</mat-icon>
-
       @if (unreads != null && unreads.unreadNotificationsCount > 0) {
-        <div routerLink="/listener/notifications" class="display2 unreads" routerLinkActive="hidden">
-          <p>{{ unreads.unreadNotificationsCount }}</p>
-        </div>
+        <span class="unread-badge">{{ formatUnreadCount(unreads.unreadNotificationsCount) }}</span>
       }
-
-      <div routerLink="/listener/notifications" class="hidden" routerLinkActive="display">
-        <mat-icon>play_arrow</mat-icon>
-      </div>
     </button>
 
-    <button mat-icon-button routerLink="/listener/chat" aria-label="Socials" matTooltip="Chats" matTooltipPosition="right">
+    <button type="button" mat-icon-button routerLink="/listener/chat" routerLinkActive="active"
+            aria-label="Messages" matTooltip="Messages" matTooltipPosition="right">
       <mat-icon>chat</mat-icon>
-
       @if (unreads != null && unreads.unreadMessaggesCount > 0) {
-        <div routerLink="/listener/chat" class="display2 unreads" routerLinkActive="hidden">
-          <p>{{ unreads.unreadMessaggesCount }}</p>
-        </div>
+        <span class="unread-badge">{{ formatUnreadCount(unreads.unreadMessaggesCount) }}</span>
       }
-
-      <div routerLink="/listener/chat" class="hidden" routerLinkActive="display">
-        <mat-icon>play_arrow</mat-icon>
-      </div>
     </button>
   </div>
 
   <div class="profile-container">
     <hr class="divider">
+    <button type="button"
+            class="profile-picture"
+            [ngStyle]="{'background-image': 'url('+pathToPfp+')'}"
+            (click)="toggleMenu(); $event.stopPropagation()"
+            [attr.aria-expanded]="isMenuVisible"
+            aria-label="Open profile menu">
+    </button>
 
-    <div
-      class="profile-picture"
-      [ngStyle]="{'background-image': 'url('+pathToPfp+')'}"
-      (click)="toggleMenu()"
-    ><div>
-    <div class="profile-menu" [ngClass]="{'show': isMenuVisible}">
-      <ul>
-        <li (click)="openUserProfile()">Profile</li>
-        <li (click)="navigateTo('/listener/my-orders')">Orders</li>
-        <li (click)="openDialog()">Monthly Recap</li>
-
-        <li (click)="openImageCropperDialog()">Change Picture</li>
-        <li (click)="navigateTo('/listener/subscriptions')">Subscriptions</li>
-        <li (click)="navigateTo('/listener/settings')">Settings</li>
-        <hr/>
-        <li (click)="navigateTo('/artist/dashboard')">808 for Artist</li>
-        <li (click)="navigateTo('/auth/logout')">Log Out</li>
-      </ul>
+    <div class="profile-menu" [class.show]="isMenuVisible">
+      <button type="button" (click)="openUserProfile()">Profile</button>
+      <button type="button" (click)="navigateTo('/listener/my-orders')">Orders</button>
+      <button type="button" (click)="openDialog()">Monthly recap</button>
+      <button type="button" (click)="openImageCropperDialog()">Change picture</button>
+      <button type="button" (click)="navigateTo('/listener/subscriptions')">Subscription</button>
+      <button type="button" (click)="navigateTo('/listener/settings')">Settings</button>
+      <hr>
+      <button type="button" (click)="navigateTo('/artist/dashboard')">808 for Artist</button>
+      @if (isAdmin) {
+        <button type="button" (click)="navigateTo('/admin')">808 for Admin</button>
+      }
+      <button type="button" (click)="navigateTo('/auth/logout')">Log out</button>
     </div>
   </div>
-</div>
-  </div>
-</div>
+</nav>
+
+<nav class="mobile-bottom-nav"
+     aria-label="Primary navigation"
+     [style.--mobile-nav-offset]="mobileNavIndicatorOffset"
+     [style.--mobile-nav-previous-offset]="previousMobileNavIndicatorOffset">
+  <span class="nav-selection-indicator"
+        [class.is-moving]="navIndicatorMoving"
+        aria-hidden="true"></span>
+  <a routerLink="/listener/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
+     [class.nav-selected]="activeMobileNavIndex === 0"
+     (click)="selectMobileNav(0)">
+    <mat-icon>home</mat-icon>
+    <span class="nav-label">Home</span>
+  </a>
+  <a routerLink="/listener/search" routerLinkActive="active"
+     [class.nav-selected]="activeMobileNavIndex === 1"
+     (click)="selectMobileNav(1)">
+    <mat-icon>search</mat-icon>
+    <span class="nav-label">Search</span>
+  </a>
+  <a routerLink="/listener/playlist" routerLinkActive="active"
+     [class.nav-selected]="activeMobileNavIndex === 2"
+     (click)="selectMobileNav(2)">
+    <mat-icon>library_music</mat-icon>
+    <span class="nav-label">Library</span>
+  </a>
+  <a routerLink="/listener/store-home" routerLinkActive="active"
+     [class.nav-selected]="activeMobileNavIndex === 3"
+     (click)="selectMobileNav(3)">
+    <mat-icon>shopping_bag</mat-icon>
+    <span class="nav-label">Store</span>
+  </a>
+  <button type="button" class="more-button"
+          [class.active]="activeMobileNavIndex === 4"
+          [class.nav-selected]="activeMobileNavIndex === 4"
+          (click)="toggleMobileMenu(); $event.stopPropagation()"
+          [attr.aria-expanded]="mobileMenuVisible" aria-label="More">
+    <span class="more-icon-wrap">
+      <mat-icon>more_horiz</mat-icon>
+      @if (totalUnreadCount > 0) {
+        <span class="unread-dot"></span>
+      }
+    </span>
+    <span class="nav-label">More</span>
+  </button>
+</nav>
+
+@if (mobileMenuVisible) {
+  <button type="button"
+          class="mobile-menu-backdrop"
+          [class.is-dismissing]="mobileMenuDismissing"
+          [style.opacity]="mobileMenuBackdropOpacity"
+          (click)="closeMobileMenu()"
+          aria-label="Close menu"></button>
+  <section class="mobile-more-sheet"
+           [class.is-dragging]="mobileMenuDragging"
+           [class.has-dragged]="mobileMenuHasDragged"
+           [class.is-dismissing]="mobileMenuDismissing"
+           [style.--more-sheet-drag-y]="mobileMenuDragOffset + 'px'"
+           role="dialog"
+           aria-modal="true"
+           aria-label="More navigation">
+    <div class="sheet-drag-handle"
+         (pointerdown)="startMobileMenuDrag($event)"
+         aria-hidden="true">
+      <span></span>
+    </div>
+    <div class="mobile-more-scroll">
+      <header class="more-sheet-heading">
+        <span>808 Music</span>
+        <small>More</small>
+      </header>
+      <div class="mobile-profile-summary" (click)="openUserProfile()">
+        <span class="mobile-profile-picture" [ngStyle]="{'background-image': 'url('+pathToPfp+')'}"></span>
+        <span>
+          <strong>Profile</strong>
+          <small>Account and listener profile</small>
+        </span>
+        <mat-icon>chevron_right</mat-icon>
+      </div>
+
+      <div class="more-link-grid">
+        <button type="button" (click)="navigateTo('/listener/notifications')">
+          <span class="sheet-icon"><mat-icon>notifications</mat-icon></span>
+          <span>Notifications</span>
+          @if (unreads != null && unreads.unreadNotificationsCount > 0) {
+            <span class="sheet-count">{{ formatUnreadCount(unreads.unreadNotificationsCount) }}</span>
+          }
+        </button>
+        <button type="button" (click)="navigateTo('/listener/chat')">
+          <span class="sheet-icon"><mat-icon>chat</mat-icon></span>
+          <span>Messages</span>
+          @if (unreads != null && unreads.unreadMessaggesCount > 0) {
+            <span class="sheet-count">{{ formatUnreadCount(unreads.unreadMessaggesCount) }}</span>
+          }
+        </button>
+        <button type="button" (click)="navigateTo('/listener/my-orders')">
+          <span class="sheet-icon"><mat-icon>receipt_long</mat-icon></span>
+          <span>Orders</span>
+        </button>
+        <button type="button" (click)="openDialog(); closeMobileMenu()">
+          <span class="sheet-icon"><mat-icon>insights</mat-icon></span>
+          <span>Monthly recap</span>
+        </button>
+        <button type="button" (click)="navigateTo('/listener/subscriptions')">
+          <span class="sheet-icon"><mat-icon>workspace_premium</mat-icon></span>
+          <span>Subscription</span>
+        </button>
+        <button type="button" (click)="navigateTo('/listener/settings')">
+          <span class="sheet-icon"><mat-icon>settings</mat-icon></span>
+          <span>Settings</span>
+        </button>
+        <button type="button" (click)="navigateTo('/artist/dashboard')">
+          <span class="sheet-icon"><mat-icon>equalizer</mat-icon></span>
+          <span>808 for Artist</span>
+        </button>
+        @if (isAdmin) {
+          <button type="button" (click)="navigateTo('/admin')">
+            <span class="sheet-icon"><mat-icon>admin_panel_settings</mat-icon></span>
+            <span>808 for Admin</span>
+          </button>
+        }
+        <button type="button" (click)="navigateTo('/auth/logout')">
+          <span class="sheet-icon"><mat-icon>logout</mat-icon></span>
+          <span>Log out</span>
+        </button>
+      </div>
+    </div>
+  </section>
+}

@@ -21,6 +21,8 @@ export class AlbumCardListComponent implements OnInit {
   @Input() albums: MyPagedList<AlbumGetAllResponse> | null = null;
   @Input() title: string = "RELEASES";
   @Input() queryParams: Params | null = null;
+  @Input() cardSubtitles: Record<number, string> = {};
+  @Input() showViewAll: boolean = true;
   artistMode: boolean = false;
   role = "";
   @Output() deletedAlbum = new EventEmitter<boolean>();
@@ -81,6 +83,19 @@ export class AlbumCardListComponent implements OnInit {
 
   getYear(releaseDate: string) {
     return new Date(releaseDate).getFullYear();
+  }
+
+  getSubtitle(album: AlbumGetAllResponse): string {
+    if(Object.prototype.hasOwnProperty.call(this.cardSubtitles, album.id))
+    {
+      return this.cardSubtitles[album.id];
+    }
+
+    return `${album.type} • ${this.getYear(album.releaseDate)}`;
+  }
+
+  getImageUrl(path: string): string {
+    return /^https?:\/\//i.test(path) ? path : MyConfig.api_address + path;
   }
 
   viewAll(featured: boolean) {

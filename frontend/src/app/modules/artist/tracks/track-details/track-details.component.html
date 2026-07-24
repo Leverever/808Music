@@ -1,0 +1,133 @@
+<div class="details-page">
+  <header class="page-header">
+    <button mat-icon-button (click)="goBack()"><mat-icon>arrow_back</mat-icon></button>
+    <div><p>TRACK DETAILS</p><h1>{{ details?.title ?? 'Track' }}</h1></div>
+  </header>
+
+  @if (loading) {
+    <div class="page-state"><mat-spinner diameter="48"></mat-spinner><p>Loading track details…</p></div>
+  } @else if (errorMessage || !details) {
+    <div class="page-state error"><mat-icon>error_outline</mat-icon><p>{{ errorMessage }}</p><button mat-button (click)="loadDetails()">Try again</button></div>
+  } @else {
+    <main class="details-grid">
+      <div class="details-column">
+        <section class="card">
+          <div class="card-title"><div><p>METADATA</p><h2>Editing {{ details.leadArtist.name }} track: {{ details.id }}</h2></div><mat-icon>edit_note</mat-icon></div>
+          <form [formGroup]="metadataForm" class="stack">
+            <mat-form-field appearance="outline"><mat-label>Title</mat-label><input matInput formControlName="title" maxlength="200" [readonly]="!canEdit"></mat-form-field>
+            <div class="toggle-row"><div><strong>Explicit</strong><span>Contains explicit content</span></div><mat-slide-toggle formControlName="isExplicit" [disabled]="!canEdit"></mat-slide-toggle></div>
+          </form>
+          @if (canEdit) {
+            <div class="card-actions"><button mat-button (click)="cancelMetadata()">Cancel</button><button mat-flat-button (click)="saveMetadata()" [disabled]="metadataForm.invalid || savingSection === 'metadata'"><mat-icon>save</mat-icon>Save</button></div>
+          }
+        </section>
+
+        <section class="card">
+          <div class="card-title"><div><p>CREDITS</p><h2>Featured artists</h2></div><mat-icon>groups</mat-icon></div>
+          @if (canEdit) {
+            <mat-form-field appearance="outline" class="full"><mat-label>Search for an artist</mat-label><mat-icon matPrefix>search</mat-icon><input matInput [formControl]="artistSearch"></mat-form-field>
+            @if (artistResults.length) {
+              <div class="search-results">
+                @for (artist of artistResults; track artist.id) {
+                  <button type="button" (click)="addFeaturedArtist(artist)"><img [src]="mediaUrl(artist.profilePhotoPath, 'ArtistPfps')" alt=""><span>{{ artist.name }}</span><mat-icon>add</mat-icon></button>
+                }
+              </div>
+            }
+          }
+          <div class="entity-list">
+            @for (artist of featuredArtists; track artist.artistId) {
+              <div class="entity-row">
+                <img [src]="mediaUrl(artist.profilePhotoPath, 'ArtistPfps')" alt="">
+                <div class="entity-copy"><strong>{{ artist.name }}</strong><span>{{ artist.showOnProfile ? 'Shown on profile' : 'Hidden from profile' }}</span></div>
+                @if (canEdit) {
+                  <button mat-icon-button (click)="editFeaturedArtist(artist)" aria-label="Edit artist relationship"><mat-icon>edit</mat-icon></button>
+                  <button mat-icon-button (click)="removeFeaturedArtist(artist)" aria-label="Remove featured artist"><mat-icon>cancel</mat-icon></button>
+                }
+              </div>
+            } @empty { <p class="empty-copy">No featured artists.</p> }
+          </div>
+          @if (canEdit) { <div class="card-actions"><button mat-button (click)="cancelFeaturedArtists()">Cancel</button><button mat-flat-button (click)="saveFeaturedArtists()" [disabled]="savingSection === 'artists'"><mat-icon>save</mat-icon>Save</button></div> }
+        </section>
+      </div>
+
+      <div class="details-column">
+        <section class="card">
+          <div class="card-title"><div><p>AUDIO</p><h2>Master track</h2></div><mat-icon>graphic_eq</mat-icon></div>
+          @if (masterUrl) { <audio controls [src]="masterUrl" (error)="refreshMasterPreview()"></audio> } @else { <p class="empty-copy">Master preview is unavailable.</p> }
+          @if (canEdit) {
+            <h3>Change master track</h3>
+            <app-music-track-dragzone [title]="'Master track'" (imageEmit)="setMasterFile($event)"></app-music-track-dragzone>
+            @if (masterProgress !== null) { <mat-progress-bar mode="determinate" [value]="masterProgress"></mat-progress-bar> }
+            <div class="card-actions"><button mat-button (click)="masterFile = null">Cancel</button><button mat-flat-button (click)="replaceMaster()" [disabled]="!masterFile || savingSection === 'master'"><mat-icon>upload</mat-icon>Replace</button></div>
+          }
+        </section>
+
+        <section class="card stems-card">
+          <div class="card-title"><div><p>SEPARATION</p><h2>Stem sets</h2></div><mat-icon>multitrack_audio</mat-icon></div>
+          <div class="toggle-row">
+            <div><strong>Use AI separated stems</strong><span>{{ isAiActive ? 'AI set active' : activeStemSet ? 'Manual set active' : 'No active set' }}</span></div>
+            <mat-slide-toggle [checked]="isAiActive" [disabled]="!canEdit || (isAiActive && !latestManualStemSet)" (change)="changeAiSource($event)"></mat-slide-toggle>
+          </div>
+          @for (set of stemSets; track set.id) {
+            @if (set.status !== 'Ready') {
+              <div class="job-status" [class.failed]="set.status === 'Failed'"><mat-icon>{{ set.status === 'Failed' ? 'error' : 'hourglass_top' }}</mat-icon><span>{{ set.source }}: {{ set.status }}<small>{{ set.errorMessage }}</small></span></div>
+            }
+          }
+          @if (activeStemSet) {
+            <div class="set-heading"><div><strong>{{ activeStemSet.source === 'AiGenerated' ? 'AI generated' : 'Artist uploaded' }}</strong><span>{{ activeStemSet.stemProfile }}</span></div>
+              @if (canEdit) { <button mat-icon-button (click)="deleteStemSet(activeStemSet)"><mat-icon>delete</mat-icon></button> }
+            </div>
+            <div class="stem-list">
+              @for (stem of activeStemSet.stems; track stem.id) {
+                <div class="stem-row"><mat-icon>music_note</mat-icon><strong>{{ stem.name }}</strong><audio controls [src]="stem.streamUri" (error)="refreshStemUrls()"></audio></div>
+              }
+            </div>
+          } @else { <p class="empty-copy">No ready stem set is active.</p> }
+          @if (canEdit) { <button mat-stroked-button class="full" (click)="openStemUpload()"><mat-icon>upload_file</mat-icon>Upload complete manual set</button> }
+        </section>
+      </div>
+
+      <div class="details-column">
+        <section class="card">
+          <div class="card-title"><div><p>CATALOG</p><h2>Releases</h2></div><mat-icon>album</mat-icon></div>
+          @if (canEdit) {
+            <mat-form-field appearance="outline" class="full"><mat-label>Search for a release</mat-label><mat-icon matPrefix>search</mat-icon><input matInput [formControl]="releaseSearch"></mat-form-field>
+            @if (releaseResults.length) {
+              <div class="search-results">
+                @for (release of releaseResults; track release.id) {
+                  <button type="button" (click)="addRelease(release)"><img [src]="mediaUrl(release.coverPath, 'AlbumCovers')" alt=""><span>{{ release.title }}</span><mat-icon>add</mat-icon></button>
+                }
+              </div>
+            }
+          }
+          <div class="entity-list">
+            @for (release of releases; track release.releaseId) {
+              <div class="entity-row">
+                <img class="square" [src]="mediaUrl(release.coverPath, 'AlbumCovers')" alt="">
+                <div class="entity-copy"><strong>{{ release.title }}</strong><span>Disc {{ release.discNumber }} · Track {{ release.trackNumber }}{{ release.isPrimaryRelease ? ' · Primary' : '' }}</span></div>
+                @if (canEdit) {
+                  <button mat-icon-button (click)="editRelease(release)"><mat-icon>edit</mat-icon></button>
+                  <button mat-icon-button (click)="removeRelease(release)"><mat-icon>cancel</mat-icon></button>
+                }
+              </div>
+            } @empty { <p class="empty-copy">Not associated with a release.</p> }
+          </div>
+          @if (canEdit) { <div class="card-actions"><button mat-button (click)="cancelReleases()">Cancel</button><button mat-flat-button (click)="saveReleases()" [disabled]="savingSection === 'releases'"><mat-icon>save</mat-icon>Save</button></div> }
+        </section>
+
+        <section class="card insight-card">
+          <div class="card-title"><div><p>ANALYSIS</p><h2>Tags</h2></div><mat-icon>sell</mat-icon></div>
+          @if (!details.analysis) { <p class="empty-copy">Analysis has not started.</p> }
+          @else if (details.analysis.status !== 'Ready') { <p class="empty-copy">Analysis {{ details.analysis.status | lowercase }}. {{ details.analysis.errorMessage }}</p> }
+          @else {
+            <div class="tag-list">@for (tag of details.analysis.tags; track tag.namespace + tag.label) { <span [title]="tag.namespace + ' · ' + (tag.score | number:'1.2-2')">{{ tag.label }}</span> }</div>
+          }
+          <mat-divider></mat-divider>
+          <div class="card-title stats-title"><div><p>PERFORMANCE</p><h2>Statistics</h2></div><mat-icon>query_stats</mat-icon></div>
+          <div class="stats-summary"><strong>{{ details.streams | number }}</strong><span>streams</span><strong>{{ estimatedHours | number:'1.0-1' }}h</strong><span>estimated streamed time</span></div>
+          <button mat-flat-button (click)="openStatistics()">View more <mat-icon>arrow_forward</mat-icon></button>
+        </section>
+      </div>
+    </main>
+  }
+</div>

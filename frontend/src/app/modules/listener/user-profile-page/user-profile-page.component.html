@@ -1,107 +1,156 @@
-<div class="user-profile-container" [@pageAnimation]>
+<main
+  class="user-profile-container"
+  [style.--profile-accent]="selectedColor"
+  [@pageAnimation]>
+  <header class="profile-hero">
+    <div class="profile-topbar">
+      <button type="button" class="profile-back" aria-label="Go back" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
 
+      @if (isUsersPage) {
+        <label class="color-picker-container" for="colorPicker">
+          <mat-icon>palette</mat-icon>
+          <span>Profile color</span>
+          <input
+            type="color"
+            id="colorPicker"
+            [(ngModel)]="selectedColor"
+            (change)="onColorChange()"
+            aria-label="Choose profile color">
+        </label>
+      }
+    </div>
 
-  <div class="profile-header" [ngStyle]="{ 'background-color': selectedColor }">
-
-    @if (isUsersPage){
-      <div class="color-picker-container">
-        <input type="color" id="colorPicker" [(ngModel)]="selectedColor" (change)="onColorChange()" />
-      </div>
-    }
-    <div class="user-info">
+    <div class="profile-identity">
       <div class="profile-picture">
-        <img [src]="pathToPfp" alt="Profile Picture" class="profile-img" [@profileImageAnimation]>
+        <img [src]="pathToPfp" [alt]="username + ' profile picture'" class="profile-img" [@profileImageAnimation]>
       </div>
 
       <div class="profile-info">
-        <h2 class="big-username">{{ username }}</h2>
-        <div class="profile-stats">
-          <p >{{playlists?.length}} Public Playlists ·</p>
+        <span class="profile-eyebrow">{{ isUsersPage ? 'Your profile' : 'Listener profile' }}</span>
+        <h1 class="big-username">{{ username }}</h1>
 
-          <p class="followersnfollowing" (click) ="goToFollowers()"> {{followers?.length}} Followers ·</p>
-
-          <p class="followersnfollowing" (click) ="goToFollowing()">  {{followingUsers?.length}} Following</p>
-
+        <div class="profile-stats" aria-label="Profile statistics">
+          <div class="profile-stat">
+            <strong>{{ playlists?.length || 0 }}</strong>
+            <span>Playlists</span>
+          </div>
+          <button type="button" class="profile-stat" (click)="goToFollowers()">
+            <strong>{{ followers.length }}</strong>
+            <span>Followers</span>
+          </button>
+          <button type="button" class="profile-stat" (click)="goToFollowing()">
+            <strong>{{ followingUsers.length }}</strong>
+            <span>Following</span>
+          </button>
         </div>
-
       </div>
-    </div>
-    @if(!isUserPage()){
-      @if(!isFollowing){
-        <button class="button" (click)="follow()">Follow</button>} @else {
-        <button class="unfollow-button" (click)="follow()">Unfollow</button>
-      }  }
 
-  </div>
-  <div class="profile-sections">
-    <div class="section playlists-section">
-      <div class="playlist-row">
-        <app-playlist-card-list
-          [userId]="userId"
-          [publicOnly]="true">
-        </app-playlist-card-list>
-        <!--
-      <div (click)="openPlaylist(playlist.id)" *ngFor="let playlist of playlists || [] | slice:0:maxVisibleFollowage">
-        <app-playlist-card matTooltip="{{ playlist.title }}" matTooltipPosition="below" [title]="playlist.title"
-                           [imageUrl]="MyConfig.media_address + playlist.coverPath"
-                           [username]="playlist.ownerUsername"
-                           [id]="playlist.id"
-                           [hasControls]="false"
-                           (onClick)="openPlaylist(playlist.id)">
-        </app-playlist-card>
-      </div>
-      -->
-      </div>
-    </div>
-  </div>
-  <p *ngIf="playlists?.length === 0">No playlists available.</p>
-
-  <app-artist-big-card-list [isProfile] = "true" [artist]="lastStreamed" [title]="'RECENTLY PLAYED ARTISTS'" [numberDescription]="'followers' " ></app-artist-big-card-list>
-  <p *ngIf="lastStreamed?.length === 0">No streaming activity.</p>
-
-
-  <h3 class="big-names" (click)="goToFollowers()">Followers</h3>
-  <div class="followage-section">
-    <div *ngFor="let user of (showAllFollowers ? followers : followers | slice:0:maxVisibleFollowage)">
-      <div class="user" (click)="openProfile(user.id)" >
-        <div class="followage-pfp" [ngStyle]="{'background-image': 'url(' + MyConfig.media_address +  user.profilePicture + ')'}" ></div>
-        <div class="username-profiletype">
-
-          <p class="username-followage">{{ user.username }}</p>
-          <p class="profile-undertext">Profile</p>      </div>
-
-      </div>
-    </div>
-    <p *ngIf="followers.length === 0">No one is following this user.</p>
-
-  </div>
-
-  <h3 class="big-names" (click)="goToFollowing()">Following</h3>
-  <div class="followage-section">
-    <div *ngFor="let user of (showAllFollowing ? followingUsers : followingUsers | slice:0:maxVisibleFollowage)">
-      @if(user.artistId !== null) {
-        <div class="user" (click)="openArtistProfile(user.artistId)">
-          <div class="followage-pfp" [ngStyle]="{'background-image': 'url(' + MyConfig.media_address + '/Images/Artistpfps/' + user.profilePicture + ')'}" ></div>
-
-          <div class="username-profiletype">
-            <p class="username-followage">{{ user.username }}</p>
-            <p class="profile-undertext">Artist</p></div>
-        </div>
-      } @else {
-        <div class="user" (click)="openProfile(user.userId)">
-          <div class="followage-pfp" [ngStyle]="{'background-image': 'url(' + MyConfig.media_address +  user.profilePicture + ')'}" ></div>
-
-          <div class="username-profiletype">
-            <p class="username-followage">{{ user.username }}</p>
-            <p class="profile-undertext">Profile</p></div>
-        </div>
+      @if (!isUserPage()) {
+        <button
+          type="button"
+          class="follow-button"
+          [class.is-following]="isFollowing"
+          (click)="follow()">
+          <mat-icon>{{ isFollowing ? 'person_remove' : 'person_add' }}</mat-icon>
+          <span>{{ isFollowing ? 'Unfollow' : 'Follow' }}</span>
+        </button>
       }
     </div>
-    <p *ngIf="followingUsers.length === 0">User is not following anyone.</p>
+  </header>
 
+  <div class="profile-content">
+    <section class="profile-section playlists-section" aria-label="Public playlists">
+      <app-playlist-card-list
+        [userId]="userId"
+        [publicOnly]="true"
+        [playlists]="playlists">
+      </app-playlist-card-list>
+      <p class="empty-state" *ngIf="playlists?.length === 0">No public playlists yet.</p>
+    </section>
+
+    <section class="profile-section" aria-label="Recently played artists">
+      <app-artist-big-card-list
+        [isProfile]="true"
+        [artist]="lastStreamed"
+        [title]="'RECENTLY PLAYED ARTISTS'"
+        [numberDescription]="'followers'">
+      </app-artist-big-card-list>
+      <p class="empty-state" *ngIf="lastStreamed.length === 0">No recent listening activity.</p>
+    </section>
+
+    <section class="profile-section people-section">
+      <div class="section-heading">
+        <div>
+          <span>Community</span>
+          <h2>Followers</h2>
+        </div>
+        <button type="button" (click)="goToFollowers()" *ngIf="followers.length">
+          <span>View all</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </div>
+
+      <div class="followage-section" appCardRail *ngIf="followers.length; else noFollowers">
+        <button
+          type="button"
+          class="user"
+          *ngFor="let user of (showAllFollowers ? followers : followers | slice:0:maxVisibleFollowage)"
+          (click)="openProfile(user.id)">
+          <span
+            class="followage-pfp"
+            [ngStyle]="{'background-image': 'url(' + MyConfig.media_address + user.profilePicture + ')'}">
+          </span>
+          <span class="username-profiletype">
+            <strong class="username-followage">{{ user.username }}</strong>
+            <span class="profile-undertext">Listener</span>
+          </span>
+        </button>
+      </div>
+      <ng-template #noFollowers><p class="empty-state">No one is following this user yet.</p></ng-template>
+    </section>
+
+    <section class="profile-section people-section">
+      <div class="section-heading">
+        <div>
+          <span>Connections</span>
+          <h2>Following</h2>
+        </div>
+        <button type="button" (click)="goToFollowing()" *ngIf="followingUsers.length">
+          <span>View all</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </div>
+
+      <div class="followage-section" appCardRail *ngIf="followingUsers.length; else noFollowing">
+        @for (user of (showAllFollowing ? followingUsers : followingUsers | slice:0:maxVisibleFollowage); track user.artistId || user.userId) {
+          @if (user.artistId !== null) {
+            <button type="button" class="user" (click)="openArtistProfile(user.artistId)">
+              <span
+                class="followage-pfp"
+                [ngStyle]="{'background-image': 'url(' + MyConfig.media_address + '/Images/Artistpfps/' + user.profilePicture + ')'}">
+              </span>
+              <span class="username-profiletype">
+                <strong class="username-followage">{{ user.username }}</strong>
+                <span class="profile-undertext">Artist</span>
+              </span>
+            </button>
+          } @else {
+            <button type="button" class="user" (click)="openProfile(user.userId)">
+              <span
+                class="followage-pfp"
+                [ngStyle]="{'background-image': 'url(' + MyConfig.media_address + user.profilePicture + ')'}">
+              </span>
+              <span class="username-profiletype">
+                <strong class="username-followage">{{ user.username }}</strong>
+                <span class="profile-undertext">Listener</span>
+              </span>
+            </button>
+          }
+        }
+      </div>
+      <ng-template #noFollowing><p class="empty-state">This user is not following anyone yet.</p></ng-template>
+    </section>
   </div>
-
-
-
-
-</div>
+</main>

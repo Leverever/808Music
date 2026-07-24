@@ -1,10 +1,11 @@
-<div class="dialog-edit">
-  <h2 class="order-title">ORDER CONFIRMED</h2>
-  <div class="box">
-      <img class="check" src="assets/icons/check-circle.svg" alt="Copy link" width="100" height="100" />
-
-    <p class="text-email">Check your email for confirmation details</p>
+<section class="order-confirmation">
+  <div class="order-confirmation__icon"><mat-icon>check</mat-icon></div>
+  <span>Payment received</span>
+  <h2>Order confirmed</h2>
+  <p>We sent the confirmation and order details to your email.</p>
+  <strong class="order-confirmation__code" *ngIf="orderCode">{{ orderCode }}</strong>
+  <div class="order-confirmation__actions">
+    <button mat-button type="button" (click)="onBackToHome()">Back home</button>
+    <button mat-button type="button" class="primary" (click)="onBackToStore()">Continue shopping</button>
   </div>
-  <button mat-button (click)="onBackToHome()">Back to Home</button>
-  <button mat-button (click)="onBackToStore()">Back to Store</button>
-</div>
+</section>

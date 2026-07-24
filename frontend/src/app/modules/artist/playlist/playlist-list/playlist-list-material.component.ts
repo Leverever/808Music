@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {Component, OnInit, inject} from '@angular/core';
 import { DeletePlaylistService } from '../../../../endpoints/playlist-endpoints/playlist-delete-endpoint.service';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
@@ -9,12 +9,16 @@ import { GetPlaylistsByUserIdEndpointService } from '../../../../endpoints/playl
 import { PlaylistUpdateEndpointService } from '../../../../endpoints/playlist-endpoints/update-playlist-endpoint.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PlaylistResponse } from '../../../../endpoints/playlist-endpoints/get-playlist-by-user-endpoint.service';
-import {PlaylistUpdateDialogComponent} from '../tracks-page/playlist-update-dialog/playlist-update-dialog.component';
 import {PlaylistCreateDialogComponent} from '../tracks-page/playlist-create-dialog/playlist-create-dialog.component';
 import {
   PlaylistTracksGetEndpointService
 } from '../../../../endpoints/playlist-endpoints/playlist-get-tracks-endpoint.service';
 import {MusicPlayerService} from '../../../../services/music-player.service';
+import {
+  PersonalizedPlaylistSummary,
+  PersonalizedPlaylistsEndpointService
+} from '../../../../endpoints/personalization-endpoints/personalized-playlists-endpoint.service';
+import {RecommendationTrackMapper} from '../../../../services/personalization/recommendation-track.mapper';
 
 @Component({
   selector: 'app-playlist-list-material',
@@ -28,6 +32,8 @@ export class PlaylistListMaterialComponent implements OnInit {
   dialog = inject(MatDialog);
   snackBar = inject(MatSnackBar);
   userId: number | null = null;
+  dailyPlaylists: PersonalizedPlaylistSummary[] = [];
+  isListenerMode = false;
 
   constructor(
     private playlistService: GetPlaylistsByUserIdEndpointService,
@@ -36,12 +42,74 @@ export class PlaylistListMaterialComponent implements OnInit {
     private playlistUpdateService: PlaylistUpdateEndpointService,
     private tracksService: PlaylistTracksGetEndpointService,
     private musicPlayerService: MusicPlayerService,
+    private personalizedPlaylistsEndpoint: PersonalizedPlaylistsEndpointService,
+    private recommendationTrackMapper: RecommendationTrackMapper,
   ) {}
 
   ngOnInit(): void {
+    this.isListenerMode = this.router.url.startsWith('/listener');
     this.userId = this.getUserIdFromToken();
     this.loadPlaylists();
+    this.loadDailyPlaylists();
     console.log(this.userId);
+  }
+
+  loadDailyPlaylists() {
+    this.personalizedPlaylistsEndpoint.getDaily().subscribe({
+      next: response => this.dailyPlaylists = response.playlists,
+      error: error => console.warn('Could not load daily personalized playlists.', error)
+    });
+  }
+
+  openDailyPlaylist(id: string) {
+    this.router.navigate(['/listener/playlist/daily', id]);
+  }
+
+  mediaUrl(path?: string): string {
+    const value = path || '/media/Images/ArtistPfps/placeholder.png';
+    if(/^https?:\/\//i.test(value))
+    {
+      return value;
+    }
+
+    const normalizedPath = value.startsWith('/media/')
+      ? value
+      : `/media/${value.replace(/^\/+/, '')}`;
+    return `${MyConfig.api_address}${normalizedPath}`;
+  }
+
+  playlistCoverUrl(path?: string): string {
+    const value = path || '/media/Images/playlist_placeholder.png';
+    if(/^https?:\/\//i.test(value))
+    {
+      return value;
+    }
+
+    if(value.startsWith('/media/'))
+    {
+      return `${MyConfig.api_address}${value}`;
+    }
+
+    return `${MyConfig.media_address}${value.replace(/^\/+/, '')}`;
+  }
+
+  startDailyPlaylist(id: string) {
+    this.personalizedPlaylistsEndpoint.getById(id).subscribe({
+      next: playlist => {
+        const tracks = this.recommendationTrackMapper.toPlayerTracks(playlist.tracks);
+        if(tracks.length === 0)
+        {
+          this.snackBar.open('This daily playlist has no songs yet.', '', {duration: 2000});
+          return;
+        }
+
+        this.musicPlayerService.createQueue(
+          tracks,
+          {display: `${playlist.name} - Daily Mix`, value: `/listener/playlist/daily/${playlist.id}`},
+          'personalized-playlist');
+      },
+      error: error => console.error('Could not start daily playlist.', error)
+    });
   }
 
   loadPlaylists() {
@@ -72,7 +140,6 @@ export class PlaylistListMaterialComponent implements OnInit {
           complete: () => {
             this.snackBar.open(`"${playlist?.title}" deleted successfully.`, 'Dismiss', { duration: 3000 });
             this.loadPlaylists();
-this.loadPlaylists();
           }
         });
       }
@@ -84,11 +151,37 @@ this.loadPlaylists();
   }
 
   editPlaylist(id: number) {
-    this.router.navigate([`/listener/playlist/edit`, id]);
+    const playlist = this.playlists?.find(item => item.id === id);
+    if (!playlist) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(PlaylistCreateDialogComponent, {
+      width: 'min(680px, calc(100vw - 24px))',
+      maxWidth: '680px',
+      maxHeight: 'calc(100dvh - 24px)',
+      panelClass: 'playlist-create-dialog-pane',
+      backdropClass: 'playlist-create-dialog-backdrop',
+      autoFocus: 'first-tabbable',
+      restoreFocus: true,
+      data: {playlistDetails: playlist},
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadPlaylists();
+      }
+    });
   }
   createPlaylist() {
     const dialogRef = this.dialog.open(PlaylistCreateDialogComponent, {
-      width: '900px',
+      width: 'min(680px, calc(100vw - 24px))',
+      maxWidth: '680px',
+      maxHeight: 'calc(100dvh - 24px)',
+      panelClass: 'playlist-create-dialog-pane',
+      backdropClass: 'playlist-create-dialog-backdrop',
+      autoFocus: 'first-tabbable',
+      restoreFocus: true,
       data: {},
     });
 

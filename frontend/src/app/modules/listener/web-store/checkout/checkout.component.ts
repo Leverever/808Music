@@ -1,4 +1,4 @@
-import {Component, OnInit, NgZone, ChangeDetectorRef, HostListener} from '@angular/core';
+import {Component, OnInit, NgZone, ChangeDetectorRef} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { GetShoppingCartService } from '../../../../endpoints/products-endpoints/get-shopping-cart-endpoint.service';
@@ -29,11 +29,13 @@ export class CheckoutComponent implements OnInit {
   stripe: Stripe | null = null;
   elements: StripeElements | null = null;
   card: StripeCardElement | null = null;
+  private cardMounted = false;
   stripeClientSecret: string | null = null;
   currentStep: number = 0;
   countries: string[] = [];
   errorMessage: string = '';
   paymentSuccess: boolean = false;
+  processing = false;
   orderCode: string = '';
   email = '';
   constructor(
@@ -75,8 +77,7 @@ export class CheckoutComponent implements OnInit {
     this.stripe = await loadStripe('pk_test_51QEZojCQgR3U8MdBa1uGUBRSshgia3TauM5hIFtla1wprW3iNEJX6yzk1p2liFGNmjavOYxRDxDEvauXP7in5gOZ00Jr5eCt3w');
     if (this.stripe) {
       this.elements = this.stripe.elements();
-      this.card = this.elements.create('card');
-      this.card.mount('#card-element');
+      setTimeout(() => this.mountPaymentCard());
     }
   }
 
@@ -127,6 +128,7 @@ export class CheckoutComponent implements OnInit {
     }
 
     const amountInCents = Math.round(this.totalPrice * 100);
+    this.processing = true;
 
     this.stripeService.createPaymentIntent(amountInCents, this.email).subscribe(
       async (response) => {
@@ -144,6 +146,7 @@ export class CheckoutComponent implements OnInit {
         if (error) {
           this.errorMessage = error.message ?? 'An error occurred during the payment process.';
           this.paymentSuccess = false;
+          this.processing = false;
         } else if (paymentIntent?.status === 'succeeded') {
           this.errorMessage = '';
           this.paymentSuccess = true;
@@ -157,14 +160,19 @@ export class CheckoutComponent implements OnInit {
               console.log('Order added:', response);
               this.orderCode = response.orderCode;
               this.ngzone.run(() => {
-                this.dialog.open(OrderConfirmationDialogComponent, {
-                  data: { orderCode: this.orderCode }
+              this.dialog.open(OrderConfirmationDialogComponent, {
+                  data: { orderCode: this.orderCode },
+                  width: 'min(440px, calc(100vw - 24px))',
+                  maxWidth: 'calc(100vw - 24px)',
+                  panelClass: 'store-order-confirmation-pane'
                 });
+                this.processing = false;
               });
               this.changeDetectorRef.detectChanges();
             },
             (error) => {
               console.error('Error adding order:', error);
+              this.processing = false;
             }
           );
         }
@@ -172,13 +180,9 @@ export class CheckoutComponent implements OnInit {
       (error) => {
         this.errorMessage = 'Error creating payment intent: ' + error.message;
         this.paymentSuccess = false;
+        this.processing = false;
       }
     );
-  }
-  @HostListener('window:keydown.enter', ['$event'])
-  handleEnter(event: KeyboardEvent) {
-    event.preventDefault();
-    this.goToNextStep();
   }
 
   goToNextStep() {
@@ -195,6 +199,28 @@ export class CheckoutComponent implements OnInit {
         this.errorMessage = 'Invalid Form.';
       }
     }
+  }
+
+  goToPreviousStep(): void {
+    this.currentStep = Math.max(0, this.currentStep - 1);
+    this.errorMessage = '';
+  }
+
+  onStepChanged(index: number): void {
+    if (index === 2) setTimeout(() => this.mountPaymentCard());
+  }
+
+  private mountPaymentCard(): void {
+    const target = document.getElementById('card-element');
+    if (!target || !this.elements || this.cardMounted) return;
+    this.card = this.elements.create('card', {
+      style: {
+        base: { color: '#ffffff', fontSize: '16px', iconColor: '#e692f8', '::placeholder': { color: 'rgba(243,233,244,.52)' } },
+        invalid: { color: '#ff9fb1', iconColor: '#ff9fb1' },
+      },
+    });
+    this.card.mount(target);
+    this.cardMounted = true;
   }
 
 

@@ -1,8 +1,8 @@
-<div class="img-drag-drop">
+<div class="img-drag-drop" [class.has-file]="file !== null">
   <div class="dd-landing">
-    <input type="file" (change)="selectFile($event)" class="file" accept=".mp3" id="fileInput">
+    <input type="file" (change)="selectFile($event)" class="file" accept=".mp3,.wav,.flac,.m4a" id="fileInput">
     <h6>Drag & drop <b>{{title}}</b> file here</h6>
-    <p>(MP3)</p>
+    <p>(MP3, WAV, FLAC or M4A)</p>
     <p>Or click the dropzone to browse files</p>
   </div>
   @if (file != null && type == "pfp")

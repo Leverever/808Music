@@ -1,22 +1,42 @@
-<div class="share-sheet">
-  <h3>Share with others</h3>
-  <div class="qr-code qrcodeImage">
-    <qrcode   [qrdata]="data.url"
-              [allowEmptyString]="true"
-              [ariaLabel]="data.url"
-              [cssClass]="'center'"
-              [colorDark]="'#000000ff'"
-              [colorLight]="'#ffffffff'"
-              [elementType]="'canvas'"
-              [errorCorrectionLevel]="'M'"
-              [margin]="4"
-              [scale]="1"
-              [width]="300">
-    </qrcode>
+<section class="liquid-sheet share-sheet">
+  <header class="liquid-sheet-header">
+    <div>
+      <span class="liquid-sheet-eyebrow">Track action</span>
+      <h3>Share with others</h3>
+    </div>
+    <button type="button" mat-icon-button class="liquid-sheet-close"
+            (click)="dismissSheet()" aria-label="Close share sheet">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <div class="share-content liquid-sheet-scroll">
+    <div class="qr-code qrcodeImage">
+      <qrcode   [qrdata]="data.url"
+                [allowEmptyString]="true"
+                [ariaLabel]="data.url"
+                [cssClass]="'center'"
+                [colorDark]="'#000000ff'"
+                [colorLight]="'#ffffffff'"
+                [elementType]="'canvas'"
+                [errorCorrectionLevel]="'M'"
+                [margin]="4"
+                [scale]="1"
+                [width]="300">
+      </qrcode>
+    </div>
+
+    <div class="link liquid-sheet-row">
+      <div>{{ data.url }}</div>
+      <button type="button" mat-icon-button (click)="copyToClipboard()"
+              aria-label="Copy share link">
+        <mat-icon>content_copy</mat-icon>
+      </button>
+    </div>
+
+    <footer class="liquid-sheet-actions">
+      <button type="button" mat-flat-button class="liquid-sheet-primary"
+              (click)="dismissSheet()">Done</button>
+    </footer>
   </div>
-  <div class="link">
-    <div>{{data.url}}</div>
-    <button mat-icon-button (click)="copyToClipboard()"><mat-icon>content_copy</mat-icon></button>
-  </div>
-  <button mat-flat-button (click)="dismissSheet()">Ok</button>
-</div>
+</section>

@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Location } from '@angular/common';
 import { UserProfileService } from '../../../endpoints/auth-endpoints/user-profile-endpoint.service';
 import { MyConfig } from '../../../my-config';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -70,6 +71,7 @@ export class UserProfilePageComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private userFollowService: UserFollowService,
     private route: Router,
+    private location: Location,
     private userHeaderColorService: UserHeaderColorService,
     private lastStreams : GetUserLastStreamsEndpointService
   ) {}
@@ -94,9 +96,11 @@ export class UserProfilePageComponent implements OnInit {
     });
     this.userProfileService.getProfilePicture(userId).subscribe(
       (response) => {
-        if (response && response.profilePicturePath) {
-          this.pathToPfp = MyConfig.media_address + response.profilePicturePath;
+        if (response) {
           this.username = response.username;
+          if (response.profilePicturePath) {
+            this.pathToPfp = MyConfig.media_address + response.profilePicturePath;
+          }
         }
       },
       (error) => {
@@ -238,11 +242,6 @@ export class UserProfilePageComponent implements OnInit {
   }
 
   onColorChange() {
-    if (this.selectedColor === '#ffffff') {
-      document.body.style.color = '#000000';
-    } else {
-      document.body.style.color = '#ffffff';
-    }
     this.userHeaderColorService.updateHeaderColor(this.getUserIdFromToken(), this.selectedColor).subscribe({
       next: () => {
         console.log('Header color updated successfully.');
@@ -262,5 +261,9 @@ export class UserProfilePageComponent implements OnInit {
   goToFollowing() {
     this.route.navigate(['/listener/user/', this.userId, 'following'])
 
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

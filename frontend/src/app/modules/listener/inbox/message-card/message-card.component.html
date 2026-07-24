@@ -1,20 +1,38 @@
-<div class="msg-card">
-  <div class="msg-content" [ngStyle]="msgStyle">
+<div class="msg-card"
+     [class.outgoing-card]="userId === message?.senderId"
+     [class.incoming-card]="userId !== message?.senderId"
+     [class.status-visible]="showStatusByDefault || statusRevealed"
+     (pointerdown)="startStatusHold($event)"
+     (pointermove)="moveStatusHold($event)"
+     (pointerup)="endStatusHold()"
+     (pointercancel)="endStatusHold()"
+     (pointerleave)="endStatusHold()"
+     (contextmenu)="suppressContextMenu($event)">
+  <div class="msg-content"
+       [class.has-attachment]="message?.contentType !== 'None'"
+       [class.outgoing-message]="userId === message?.senderId"
+       [class.incoming-message]="userId !== message?.senderId">
     @if (message?.contentType != "None")
     {
-      <app-message-content-card [iconButton]="true" (onButtonClick)="playContent($event)" [content]="result"></app-message-content-card>
+      <app-message-content-card
+        [iconButton]="true"
+        [alignTextEnd]="userId === message?.senderId"
+        (onButtonClick)="playContent($event)"
+        [content]="result">
+      </app-message-content-card>
     }
     <p class="msg-text">{{message?.message}}</p>
   </div>
-  @if (userId == message?.senderId)
-  {
-  <div class="msg-info">
-    <mat-icon>{{message?.seen ? "done_all" : "check"}}</mat-icon>
-    <p>{{getSeenInfo()}}</p>
-  </div>
-  } @else {
-    <div class="msg-info fa-align-left">
-      <p>{{moment(message?.sentAt).format('DD. MM. yy. hh:mm')}}</p>
-    </div>
+  @if (showStatusByDefault || statusRevealed) {
+    @if (userId == message?.senderId) {
+      <div class="msg-info">
+        <mat-icon>{{message?.seen ? "done_all" : "check"}}</mat-icon>
+        <p>{{getSeenInfo()}}</p>
+      </div>
+    } @else {
+      <div class="msg-info fa-align-left">
+        <p>{{moment(message?.sentAt).format('DD. MM. yy. HH:mm')}}</p>
+      </div>
+    }
   }
 </div>

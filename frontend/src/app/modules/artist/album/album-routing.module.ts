@@ -5,8 +5,13 @@ import {UnauthorizedComponent} from '../../shared/unauthorized/unauthorized.comp
 import {AlbumListMaterialComponent} from './album-list-material/album-list-material.component';
 import {AlbumCreateComponent} from './album-create/album-create.component';
 import {AlbumCreateOrEditComponent} from './album-create-or-edit/album-create-or-edit.component';
+import {AlbumReleaseTracksComponent} from './album-release-tracks/album-release-tracks.component';
 
 const routes: Routes = [
+  {
+    path: ':id/tracks',
+    component: AlbumReleaseTracksComponent
+  },
   {
     path: '',
     component: AlbumListMaterialComponent,

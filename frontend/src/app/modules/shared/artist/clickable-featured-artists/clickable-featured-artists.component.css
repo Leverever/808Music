@@ -1,5 +1,29 @@
+:host {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.artists-viewport {
+  min-width: 0;
+  max-width: 100%;
+  padding: 1px 4px 2px 0;
+  overflow: hidden;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.artists-viewport.scroll-when-overflow {
+  overflow: hidden;
+}
+
 .clickable-artists {
   display: flex;
+  min-width: max-content;
+  flex-flow: row nowrap;
+  align-items: baseline;
+  white-space: nowrap;
 }
 
 .clickable-artist:hover {
@@ -8,10 +32,15 @@
 }
 
 .clickable-artist {
+  flex: 0 0 auto;
   color: #A9A9A9;
 }
 
-div {
-  white-space: preserve;
+.artist-separator {
+  flex: 0 0 auto;
+}
+
+span {
+  white-space: nowrap;
   color: #A9A9A9;
 }

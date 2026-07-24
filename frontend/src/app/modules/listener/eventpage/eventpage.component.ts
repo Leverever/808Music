@@ -1,12 +1,11 @@
-import {Component, Input} from '@angular/core';
+import {Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
 import {
   EventGetByArtistIdService, ArtistEvents
 } from '../../../endpoints/user-artist-endpoints/get-events-by-artist-endpoint.service';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute} from '@angular/router';
 import {MyConfig} from '../../../my-config';
 import {ArtistGetByIdEndpointService} from '../../../endpoints/artist-endpoints/artist-get-by-id-endpoint.service';
 import {HttpErrorResponse} from '@angular/common/http';
-import { format } from 'date-fns';
 import moment from 'moment';
 import * as L from 'leaflet';
 import {animate, style, transition, trigger} from '@angular/animations';
@@ -34,11 +33,17 @@ import {animate, style, transition, trigger} from '@angular/animations';
     ])
   ]
 })
-export class EventpageComponent {
+export class EventpageComponent implements OnDestroy {
+  @ViewChild('eventMap') mapElement?: ElementRef<HTMLElement>;
+
   ArtistEvents: ArtistEvents[] = [];
   selectedEvent: ArtistEvents | null = null;
   artistData: any | null = null;
   mapInstance: L.Map | null = null;
+  isMapLoading = false;
+  private mapInitializationTimeout?: ReturnType<typeof setTimeout>;
+  private mapAnimationFrame?: number;
+  private readonly mapInitializationDelay = 2500;
 
   constructor(private eventService: EventGetByArtistIdService, private route :ActivatedRoute, private artistGetByIdEndpointService :ArtistGetByIdEndpointService) {}
 
@@ -79,18 +84,22 @@ export class EventpageComponent {
         .sort((a, b) => a.timeDiff - b.timeDiff)[0];
     }
     if (this.selectedEvent) {
-      setTimeout(() => {
-        this.initMap(this.selectedEvent!);
-      }, 2500);}
+      this.scheduleMapInitialization(this.selectedEvent);
+    }
   }
 
   selectEvent(event: ArtistEvents) {
     this.selectedEvent = event;
-    this.initMap(event);
+    this.scheduleMapInitialization(event);
   }
 
   initMap(event: ArtistEvents) {
-    const mapElement = document.getElementById('map');
+    const mapElement = this.mapElement?.nativeElement;
+
+    if(!mapElement)
+    {
+      return;
+    }
 
     if (this.mapInstance) {
       this.mapInstance.remove();
@@ -103,7 +112,7 @@ export class EventpageComponent {
       popupAnchor: [0, -32]
     });
 
-    const map = L.map('map').setView([event.latitude, event.longitude], 10);
+    const map = L.map(mapElement).setView([event.latitude, event.longitude], 10);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -114,9 +123,51 @@ export class EventpageComponent {
       .openPopup();
 
     this.mapInstance = map;
+    this.isMapLoading = false;
+    requestAnimationFrame(() => map.invalidateSize());
+  }
+
+  ngOnDestroy(): void {
+    if(this.mapInitializationTimeout !== undefined)
+    {
+      clearTimeout(this.mapInitializationTimeout);
+    }
+
+    if(this.mapAnimationFrame !== undefined)
+    {
+      cancelAnimationFrame(this.mapAnimationFrame);
+    }
+
+    this.mapInstance?.remove();
+    this.mapInstance = null;
+  }
+
+  private scheduleMapInitialization(event: ArtistEvents): void {
+    if(this.mapInitializationTimeout !== undefined)
+    {
+      clearTimeout(this.mapInitializationTimeout);
+      this.mapInitializationTimeout = undefined;
+    }
+
+    if(this.mapAnimationFrame !== undefined)
+    {
+      cancelAnimationFrame(this.mapAnimationFrame);
+      this.mapAnimationFrame = undefined;
+    }
+
+    this.mapInstance?.remove();
+    this.mapInstance = null;
+    this.isMapLoading = true;
+
+    this.mapInitializationTimeout = setTimeout(() => {
+      this.mapInitializationTimeout = undefined;
+      this.mapAnimationFrame = requestAnimationFrame(() => {
+        this.mapAnimationFrame = undefined;
+        this.initMap(event);
+      });
+    }, this.mapInitializationDelay);
   }
 
   protected readonly MyConfig = MyConfig;
-  protected readonly format = format;
   protected readonly moment = moment;
 }

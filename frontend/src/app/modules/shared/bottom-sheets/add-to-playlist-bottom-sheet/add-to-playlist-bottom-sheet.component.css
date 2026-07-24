@@ -1,0 +1,55 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.playlist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.playlist-row {
+  width: 100%;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.playlist-row:focus-visible {
+  outline: 2px solid rgba(237, 163, 251, .8);
+  outline-offset: 2px;
+}
+
+.playlist-row img {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border: 1px solid rgba(255, 255, 255, .13);
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .28);
+}
+
+.playlist-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+
+.playlist-copy strong,
+.playlist-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-copy small {
+  color: rgba(235, 225, 236, .65);
+}
+
+.playlist-state {
+  color: #eda3fb;
+}

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { MyConfig } from '../../my-config';
 
 export interface SubscriptionDetails {
   id: number;
@@ -14,7 +15,7 @@ export interface SubscriptionDetails {
   providedIn: 'root',
 })
 export class SubscriptionDetailsService {
-  private readonly apiUrl = 'http://localhost:7000/api/subscription-details';
+  private readonly apiUrl = `${MyConfig.api_address}/api/subscription-details`;
 
   constructor(private http: HttpClient) {}
 

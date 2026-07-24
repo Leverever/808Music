@@ -1,71 +1,213 @@
-<div class="music-player" [ngStyle]="musicPlayerService.queue.length > 0 ? {'display': 'flex'} : {'display': 'none'}">
-  <div class="now-playing">
-    <h3>Now playing...</h3>
-    <h6 (click)="redirectToSource()">{{ musicPlayerService.queueSource.display }}</h6>
-  </div>
+<section class="player-surface"
+         [class.mobile-expanded]="isExpanded"
+         [class.fullscreen-dismiss-dragging]="fullscreenDismissDragging"
+         [class.fullscreen-dismiss-animating]="fullscreenDismissAnimating"
+         [class.has-track]="track != null && musicPlayerService.queue.length > 0"
+         [style.transform]="fullscreenDismissTransform"
+         [style.opacity]="fullscreenDismissOpacity"
+         [attr.role]="isExpanded ? 'dialog' : null"
+         [attr.aria-modal]="isExpanded ? 'true' : null"
+         [attr.aria-label]="isExpanded ? 'Now playing' : null"
+         [attr.aria-hidden]="!isExpanded && isMobileViewport ? 'true' : null"
+         (pointerdown)="handleFullscreenDismissPointerDown($event)"
+         (pointermove)="handleFullscreenDismissPointerMove($event)"
+         (pointerup)="handleFullscreenDismissPointerEnd($event)"
+         (pointercancel)="handleFullscreenDismissPointerCancel($event)"
+         cdkTrapFocus
+         [cdkTrapFocusAutoCapture]="isExpanded">
+  @if (track != null && musicPlayerService.queue.length > 0) {
+    <div class="player-background" [ngStyle]="{'background-image':'url('+coverUrl+')'}"></div>
 
-  <div class="cover" [ngStyle]="{'background-image':'url('+MyConfig.api_address + track?.coverPath +')'}"></div>
-
-  <div class="music-info">
-    <mat-icon>{{ track?.isExplicit ? 'explicit' : '' }}</mat-icon>
-    <div class="title-like-row">
-      <h6 class="track-title" [matTooltip]="track?.title" (click)="goToRelease()">{{ track?.title }}</h6>
-      <button mat-icon-button class="btn" (click)="addToLikedSongs(track?.id)">
-        <mat-icon class="like-icon">{{ getLikeIcon(track?.id) }}</mat-icon>
+    <header class="player-header">
+      <button #closePlayerButton type="button" mat-icon-button class="mobile-collapse"
+              (click)="closeExpandedPlayer()" aria-label="Collapse player">
+        <mat-icon>keyboard_arrow_down</mat-icon>
       </button>
-    </div>
-    <app-clickable-featured-artists [artists]="track?.artists ?? null"></app-clickable-featured-artists>
-  </div>
-  @if (isSubbed) {
-    <app-music-controller class="music-controls"></app-music-controller>
-  } @else {
-    <h6 class="hide-overflow premium" routerLink="/listener/subscriptions">Get Premium To Stream</h6>
-  }
 
-  <div class="control-bar">
-    <button mat-icon-button matTooltip="Share" (click)="openShareSheet()">
-      <mat-icon>share</mat-icon>
-    </button>
-    <button mat-icon-button matTooltip="Send to users" (click)="messageBottomSheet()">
-      <mat-icon>send</mat-icon>
-    </button>
-    <button mat-icon-button matTooltip="Add to playlist" (click)="playlistDropdown(track?.id)"
-            [matMenuTriggerFor]="menu">
-      <mat-icon>library_add</mat-icon>
-    </button>
-    <mat-menu #menu="matMenu">
-      <button mat-menu-item *ngFor="let playlist of playlists" (click)="addToPlaylist(playlist.id)">
-        <div class="dropdown-stuff">
-          <img class="playlist-cover" [src]="MyConfig.media_address + playlist.coverPath" alt="">
-          <p class="pl-title">{{ playlist.title }}</p>
-          <mat-checkbox
-            [checked]="isTrackInPlaylist(track!.id, playlist.id)"
-          >
-          </mat-checkbox>
+      <div class="now-playing">
+        <span class="mobile-source-label">Playing from</span>
+        <h3 class="desktop-player-title">Now playing</h3>
+        <button type="button" class="queue-source" (click)="redirectToSource()">
+          {{ musicPlayerService.queueSource.display }}
+        </button>
+      </div>
+    </header>
+
+    <div class="player-main">
+      <div class="cover-stage">
+        <div class="cover-swipe-viewport"
+             [class.is-swiping]="isSwiping('cover')"
+             (pointerdown)="handleSwipePointerDown($event, 'cover')"
+             (pointermove)="handleSwipePointerMove($event)"
+             (pointerup)="handleSwipePointerEnd($event)"
+             (pointercancel)="handleSwipePointerCancel($event)">
+          <div class="cover-swipe-strip"
+               [class.swipe-animating]="isSwipeAnimating('cover')"
+               [style.transform]="getSwipeTransform('cover')">
+            <div class="cover cover-preview"
+                 [class.unavailable]="swipePreviousTrack == null"
+                 [ngStyle]="{'background-image':'url('+getTrackCoverUrl(swipePreviousTrack)+')'}"
+                 aria-hidden="true"></div>
+            <div class="cover" [ngStyle]="{'background-image':'url('+coverUrl+')'}"
+                 role="img" [attr.aria-label]="track.title + ' cover art'"></div>
+            <div class="cover cover-preview"
+                 [class.unavailable]="swipeNextTrack == null"
+                 [ngStyle]="{'background-image':'url('+getTrackCoverUrl(swipeNextTrack)+')'}"
+                 aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="player-lower">
+        <div class="music-info">
+          <div class="track-heading">
+            <div class="track-copy">
+              <div class="track-title-row">
+                @if (track.isExplicit) {
+                  <mat-icon class="explicit-icon">explicit</mat-icon>
+                }
+                <button type="button" class="track-title" [matTooltip]="track.title" (click)="goToRelease()">
+                  <span [appOverflowMarquee]="true">{{ track.title }}</span>
+                </button>
+              </div>
+              <app-clickable-featured-artists
+                [artists]="track.artists"
+                [scrollWhenOverflow]="true"
+                [replaceUrlOnNavigate]="isExpanded"
+                (onArtistClick)="prepareForPlayerNavigation()">
+              </app-clickable-featured-artists>
+            </div>
+            <button type="button" mat-icon-button class="like-button" (click)="addToLikedSongs(track.id)"
+                    [attr.aria-label]="likedSongs.get(track.id) ? 'Remove from liked songs' : 'Add to liked songs'">
+              <mat-icon>{{ getLikeIcon(track.id) }}</mat-icon>
+            </button>
+          </div>
         </div>
 
-      </button>
-    </mat-menu>
+        @if (!isSubbed) {
+          <button type="button" class="premium" (click)="goToSubscriptions()">
+            Get Premium To Stream
+          </button>
+        }
 
-    <button mat-icon-button matTooltip="Manage queue" (click)="openQueueManager()">
+        <!-- This is the only playback controller/audio element. It stays mounted while
+             the desktop, mini-player, and full-screen presentations change around it. -->
+        @if (isSubbed) {
+          <app-music-controller #musicController class="music-controls"
+                                (stemMixerRequested)="openStemMixerSheet()"
+                                (skipPreviousRequested)="handlePlaybackSkip('previous')"
+                                (skipNextRequested)="handlePlaybackSkip('next')">
+          </app-music-controller>
+        }
+
+        <div class="secondary-actions" aria-label="Track actions">
+          <button type="button" mat-icon-button matTooltip="Share" (click)="openShareSheet()"
+                  aria-label="Share track">
+            <mat-icon>share</mat-icon>
+          </button>
+          <button type="button" mat-icon-button matTooltip="Send to users" (click)="messageBottomSheet()"
+                  aria-label="Send track">
+            <mat-icon>send</mat-icon>
+          </button>
+          <button type="button" mat-icon-button matTooltip="Add to playlist"
+                  (click)="playlistDropdown(track.id)"
+                  aria-label="Add to playlist">
+            <mat-icon>library_add</mat-icon>
+          </button>
+          <button type="button" mat-icon-button matTooltip="Manage queue" (click)="openQueueManager()"
+                  aria-label="Manage queue">
+            <mat-icon>queue_music</mat-icon>
+          </button>
+          <button type="button" mat-icon-button matTooltip="Go to song radio" (click)="goToTrackRadio()"
+                  aria-label="Go to song radio">
+            <mat-icon>radio</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="empty-player">
       <mat-icon>queue_music</mat-icon>
-    </button>
-  </div>
-  <!--
-    <mat-form-field>
-      <input type="number" name="trackId" [(ngModel)]="newTrackId" matInput>
+      <h3>Your queue is empty</h3>
+      <p>Explore your home page or search for songs to start listening.</p>
+      <div>
+        <button type="button" mat-stroked-button (click)="goHome()">Go home</button>
+        <button type="button" mat-stroked-button (click)="goToSearch()">Search</button>
+      </div>
+    </div>
+  }
 
-    </mat-form-field>
-    <button mat-stroked-button (click)="setNewSong()">Add to queue</button>
-    -->
-</div>
-<div class="music-player music-player2"
-     [ngStyle]="musicPlayerService.queue.length <= 0 ? {'display': 'flex'} : {'display': 'none'}">
-  <h3 class="queue-status-info2">Your queue is empty!</h3>
-  <mat-divider></mat-divider>
-  <div class="queue-status-info"><h6>Explore your </h6>
-    <h6 class="clickable" (click)="goHome()">home page</h6>
-    <h6> or </h6>
-    <h6 class="clickable" (click)="goToSearch()">search</h6>
-    <h6> for songs to start a queue</h6></div>
-</div>
+</section>
+
+@if (track != null && musicPlayerService.queue.length > 0) {
+  <section class="mobile-mini-player"
+           role="button"
+           tabindex="0"
+           aria-label="Open now playing"
+           [class.is-swiping]="isSwiping('mini')"
+           (click)="handleMiniPlayerClick($event)"
+           (keydown)="handleMiniPlayerKeydown($event)"
+           (pointerdown)="handleSwipePointerDown($event, 'mini')"
+           (pointermove)="handleSwipePointerMove($event)"
+           (pointerup)="handleSwipePointerEnd($event)"
+           (pointercancel)="handleSwipePointerCancel($event)">
+    <div class="mini-swipe-strip"
+         [class.swipe-animating]="isSwipeAnimating('mini')"
+         [style.transform]="getSwipeTransform('mini')">
+      <div class="mini-player-slide mini-preview"
+           [class.unavailable]="swipePreviousTrack == null"
+           aria-hidden="true">
+        <div class="mini-cover"
+             [ngStyle]="{'background-image':'url('+getTrackCoverUrl(swipePreviousTrack)+')'}"></div>
+        <div class="mini-track-copy">
+          <strong><span [appOverflowMarquee]="true">{{ swipePreviousTrack?.title ?? track.title }}</span></strong>
+          <span><span [appOverflowMarquee]="true">{{ getTrackArtistNames(swipePreviousTrack) }}</span></span>
+        </div>
+        <div class="mini-like-indicator">
+          <mat-icon>favorite_border</mat-icon>
+        </div>
+        <div class="mini-play-indicator">
+          <mat-icon>{{ playingState ? 'pause' : 'play_arrow' }}</mat-icon>
+        </div>
+      </div>
+
+      <div class="mini-player-slide">
+        <div class="mini-cover" [ngStyle]="{'background-image':'url('+coverUrl+')'}"></div>
+        <div class="mini-track-copy">
+          <strong><span [appOverflowMarquee]="true">{{ track.title }}</span></strong>
+          <span><span [appOverflowMarquee]="true">{{ artistNames }}</span></span>
+        </div>
+        <button type="button" mat-icon-button class="mini-like-button"
+                (click)="$event.stopPropagation(); addToLikedSongs(track.id)"
+                [attr.aria-label]="likedSongs.get(track.id) ? 'Remove from liked songs' : 'Add to liked songs'">
+          <mat-icon>{{ getLikeIcon(track.id) }}</mat-icon>
+        </button>
+        <button type="button" mat-icon-button class="mini-play-button"
+                (click)="togglePlayback($event)"
+                [attr.aria-label]="playingState ? 'Pause' : 'Play'">
+          <mat-icon>{{ playingState ? 'pause' : 'play_arrow' }}</mat-icon>
+        </button>
+        <div class="mini-progress" aria-hidden="true">
+          <span [style.width.%]="progressPercent"></span>
+        </div>
+      </div>
+
+      <div class="mini-player-slide mini-preview"
+           [class.unavailable]="swipeNextTrack == null"
+           aria-hidden="true">
+        <div class="mini-cover"
+             [ngStyle]="{'background-image':'url('+getTrackCoverUrl(swipeNextTrack)+')'}"></div>
+        <div class="mini-track-copy">
+          <strong><span [appOverflowMarquee]="true">{{ swipeNextTrack?.title ?? track.title }}</span></strong>
+          <span><span [appOverflowMarquee]="true">{{ getTrackArtistNames(swipeNextTrack) }}</span></span>
+        </div>
+        <div class="mini-like-indicator">
+          <mat-icon>favorite_border</mat-icon>
+        </div>
+        <div class="mini-play-indicator">
+          <mat-icon>{{ playingState ? 'pause' : 'play_arrow' }}</mat-icon>
+        </div>
+      </div>
+    </div>
+  </section>
+}

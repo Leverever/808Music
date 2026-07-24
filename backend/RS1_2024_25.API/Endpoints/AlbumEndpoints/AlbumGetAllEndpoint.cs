@@ -26,9 +26,18 @@ namespace RS1_2024_25.API.Endpoints.AlbumEndpoints
             //filters
             if (request.FeaturedArtistId != null)
             {
-                await db.Tracks.LoadAsync();
-                var tracks = await db.ArtistsTracks.Where(at => at.ArtistId == request.FeaturedArtistId && !at.IsLead).Select(at => at.Track.AlbumId).ToListAsync();
-                albums = albums.Where(a => tracks.Contains(a.Id));
+                var featuredTrackIds = db.ArtistsTracks
+                    .Where(at => at.ArtistId == request.FeaturedArtistId && !at.IsLead)
+                    .Select(at => at.TrackId);
+                var legacyAlbumIds = db.Tracks
+                    .Where(track => featuredTrackIds.Contains(track.Id))
+                    .Select(track => track.AlbumId);
+                var associatedAlbumIds = db.AlbumTrackAssociations
+                    .Where(association => featuredTrackIds.Contains(association.TrackId))
+                    .Select(association => association.AlbumId);
+
+                albums = albums.Where(album =>
+                    legacyAlbumIds.Contains(album.Id) || associatedAlbumIds.Contains(album.Id));
             }
 
 
@@ -73,11 +82,18 @@ namespace RS1_2024_25.API.Endpoints.AlbumEndpoints
                 ReleaseDate = a.ReleaseDate,
                 Title = a.Title,
                 Type = a.AlbumType.Type,
-                TrackCount = db.Tracks.Where(t => t.AlbumId == a.Id).Count(),
+                TrackCount = db.Tracks.Count(track =>
+                    track.AlbumId == a.Id ||
+                    db.AlbumTrackAssociations.Any(association =>
+                        association.AlbumId == a.Id && association.TrackId == track.Id)),
                 IsHighlighted = db.AlbumSpotlights.Where(s => s.ArtistId == a.ArtistId).Count() > 0 ?
                                 db.AlbumSpotlights.Where(s => s.AlbumId == a.Id).FirstOrDefault() != null : 
                                 albums.Where(s => s.ReleaseDate < DateTime.Now).OrderByDescending(s => s.ReleaseDate).FirstOrDefault() == null ? false :
-                                albums.Where(s => s.ReleaseDate < DateTime.Now && db.Tracks.Where(t => t.AlbumId == s.Id).Count() > 0).OrderByDescending(s => s.ReleaseDate).FirstOrDefault().Id == a.Id,
+                                albums.Where(s => s.ReleaseDate < DateTime.Now && db.Tracks.Any(track =>
+                                    track.AlbumId == s.Id ||
+                                    db.AlbumTrackAssociations.Any(association =>
+                                        association.AlbumId == s.Id && association.TrackId == track.Id)))
+                                    .OrderByDescending(s => s.ReleaseDate).FirstOrDefault().Id == a.Id,
             });
 
             if (request.IsReleased != null && request.IsReleased.Value && (request.ArtistMode == null || (request.ArtistMode != null && !request.ArtistMode.Value)))
@@ -87,7 +103,12 @@ namespace RS1_2024_25.API.Endpoints.AlbumEndpoints
 
             if (request.SortByPopularity)
             {
-                albumsResponse = albumsResponse.OrderByDescending(a => db.Tracks.Where(t => t.AlbumId == a.Id).Sum(t => t.Streams));
+                albumsResponse = albumsResponse.OrderByDescending(a => db.Tracks
+                    .Where(track =>
+                        track.AlbumId == a.Id ||
+                        db.AlbumTrackAssociations.Any(association =>
+                            association.AlbumId == a.Id && association.TrackId == track.Id))
+                    .Sum(track => track.Streams));
             }
 
             if(request.GetUnlisted != null && request.GetUnlisted.Value)

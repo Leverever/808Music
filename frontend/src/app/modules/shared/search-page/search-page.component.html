@@ -1,93 +1,189 @@
-<div class="search-page">
-  <div class="search-area">
-    <app-search-bar [autoSearch]="true" [placeholder]="'What\'s a good song I could find? Hmmm...'"
-                    (onSearchChange)="!artistMode ? search($event) : searchTwice($event)"></app-search-bar>
-    <div class="listbox">
-      <mat-chip-listbox [multiple]="true">
-        <mat-chip-option [id]="'0'"
-                         [selected]="(!artistMode && filter.showUsers && filter.showTracks && filter.showAlbums && filter.showArtists)
-                         ||
-                         (artistMode && filter.showTracks && filter.showAlbums )"
-                         [value]="'0'" (selectionChange)="selectAll($event)">All
+<div class="search-page" [class.query-mode]="hasQuery || artistMode">
+  <header class="search-area">
+    <div class="search-primary-row">
+      <app-search-bar
+        [autoSearch]="true"
+        placeholder="Search songs, releases, artists, playlists and users"
+        (onSearchChange)="search($event)">
+      </app-search-bar>
+
+      <mat-chip-listbox class="all-filter-toggle" [multiple]="true" aria-label="Show every result type">
+        <mat-chip-option
+          [selected]="allMode"
+          value="0"
+          (selectionChange)="selectAll($event)">
+          All
         </mat-chip-option>
-        <mat-divider [vertical]="true" [ngStyle]="{'padding-right': '10px'}"></mat-divider>
-        <mat-chip-option [id]="'1'" (click)="flip('tracks')"
-                         [selected]="filter.showTracks" [value]="'1'">Songs</mat-chip-option>
-        <mat-chip-option [id]="'2'" (click)="flip('albums')" [selected]="filter.showAlbums" [value]="'2'">Releases</mat-chip-option>
-        @if (!artistMode) {
-          <mat-chip-option [id]="'3'" (click)="flip('artists')" [selected]="filter.showArtists"  [value]="'3'">Artists</mat-chip-option>
-          <mat-chip-option [id]="'4'" (click)="flip('users')" [selected]="filter.showUsers" [value]="'4'">Users</mat-chip-option>
-        }
       </mat-chip-listbox>
     </div>
-  </div>
-  @if (!isLoading) {
-    <div class="results-area">
-      @if (tracks && tracks?.dataItems!.length > 0 && filter.showTracks) {
-        <app-track-card-list [tracks]="tracks.dataItems" [artistMode]="artistMode"></app-track-card-list>
-      } @else if (filter.showTracks) {
-        <div class="result-error">
-          <mat-icon>report</mat-icon>
-          <h3>No songs that match your query found</h3>
-          <mat-icon>sentiment_dissatisfied</mat-icon>
-        </div>
-      }
-      @if (artists.length > 0 && filter.showArtists && !artistMode) {
-        <app-artist-big-card-list [numberDescription]="'followers'" [title]="'Artists'" [artists]="artists"
-                                  [queryParams]="popArtistParams"></app-artist-big-card-list>
-      } @else if (filter.showArtists && !artistMode) {
-        <div class="result-error">
-          <mat-icon>report</mat-icon>
-          <h3>No artists that match your query found</h3>
-          <mat-icon>sentiment_dissatisfied</mat-icon>
-        </div>
-      }
-      @if (albums && albums.dataItems.length > 0 && filter.showAlbums) {
 
-        <app-album-card-list [title]="'Releases'" [albums]="albums" [queryParams]="albumParams"
-                             (deletedAlbum)="refresh($event)"></app-album-card-list>
-      } @else if (filter.showAlbums) {
-        <div class="result-error">
-          <mat-icon>report</mat-icon>
-          <h3>No albums that match your query found</h3>
-          <mat-icon>sentiment_dissatisfied</mat-icon>
-        </div>
-      }
-
-      @if (users.length > 0 && filter.showUsers && !artistMode) {
-        <div class="users">
-          <h3 class="user-h3">Users</h3>
-          <div class="followage-section">
-            @for (user of users; track user.id) {
-              <div class="user"  (click)="openProfile(user.id)">
-                <img class="followage-pfp"
-                     [src]="MyConfig.media_address + user.profilePicture" alt="Profile Picture" width="40" height="40">
-                <div class="username-profiletype">
-                  <p class="username-followage hide-overflow">{{ user.username }}</p>
-                  <p class="profile-undertext">User Profile</p></div>
-              </div>
-            }
-          </div>
-        </div>
-      } @else if (filter.showUsers && !artistMode) {
-        <div class="result-error">
-          <mat-icon>report</mat-icon>
-          <h3>No users that match your query found</h3>
-          <mat-icon>sentiment_dissatisfied</mat-icon>
-        </div>
-      }
-    </div>
-    @if (!artistMode && (!filter.showUsers && !filter.showTracks && !filter.showAlbums && !filter.showArtists)
-      || artistMode && (!filter.showTracks && !filter.showAlbums))
-    {
-      <div class="result-error">
-        <mat-icon>warning</mat-icon>
-        <h3>Select a parameter you want to search</h3>
+    @if (!allMode) {
+      <div class="listbox" [class.artist-mode]="artistMode" aria-label="Search result filters">
+        <mat-chip-listbox [multiple]="true">
+        <mat-chip-option (click)="flip('tracks')" [selected]="filter.showTracks" value="1">Songs</mat-chip-option>
+        <mat-chip-option (click)="flip('albums')" [selected]="filter.showAlbums" value="2">Releases</mat-chip-option>
+        @if (!artistMode) {
+          <mat-chip-option (click)="flip('artists')" [selected]="filter.showArtists" value="3">Artists</mat-chip-option>
+          <mat-chip-option (click)="flip('playlists')" [selected]="filter.showPlaylists" value="4">Playlists</mat-chip-option>
+          <mat-chip-option (click)="flip('users')" [selected]="filter.showUsers" value="5">Users</mat-chip-option>
+        }
+        </mat-chip-listbox>
       </div>
     }
-  } @else {
-    <div class="spinner">
-      <mat-spinner></mat-spinner>
+  </header>
+
+  @if (isLoading) {
+    <div class="spinner" aria-label="Loading search content">
+      <mat-spinner diameter="46"></mat-spinner>
     </div>
+  } @else if (!artistMode && !hasQuery) {
+    <main class="recommendations-area">
+      @if (homeRecommendations; as home) {
+        <div class="recommendation-intro">
+          <span>PERSONALIZED DISCOVERY</span>
+          <div>
+            <h1>Made for you</h1>
+            <time>{{ home.recommendationDate | date }}</time>
+          </div>
+          <p>Start with something picked from your recent listening, or search the entire 808 Music catalog.</p>
+        </div>
+
+        @if (home.dailyPersonalizedPlaylists.length > 0) {
+          <section class="recommendation-section daily-recommendations">
+            <div class="daily-playlist-grid" appCardRail>
+              @for (playlist of dailyPlaylists; track playlist.id) {
+                <app-personalized-playlist-card
+                  [playlist]="playlist"
+                  [imageUrl]="mediaUrl(playlist.coverPath || '')"
+                  (onClick)="openDailyPlaylist($event)"
+                  (onPlayClick)="startDailyPlaylist($event)">
+                </app-personalized-playlist-card>
+              }
+            </div>
+          </section>
+        }
+
+        @if (home.recommendedTracks.length > 0) {
+          <app-track-card-list
+            title="Tracks picked for you"
+            [tracks]="recommendedTracks"
+            [maxItems]="6"
+            [showPlayAll]="true"
+            [useCustomPlayHandler]="true"
+            (playAll)="playRecommendedTracks()"
+            (trackSelected)="playRecommendedTracks($event)">
+          </app-track-card-list>
+        }
+
+        @if (home.recommendedAlbums.length > 0) {
+          <app-album-card-list
+            title="Albums for you"
+            [albums]="recommendedAlbums"
+            [cardSubtitles]="recommendedAlbumSubtitles"
+            [showViewAll]="false">
+          </app-album-card-list>
+        }
+
+        @if (home.recommendedArtists.length > 0) {
+          <app-artist-big-card-list
+            title="Artists you may like"
+            [artists]="recommendedArtists"
+            [cardDescriptions]="recommendedArtistDescriptions"
+            [showViewAll]="false">
+          </app-artist-big-card-list>
+        }
+
+        @if (home.recommendedPlaylists.length > 0) {
+          <app-playlist-card-list
+            title="Playlists for you"
+            [playlists]="recommendedPlaylists">
+          </app-playlist-card-list>
+        }
+
+        @if (!hasRecommendations) {
+          <div class="result-error">
+            <mat-icon>explore</mat-icon>
+            <div>
+              <h3>Your recommendations are warming up</h3>
+              <p>Search for something you love and they will get better as you listen.</p>
+            </div>
+          </div>
+        }
+      } @else if (recommendationsUnavailable) {
+        <div class="result-error">
+          <mat-icon>cloud_off</mat-icon>
+          <div>
+            <h3>Recommendations are unavailable</h3>
+            <p>You can still use search to explore the catalog.</p>
+          </div>
+        </div>
+      }
+    </main>
+  } @else {
+    <main class="results-area">
+      @if (!hasEnabledFilters) {
+        <div class="result-error">
+          <mat-icon>tune</mat-icon>
+          <div>
+            <h3>Choose something to search</h3>
+            <p>Select at least one result type above.</p>
+          </div>
+        </div>
+      } @else {
+        @if (filter.showTracks && tracks.dataItems.length > 0) {
+          <app-track-card-list [tracks]="tracks.dataItems" [artistMode]="artistMode"></app-track-card-list>
+        }
+
+        @if (!artistMode && filter.showArtists && artists.length > 0) {
+          <app-artist-big-card-list
+            numberDescription="followers"
+            title="Artists"
+            [artists]="artists"
+            [queryParams]="popArtistParams">
+          </app-artist-big-card-list>
+        }
+
+        @if (filter.showAlbums && albums.dataItems.length > 0) {
+          <app-album-card-list
+            title="Releases"
+            [albums]="albums"
+            [queryParams]="albumParams"
+            (deletedAlbum)="refresh($event)">
+          </app-album-card-list>
+        }
+
+        @if (!artistMode && filter.showPlaylists && playlists.length > 0) {
+          <app-playlist-card-list title="Playlists" [playlists]="playlists"></app-playlist-card-list>
+        }
+
+        @if (!artistMode && filter.showUsers && users.length > 0) {
+          <section class="users">
+            <h2>Users</h2>
+            <div class="user-grid">
+              @for (user of users; track user.id) {
+                <button type="button" class="user" (click)="openProfile(user.id)">
+                  <img [src]="userImageUrl(user.profilePicture)" alt="" width="58" height="58">
+                  <span class="user-copy">
+                    <strong>{{ user.username }}</strong>
+                    <span>Listener profile</span>
+                  </span>
+                  <mat-icon>arrow_forward</mat-icon>
+                </button>
+              }
+            </div>
+          </section>
+        }
+
+        @if (!hasVisibleResults) {
+          <div class="result-error">
+            <mat-icon>search_off</mat-icon>
+            <div>
+              <h3>No results for “{{ query }}”</h3>
+              <p>Try another spelling, fewer words, or a different filter.</p>
+            </div>
+          </div>
+        }
+      }
+    </main>
   }
 </div>

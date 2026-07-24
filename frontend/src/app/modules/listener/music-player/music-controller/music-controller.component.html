@@ -1,6 +1,7 @@
 <div class="music-controller">
-  <audio [src]="trackLocation + getTrackId() + '&Jwt='+jwt" id="player" (timeupdate)="setSliderValue($event)"
-         [autoplay]="playingState" (ended)="skipNext()"></audio>
+  <audio [src]="masterAudioSource" id="player" (timeupdate)="setSliderValue($event)"
+         [autoplay]="playingState && !stemModeActive" (ended)="handleTrackEnded()" (loadedmetadata)="restoreMasterAudioPosition()"
+         (error)="handleMasterPlaybackError()"></audio>
     <mat-slider min="0" [max]="track?.length" discrete class="seekable-slider" [displayWith]="secondsPipe.transform">
       <input matSliderThumb (valueChange)="setCurrentPlaybackTime($event)" [(value)]="currentPlaybackTime" (dragEnd)="userSetSlider($event)">
     </mat-slider>
@@ -13,16 +14,19 @@
     </div>
   </div>
   <div class="control-bar">
-    <button mat-icon-button (click)="setLoopState()"><mat-icon>
-      @if (!player?.loop)
+    <button type="button" mat-icon-button (click)="setLoopState()" aria-label="Repeat"><mat-icon>
+      @if (!isLooping)
       {
         repeat
       } @else {
         repeat_on
       }
     </mat-icon></button>
-    <button mat-icon-button (click)="skipPrevious()"><mat-icon>skip_previous</mat-icon></button>
-    <div class="play-button" (click)="changePlayerState()">
+    <button type="button" mat-icon-button (click)="requestSkipPrevious()" aria-label="Previous track">
+      <mat-icon>skip_previous</mat-icon>
+    </button>
+    <button type="button" class="play-button" (click)="changePlayerState()"
+            [attr.aria-label]="playingState ? 'Pause' : 'Play'">
       <mat-icon>@if (playingState)
       {
         pause
@@ -30,9 +34,11 @@
         play_arrow
       }
       </mat-icon>
-    </div>
-    <button mat-icon-button (click)="skipNext()"><mat-icon>skip_next</mat-icon></button>
-    <button mat-icon-button (click)="setShuffleState()"><mat-icon>
+    </button>
+    <button type="button" mat-icon-button (click)="requestSkipNext()" aria-label="Next track">
+      <mat-icon>skip_next</mat-icon>
+    </button>
+    <button type="button" mat-icon-button (click)="setShuffleState()" aria-label="Shuffle"><mat-icon>
       @if(!isShuffled)
       {
         shuffle
@@ -42,10 +48,18 @@
     </mat-icon></button>
   </div>
   <div class="volume-slider">
-    <button mat-icon-button matTooltip="Mute" (click)="setVolume(0)"><mat-icon>volume_mute</mat-icon></button>
+    <button type="button" mat-icon-button class="mute-button"
+            [matTooltip]="masterVolume === 0 ? 'Unmute' : 'Mute'"
+            (click)="toggleMute()" [attr.aria-label]="masterVolume === 0 ? 'Unmute' : 'Mute'">
+      <mat-icon>{{ masterVolumeIcon }}</mat-icon>
+    </button>
     <mat-slider min="0" max="100" discrete class="volume">
-      <input matSliderThumb (dragEnd)="setVolume($event.value/100)" [value]="player!.volume*100">
+      <input matSliderThumb [value]="masterVolumePercent" (input)="setVolume(getVolumeSliderValue($event))">
     </mat-slider>
-    <button mat-icon-button matTooltip="Max volume" (click)="setVolume(1)"><mat-icon>volume_up</mat-icon></button>
+    <button type="button" class="stem-trigger" matTooltip="Stem mixer" (click)="requestStemMixer()"
+            aria-label="Open stem mixer">
+      <mat-icon>tune</mat-icon>
+      <span>Stem mixer</span>
+    </button>
   </div>
 </div>

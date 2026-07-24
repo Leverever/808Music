@@ -1,36 +1,41 @@
-<div class="notification-card" (mouseover)="showHidden()" (mouseleave)="hideHidden()">
+<article class="notification-card" [class.priority]="notification?.priority">
   <div class="ncard-content">
-    <div class="thumbnail" [ngStyle]="thumbnail"></div>
+    <div class="thumbnail" [ngStyle]="thumbnail" aria-hidden="true"></div>
     <div class="ncard-info">
-      <div class="greyed msg">{{notification?.message}}</div>
-      <div class="title" (click)="goToContent()">
-        @if(notification?.priority) {
+      <div class="notification-meta">
+        <span class="type-label">{{ notification?.type }}</span>
+        <span class="time">{{ getTimeFromNow() }}</span>
+      </div>
+      <button type="button" class="notification-title" (click)="goToContent()">
+        @if (notification?.priority) {
           <mat-icon>stars</mat-icon>
         }
-        <div>
-          {{notification?.title}}
-        </div>
-      </div>
-      @if(notification?.artist != null)
-      {
-        <div class="greyed artist-name" (click)="goToArtist()">{{notification?.artist?.name}}</div>
+        <span>{{ notification?.title }}</span>
+      </button>
+      <p class="message">{{ notification?.message }}</p>
+      @if (notification?.artist != null) {
+        <button type="button" class="artist-name" (click)="goToArtist()">
+          {{ notification?.artist?.name }}
+        </button>
       }
-      <div class="greyed time">{{getTimeFromNow()}}</div>
     </div>
   </div>
+
   <div class="ncard-actions">
-    <button mat-icon-button (click)="markAsRead()" [ngStyle]="actionStyle" [matTooltip]="'Mark as read'" class="mark-as-read"><mat-icon>done_all</mat-icon></button>
-    <button mat-fab (click)="processContent()"><mat-icon>
-      @if(notification?.type === "Album")
-      {
-        play_arrow
-      } @else if (notification?.type === "Product")
-      {
-        shopping_cart_checkout
-      } @else if (notification?.type === "Message")
-      {
-        chat
-      }
-    </mat-icon></button>
+    <button type="button" mat-icon-button class="card-action mark-as-read" (click)="markAsRead()"
+            matTooltip="Mark as read" aria-label="Mark notification as read">
+      <mat-icon>done_all</mat-icon>
+    </button>
+    <button type="button" mat-icon-button class="card-action primary-action" (click)="processContent()"
+            matTooltip="Open notification" aria-label="Open notification">
+      <mat-icon>
+        @switch (notification?.type) {
+          @case ('Album') { play_arrow }
+          @case ('Product') { shopping_bag }
+          @case ('Message') { chat_bubble }
+          @default { arrow_forward }
+        }
+      </mat-icon>
+    </button>
   </div>
-</div>
+</article>

@@ -1,0 +1,4 @@
+essentia-tensorflow
+numpy>=1.23,<2.0
+scikit-learn>=1.4,<2.0
+tensorflow-cpu>=2.15,<2.16

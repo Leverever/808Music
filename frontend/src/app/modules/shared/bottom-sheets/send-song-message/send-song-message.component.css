@@ -1,31 +1,110 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
 .actions {
-  width: 20vw;
+  position: relative;
+  z-index: 2;
   display: flex;
-  gap: 15px;
-  align-self: center;
+  width: 100%;
+  flex: 0 0 auto;
 }
 
 .pfp {
-  width: 6vh;
-  height: 6vh;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border: 1px solid rgba(255, 255, 255, .13);
   border-radius: 50%;
-  background-color: aliceblue;
+  background-color: #4d3d50;
   background-position: center;
   background-size: cover;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .24);
 }
 
-.chatter-info {
-  display: flex;
-  gap: 15px;
-  align-items: center;
+.send-sheet {
+  min-height: 0;
+  height: min(720px, 84dvh);
 }
 
-.following-page {
-  margin-bottom: 17vh;
+.search {
+  width: 100%;
+  overflow: hidden;
 }
 
 .msg-cont {
   display: flex;
   flex-direction: column;
   width: 100%;
+  gap: 6px;
+}
+
+.msg-cont label {
+  color: rgba(240, 230, 241, .72);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.msg-cont mat-form-field {
+  width: 100%;
+}
+
+.following {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 9px;
+  padding: 1px 3px 1px 1px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.chat-row {
+  width: 100%;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.chat-row.selected {
+  border-color: rgba(230, 146, 248, .34);
+  background:
+    linear-gradient(120deg, rgba(230, 146, 248, .18), rgba(255, 255, 255, .04)),
+    rgba(255, 255, 255, .055);
+}
+
+.chat-row:focus-visible {
+  outline: 2px solid rgba(237, 163, 251, .8);
+  outline-offset: 2px;
+}
+
+.chat-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.chat-copy strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+  .send-sheet {
+    width: 100%;
+    height: min(680px, calc(100dvh - 16px));
+    max-height: 100%;
+  }
+
+  .following {
+    min-height: 96px;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
 }

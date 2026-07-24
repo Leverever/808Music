@@ -3,6 +3,7 @@ import {MAT_BOTTOM_SHEET_DATA, MatBottomSheet, MatBottomSheetRef} from '@angular
 import {TrackGetResponse} from '../../../../endpoints/track-endpoints/track-get-by-id-endpoint.service';
 import {MusicPlayerService} from '../../../../services/music-player.service';
 import {MyConfig} from '../../../../my-config';
+import {CdkDragDrop} from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-queue-view-bottom-sheet',
@@ -35,5 +36,17 @@ export class QueueViewBottomSheetComponent implements OnInit {
     this.musicPlayerService.skipTo(track);
     //this.removeSong(track);
     this.dismissSheet();
+  }
+
+  reorderQueue(event: CdkDragDrop<TrackGetResponse[]>): void {
+    if(event.previousIndex === event.currentIndex)
+    {
+      return;
+    }
+
+    this.data.queue = this.musicPlayerService.reorderUpcomingQueue(
+      event.previousIndex,
+      event.currentIndex
+    );
   }
 }
