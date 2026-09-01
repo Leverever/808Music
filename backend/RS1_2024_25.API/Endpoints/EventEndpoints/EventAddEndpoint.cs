@@ -40,7 +40,7 @@ namespace RS1_2024_25.API.Endpoints.EventEndpoints
             if (request.EventCover != null)
             {
                 var fileName = Guid.NewGuid().ToString() + Path.GetExtension(request.EventCover.FileName);
-                var filePath = Path.Combine("wwwroot/images/events", fileName);
+                var filePath = Path.Combine("wwwroot", "Images", "events", fileName);
 
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
 
@@ -49,7 +49,7 @@ namespace RS1_2024_25.API.Endpoints.EventEndpoints
                     await request.EventCover.CopyToAsync(stream, cancellationToken);
                 }
 
-                eventItem.EventCover = $"/images/events/{fileName}";
+                eventItem.EventCover = $"/Images/events/{fileName}";
             }
 
             _db.Events.Add(eventItem);

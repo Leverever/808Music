@@ -70,14 +70,16 @@ namespace RS1_2024_25.API.Endpoints.PlaylistEndpoints
     if (request.CoverImage != null)
     {
         var fileName = Guid.NewGuid().ToString() + Path.GetExtension(request.CoverImage.FileName);
-        var filePath = Path.Combine("wwwroot/images/Playlists", fileName);
+        var filePath = Path.Combine("wwwroot", "Images", "Playlists", fileName);
+
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
 
         using (var stream = new FileStream(filePath, FileMode.Create))
         {
             await request.CoverImage.CopyToAsync(stream, cancellationToken);
         }
 
-        playlist.CoverPath = $"/images/Playlists/{fileName}";
+        playlist.CoverPath = $"/Images/Playlists/{fileName}";
         _db.Playlists.Update(playlist);
         await _db.SaveChangesAsync(cancellationToken);
     }

@@ -20,15 +20,16 @@ namespace RS1_2024_25.API.Endpoints.TrackEndpoints
             {
                 return Unauthorized();
             }
+            // Subscription gating is intentionally disabled. A valid user token
+            // is sufficient for listener-mode streaming.
+            /*
             var user = await db.MyAppUsers.Include(u => u.Subscription)
                             .FirstOrDefaultAsync(u => u.ID == userId, cancellationToken);
-            /*
             if ((user.Subscription == null || user.Subscription.EndDate < DateTime.UtcNow) && (request.ArtistMode == null || !request.ArtistMode.Value))
             {
                 return Unauthorized(new { message = "Your subscription has expired or is not active." });
             }
             */
-            //TODO Check for active subscription
             
             Track? track = request.TrackId <= 0 ? await db.Tracks.FirstOrDefaultAsync(cancellationToken) : await cs.GetAsync<Track>($"track-{request.TrackId}", cancellationToken);
             if(track == null)

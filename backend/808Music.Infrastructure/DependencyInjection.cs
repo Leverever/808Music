@@ -47,7 +47,8 @@ public static class DependencyInjection
         services.AddScoped<IRecurringApplicationTask, AudioClusteringRecurringTask>();
         services.AddScoped<IRecurringApplicationTask, DailyAutomaticPlaylistRecurringTask>();
         services.AddScoped<IRecurringApplicationTask, DailyUserMusicProfileCacheRecurringTask>();
-        services.AddScoped<IAudioMetadataReader, NAudioMetadataReader>();
+        services.AddScoped<IRecurringTaskScheduleStore, RecurringTaskScheduleStore>();
+        services.AddScoped<IAudioMetadataReader, TagLibAudioMetadataReader>();
         services.AddScoped<IRecommendationService, DeterministicRecommendationService>();
         services.AddScoped<IStemSeparationService, QueuedStemSeparationService>();
         services.AddScoped<IStemSeparationJobQueue, StemSeparationJobQueue>();

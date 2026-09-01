@@ -31,6 +31,15 @@
           {{ musicPlayerService.queueSource.display }}
         </button>
       </div>
+
+      @if (recommendationReason; as reason) {
+        <button type="button" mat-icon-button class="recommendation-info"
+                matTooltip="Why this track?"
+                (click)="openRecommendationReason(reason)"
+                aria-label="Show why this track was recommended">
+          <mat-icon>info</mat-icon>
+        </button>
+      }
     </header>
 
     <div class="player-main">

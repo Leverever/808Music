@@ -5,13 +5,30 @@
 }
 
 .playlist-mat-card {
+  display: flex;
   width: 10vw;
+  height: 100%;
+  flex-direction: column;
   transition: 250ms background-color;
   overflow-x: hidden;
   margin: 0 auto;
   margin-right: 20px;
   position: relative;
   container-type: inline-size;
+}
+
+.playlist-mat-card-header {
+  width: 100%;
+  height: 110px;
+  min-width: 0;
+  padding: 14px 16px 12px;
+  box-sizing: border-box;
+}
+
+:host ::ng-deep .playlist-mat-card-header .mat-mdc-card-header-text {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
 }
 
 .hide-overflow {
@@ -31,8 +48,16 @@
 }
 
 .playlist-mat-card-subtitle {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin-top: 5px;
+  overflow: hidden;
   color: #A9A9A9;
   font-size: 14px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .playlist-mat-card-title {
@@ -44,10 +69,21 @@
   text-decoration: none;
 }
 .playlist-author {
+  display: block;
+  width: 100%;
+  min-width: 0;
   color: #B0B0B0;
   font-size: 12px;
-  margin-top: 2px;
+  margin-top: 5px;
+  overflow: hidden;
   font-style: italic;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-mat-card mat-card-content:empty {
+  display: none;
 }
 .playlist-image {
   height: auto;
@@ -116,12 +152,12 @@
   }
 
   .playlist-mat-card-subtitle {
-    display: -webkit-box;
+    display: block;
     overflow: hidden;
     font-size: 12px;
     line-height: 1.35;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .playlist-author {
@@ -130,6 +166,7 @@
   }
 
   .playlist-mat-card-header {
+    height: 88px;
     padding: 11px 11px 0;
   }
 

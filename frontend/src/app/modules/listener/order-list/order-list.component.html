@@ -22,7 +22,7 @@
 
       <div class="order-products">
         <article *ngFor="let detail of order.orderDetails">
-          <img [src]="detail.photoPath ? MyConfig.media_address + detail.photoPath : 'assets/icons/pattern.svg'" [alt]="detail.productName">
+          <img [src]="detail.photoPath ? MyConfig.mediaUrl(detail.photoPath) : 'assets/icons/pattern.svg'" [alt]="detail.productName">
           <div><h3>{{ detail.productName }}</h3><p>Quantity {{ detail.quantity }}</p></div>
           <strong>{{ detail.unitPrice * (1 - detail.discount) * detail.quantity | currency:'EUR':'symbol':'1.2-2' }}</strong>
         </article>

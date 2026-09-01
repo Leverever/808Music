@@ -124,16 +124,7 @@ export class RadioDetailComponent implements OnInit, OnDestroy {
   }
 
   mediaUrl(path?: string): string {
-    const value = path || '/media/Images/playlist_placeholder.png';
-    if(/^https?:\/\//i.test(value))
-    {
-      return value;
-    }
-
-    const normalizedPath = value.startsWith('/media/')
-      ? value
-      : `/media/${value.replace(/^\/+/, '')}`;
-    return `${MyConfig.api_address}${normalizedPath}`;
+    return MyConfig.mediaUrl(path);
   }
 
   goBack(): void {

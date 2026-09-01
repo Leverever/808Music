@@ -162,6 +162,6 @@ export class PlaylistCreateOrEditComponent implements OnInit {
   }
 
   getPath() {
-    return MyConfig.media_address + (this.playlist.coverImage ? this.playlist.coverImage.name : this.existingCoverPath);
+    return MyConfig.mediaUrl(this.playlist.coverImage ? this.playlist.coverImage.name : this.existingCoverPath);
   }
 }

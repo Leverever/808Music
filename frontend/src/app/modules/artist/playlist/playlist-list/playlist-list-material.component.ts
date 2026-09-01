@@ -66,31 +66,11 @@ export class PlaylistListMaterialComponent implements OnInit {
   }
 
   mediaUrl(path?: string): string {
-    const value = path || '/media/Images/ArtistPfps/placeholder.png';
-    if(/^https?:\/\//i.test(value))
-    {
-      return value;
-    }
-
-    const normalizedPath = value.startsWith('/media/')
-      ? value
-      : `/media/${value.replace(/^\/+/, '')}`;
-    return `${MyConfig.api_address}${normalizedPath}`;
+    return MyConfig.mediaUrl(path, 'Images/ArtistPfps/placeholder.png');
   }
 
   playlistCoverUrl(path?: string): string {
-    const value = path || '/media/Images/playlist_placeholder.png';
-    if(/^https?:\/\//i.test(value))
-    {
-      return value;
-    }
-
-    if(value.startsWith('/media/'))
-    {
-      return `${MyConfig.api_address}${value}`;
-    }
-
-    return `${MyConfig.media_address}${value.replace(/^\/+/, '')}`;
+    return MyConfig.mediaUrl(path);
   }
 
   startDailyPlaylist(id: string) {

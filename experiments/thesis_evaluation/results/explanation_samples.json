@@ -1,0 +1,134 @@
+﻿{
+    "home":  [
+                 {
+                     "trackId":  190,
+                     "score":  0.65826695,
+                     "reason":  "Fits your recent listening profile.",
+                     "matchedTags":  [
+
+                                     ],
+                     "clusterKey":  "5",
+                     "sourceSignals":  {
+                                           "userProfile":  0.63641958,
+                                           "tagClusterAffinity":  0.712954,
+                                           "freshnessPopularity":  0.38661292,
+                                           "novelty":  1,
+                                           "seedSimilarity":  0,
+                                           "sharedTags":  0,
+                                           "clusterMatch":  0,
+                                           "smoothContinuation":  0,
+                                           "themeMatch":  0
+                                       }
+                 },
+                 {
+                     "trackId":  184,
+                     "score":  0.65328706,
+                     "reason":  "Fits your recent listening profile.",
+                     "matchedTags":  [
+                                         "postrock"
+                                     ],
+                     "clusterKey":  "5",
+                     "sourceSignals":  {
+                                           "userProfile":  0.61572898,
+                                           "tagClusterAffinity":  0.700872,
+                                           "freshnessPopularity":  0.43964944,
+                                           "novelty":  1,
+                                           "seedSimilarity":  0,
+                                           "sharedTags":  0,
+                                           "clusterMatch":  0,
+                                           "smoothContinuation":  0,
+                                           "themeMatch":  0
+                                       }
+                 },
+                 {
+                     "trackId":  185,
+                     "score":  0.65129618,
+                     "reason":  "Fits your recent listening profile.",
+                     "matchedTags":  [
+                                         "popfolk",
+                                         "ballad",
+                                         "folk"
+                                     ],
+                     "clusterKey":  "5",
+                     "sourceSignals":  {
+                                           "userProfile":  0.6264967,
+                                           "tagClusterAffinity":  0.708297,
+                                           "freshnessPopularity":  0.37922376,
+                                           "novelty":  1,
+                                           "seedSimilarity":  0,
+                                           "sharedTags":  0,
+                                           "clusterMatch":  0,
+                                           "smoothContinuation":  0,
+                                           "themeMatch":  0
+                                       }
+                 }
+             ],
+    "radio":  [
+                  {
+                      "trackId":  31,
+                      "score":  0.67668223,
+                      "reason":  "Close to the seed track\u0027s audio profile.",
+                      "matchedTags":  [
+                                          "electronic",
+                                          "reggae",
+                                          "pop"
+                                      ],
+                      "clusterKey":  "3",
+                      "sourceSignals":  {
+                                            "userProfile":  0.47761665,
+                                            "tagClusterAffinity":  0,
+                                            "freshnessPopularity":  0.04581281,
+                                            "novelty":  1,
+                                            "seedSimilarity":  0.78313645,
+                                            "sharedTags":  0.34940934,
+                                            "clusterMatch":  1,
+                                            "smoothContinuation":  0.67470467,
+                                            "themeMatch":  0
+                                        }
+                  },
+                  {
+                      "trackId":  29,
+                      "score":  0.67668223,
+                      "reason":  "Close to the seed track\u0027s audio profile.",
+                      "matchedTags":  [
+                                          "electronic",
+                                          "reggae",
+                                          "pop"
+                                      ],
+                      "clusterKey":  "3",
+                      "sourceSignals":  {
+                                            "userProfile":  0.47761665,
+                                            "tagClusterAffinity":  0,
+                                            "freshnessPopularity":  0.04285714,
+                                            "novelty":  1,
+                                            "seedSimilarity":  0.78313645,
+                                            "sharedTags":  0.34940934,
+                                            "clusterMatch":  1,
+                                            "smoothContinuation":  0.67470467,
+                                            "themeMatch":  0
+                                        }
+                  },
+                  {
+                      "trackId":  25,
+                      "score":  0.67668223,
+                      "reason":  "Close to the seed track\u0027s audio profile.",
+                      "matchedTags":  [
+                                          "electronic",
+                                          "reggae",
+                                          "pop"
+                                      ],
+                      "clusterKey":  "3",
+                      "sourceSignals":  {
+                                            "userProfile":  0.47761665,
+                                            "tagClusterAffinity":  0,
+                                            "freshnessPopularity":  0.03694581,
+                                            "novelty":  1,
+                                            "seedSimilarity":  0.78313645,
+                                            "sharedTags":  0.34940934,
+                                            "clusterMatch":  1,
+                                            "smoothContinuation":  0.67470467,
+                                            "themeMatch":  0
+                                        }
+                  }
+              ]
+}

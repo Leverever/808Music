@@ -20,6 +20,7 @@ export class ArtistBigCardComponent implements OnInit, OnDestroy {
   @Input() artists : ArtistInfoResponse | null = null;
   @Input() isForProfile = false;
   @Input() description: string | null | undefined = null;
+  @Input() tooltip = "";
   isPlayingThisAlbum: boolean = false;
   playingState: boolean = false;
 

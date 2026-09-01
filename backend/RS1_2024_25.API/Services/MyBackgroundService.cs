@@ -25,9 +25,13 @@ namespace RS1_2024_25.API.Services
         private string[] crontabs = ["*/1 * * * *", "*/5 * * * *", "*/10 * * * *", "*/20 * * * *"];
         private DateTime[] nextRuns = new DateTime[4];
 
-        private IConfiguration cfg;
+        private readonly IConfiguration cfg;
+        private readonly ILogger<MyBackgroundService> logger;
+        private int isProcessing;
 
-        public MyBackgroundService(IConfiguration cfg)
+        public MyBackgroundService(
+            IConfiguration cfg,
+            ILogger<MyBackgroundService> logger)
         {
             Array tasks = Enum.GetValues(typeof(ScheduledTaskTypes));
             for (int i = 0; i < tasks.Length; i++)
@@ -37,6 +41,7 @@ namespace RS1_2024_25.API.Services
                 nextRuns[i] = schedules[task].GetNextOccurrence(DateTime.Now);
             }
             this.cfg = cfg;
+            this.logger = logger;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -47,53 +52,69 @@ namespace RS1_2024_25.API.Services
 
         private async void Process(object? state)
         {
-            Array tasks = Enum.GetValues(typeof(ScheduledTaskTypes));
-            using (var client = new HttpClient())
+            if (Interlocked.Exchange(ref isProcessing, 1) != 0)
             {
-                client.DefaultRequestHeaders.Add("BackgroundScheduler", cfg["BackendUrl"]);
+                return;
+            }
 
-                await client.GetAsync(cfg["BackendUrl"] + "/api/" + nameof(SendArtistNotifications));
-
-                for (int i = 0; i < schedules.Count; i++)
+            try
+            {
+                Array tasks = Enum.GetValues(typeof(ScheduledTaskTypes));
+                using (var client = new HttpClient())
                 {
-                    if (nextRuns[i] < DateTime.Now)
+                    client.DefaultRequestHeaders.Add("BackgroundScheduler", cfg["BackendUrl"]);
+
+                    await client.GetAsync(cfg["BackendUrl"] + "/api/" + nameof(SendArtistNotifications));
+
+                    for (int i = 0; i < schedules.Count; i++)
                     {
-                        switch (tasks.GetValue(i))
+                        if (nextRuns[i] < DateTime.Now)
                         {
-                            case ScheduledTaskTypes.Hourly:
-                                {
-                                    //TASKS GO HERE
-                                    await client.GetAsync(cfg["BackendUrl"] + "/api/" + nameof(AlbumToggleVisibilityEndpoint));
-                                    break;
-                                }
-                            case ScheduledTaskTypes.Daily:
-                                {
-                                    //TASKS GO HERE
-                                    await client.DeleteAsync(cfg["BackendUrl"] + "/api/" + nameof(ArtistDeleteFlaggedEndpoint));
-                                    break;
-                                }
+                            switch (tasks.GetValue(i))
+                            {
+                                case ScheduledTaskTypes.Hourly:
+                                    {
+                                        //TASKS GO HERE
+                                        await client.GetAsync(cfg["BackendUrl"] + "/api/" + nameof(AlbumToggleVisibilityEndpoint));
+                                        break;
+                                    }
+                                case ScheduledTaskTypes.Daily:
+                                    {
+                                        //TASKS GO HERE
+                                        await client.DeleteAsync(cfg["BackendUrl"] + "/api/" + nameof(ArtistDeleteFlaggedEndpoint));
+                                        break;
+                                    }
 
-                            case ScheduledTaskTypes.Weekly:
-                                {
-                                    //TASKS GO HERE
-                                    Console.WriteLine("WEEKLY TASK");
+                                case ScheduledTaskTypes.Weekly:
+                                    {
+                                        //TASKS GO HERE
+                                        Console.WriteLine("WEEKLY TASK");
 
-                                    break;
-                                }
-                            case ScheduledTaskTypes.Monthly:
-                                {
-                                    //TASKS GO HERE
-                                    Console.WriteLine("MONTHLY TASK");
-                                    break;
-                                }
+                                        break;
+                                    }
+                                case ScheduledTaskTypes.Monthly:
+                                    {
+                                        //TASKS GO HERE
+                                        Console.WriteLine("MONTHLY TASK");
+                                        break;
+                                    }
+                            }
+                            nextRuns[i] = schedules.GetValueOrDefault((ScheduledTaskTypes)tasks.GetValue(i)!)!.GetNextOccurrence(DateTime.Now);
                         }
-                        nextRuns[i] = schedules.GetValueOrDefault((ScheduledTaskTypes)tasks.GetValue(i)!)!.GetNextOccurrence(DateTime.Now);
-                    }
-                    else
-                    {
-                        Console.WriteLine((ScheduledTaskTypes)tasks.GetValue(i)! + " task at: " + nextRuns[i].ToLongDateString() + nextRuns[i].ToLongTimeString());
+                        else
+                        {
+                            Console.WriteLine((ScheduledTaskTypes)tasks.GetValue(i)! + " task at: " + nextRuns[i].ToLongDateString() + nextRuns[i].ToLongTimeString());
+                        }
                     }
                 }
+            }
+            catch (Exception exception)
+            {
+                logger.LogWarning(exception, "Legacy background task execution failed; it will be retried.");
+            }
+            finally
+            {
+                Volatile.Write(ref isProcessing, 0);
             }
         }
 

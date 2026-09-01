@@ -1,9 +1,8 @@
 using _808Music.Application.Abstractions;
-using NAudio.Wave;
 
 namespace _808Music.Infrastructure.Audio;
 
-public sealed class NAudioMetadataReader : IAudioMetadataReader
+public sealed class TagLibAudioMetadataReader : IAudioMetadataReader
 {
     public async Task<AudioMetadata> ReadAsync(
         Stream content,
@@ -23,22 +22,29 @@ public sealed class NAudioMetadataReader : IAudioMetadataReader
         {
             content.Position = 0;
 
-            await using (var tempFile = File.Create(tempPath))
+            await using (var tempFile = System.IO.File.Create(tempPath))
             {
                 await content.CopyToAsync(tempFile, cancellationToken);
             }
 
-            using var reader = new MediaFoundationReader(tempPath);
-
-            return new AudioMetadata(reader.TotalTime);
+            using var mediaFile = TagLib.File.Create(tempPath);
+            return new AudioMetadata(mediaFile.Properties.Duration);
+        }
+        catch (TagLib.CorruptFileException ex)
+        {
+            throw new InvalidOperationException("The uploaded track is not a valid audio file.", ex);
+        }
+        catch (TagLib.UnsupportedFormatException ex)
+        {
+            throw new InvalidOperationException("The uploaded track audio format is unsupported.", ex);
         }
         finally
         {
             content.Position = 0;
 
-            if (File.Exists(tempPath))
+            if (System.IO.File.Exists(tempPath))
             {
-                File.Delete(tempPath);
+                System.IO.File.Delete(tempPath);
             }
         }
     }

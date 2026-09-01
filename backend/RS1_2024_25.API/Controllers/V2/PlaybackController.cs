@@ -101,6 +101,9 @@ public sealed class PlaybackController : ControllerBase
             return canManageTrack ? null : Forbid();
         }
 
+        // Subscription gating is intentionally disabled. Any authenticated user
+        // may stream tracks; artist-mode authorization is still enforced above.
+        /*
         var userId = GetCurrentUserId();
         if (userId is null)
         {
@@ -124,6 +127,7 @@ public sealed class PlaybackController : ControllerBase
                 message = "Your subscription has expired or is not active."
             });
         }
+        */
 
         return null;
     }

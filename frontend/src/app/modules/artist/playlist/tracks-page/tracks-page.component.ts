@@ -338,7 +338,7 @@ export class TracksPageComponent implements OnInit {
       return 'none';
     }
 
-    return `url("${MyConfig.media_address}${this.playlistDetails.coverPath}")`;
+    return `url("${MyConfig.mediaUrl(this.playlistDetails.coverPath)}")`;
   }
 
   manageCollaborators() {

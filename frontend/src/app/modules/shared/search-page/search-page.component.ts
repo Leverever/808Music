@@ -76,6 +76,7 @@ export class SearchPageComponent implements OnInit {
   recommendedArtists: ArtistSimpleDto[] = [];
   recommendedArtistDescriptions: Record<number, string> = {};
   recommendedPlaylists: PlaylistResponse[] = [];
+  recommendedPlaylistReasons: Record<number, string> = {};
   recommendedTracks: TrackGetResponse[] = [];
 
   query = '';
@@ -450,6 +451,10 @@ export class SearchPageComponent implements OnInit {
       isCollaborative: playlist.isCollaborative,
       description: playlist.reason
     }));
+    this.recommendedPlaylistReasons = response.recommendedPlaylists.reduce<Record<number, string>>((reasons, playlist) => {
+      reasons[playlist.playlistId] = playlist.reason;
+      return reasons;
+    }, {});
     this.recommendedTracks = this.recommendationTrackMapper.toPlayerTracks(response.recommendedTracks);
   }
 

@@ -91,11 +91,11 @@
       <div class="artist-avatars" aria-hidden="true">
         <div
           class="artist-user-pic"
-          [ngStyle]="{'background-image': 'url(' + MyConfig.media_address + '/Images/Artistpfps/' + userArtistStats?.artistProfilePicture + ')'}">
+          [ngStyle]="{'background-image': 'url(' + MyConfig.mediaUrl('Images/ArtistPfps/' + userArtistStats?.artistProfilePicture, 'Images/ArtistPfps/placeholder.png') + ')'}">
         </div>
         <div
           class="artist-user-pic"
-          [ngStyle]="{'background-image': 'url(' + MyConfig.media_address + userArtistStats?.userProfilePicture + ')'}">
+          [ngStyle]="{'background-image': 'url(' + MyConfig.mediaUrl(userArtistStats?.userProfilePicture, 'Images/ProfilePictures/placeholder.png') + ')'}">
         </div>
       </div>
 

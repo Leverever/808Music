@@ -1,0 +1,129 @@
+{
+  "model": "htdemucs",
+  "demucs_version": "4.1.0",
+  "torch_version": "2.6.0+cu124",
+  "cuda_available": true,
+  "gpu": "NVIDIA GeForce RTX 3060 Ti",
+  "cpu": "x86_64",
+  "output_format": "mp3",
+  "tracks": [
+    {
+      "track_id": 17,
+      "catalog_duration_seconds": 26,
+      "object_key": "tracks/17/masters/d24221bb5e3cb3138e4dea5baa289286444d0c844cb0b23a73f4623b6d177ae5.mp3",
+      "input_size_bytes": 419826
+    },
+    {
+      "track_id": 95,
+      "catalog_duration_seconds": 95,
+      "object_key": "tracks/95/masters/5fb26defc7fcf7d88d4101375ed8b20c87ec2579a1696be618e78030d3e298e4.mp3",
+      "input_size_bytes": 1539932
+    }
+  ],
+  "results": [
+    {
+      "track_id": 17,
+      "catalog_duration_seconds": 26,
+      "input_size_bytes": 419826,
+      "device": "cuda",
+      "profile": "four-stem",
+      "iteration": 1,
+      "success": true,
+      "wall_time_seconds": 23.794,
+      "real_time_factor": 0.9152,
+      "output_file_count": 4,
+      "output_size_bytes": 4204668
+    },
+    {
+      "track_id": 95,
+      "catalog_duration_seconds": 95,
+      "input_size_bytes": 1539932,
+      "device": "cuda",
+      "profile": "four-stem",
+      "iteration": 1,
+      "success": true,
+      "wall_time_seconds": 24.48,
+      "real_time_factor": 0.2577,
+      "output_file_count": 4,
+      "output_size_bytes": 15318204
+    },
+    {
+      "track_id": 17,
+      "catalog_duration_seconds": 26,
+      "input_size_bytes": 419826,
+      "device": "cuda",
+      "profile": "two-stem-vocals",
+      "iteration": 1,
+      "success": true,
+      "wall_time_seconds": 11.548,
+      "real_time_factor": 0.4442,
+      "output_file_count": 2,
+      "output_size_bytes": 2102334
+    },
+    {
+      "track_id": 95,
+      "catalog_duration_seconds": 95,
+      "input_size_bytes": 1539932,
+      "device": "cuda",
+      "profile": "two-stem-vocals",
+      "iteration": 1,
+      "success": true,
+      "wall_time_seconds": 17.995,
+      "real_time_factor": 0.1894,
+      "output_file_count": 2,
+      "output_size_bytes": 7659102
+    },
+    {
+      "track_id": 17,
+      "catalog_duration_seconds": 26,
+      "input_size_bytes": 419826,
+      "device": "cpu",
+      "profile": "four-stem",
+      "iteration": 1,
+      "success": true,
+      "wall_time_seconds": 38.909,
+      "real_time_factor": 1.4965,
+      "output_file_count": 4,
+      "output_size_bytes": 4204668
+    },
+    {
+      "track_id": 95,
+      "catalog_duration_seconds": 95,
+      "input_size_bytes": 1539932,
+      "device": "cpu",
+      "profile": "four-stem",
+      "iteration": 1,
+      "success": true,
+      "wall_time_seconds": 114.133,
+      "real_time_factor": 1.2014,
+      "output_file_count": 4,
+      "output_size_bytes": 15318204
+    },
+    {
+      "track_id": 17,
+      "catalog_duration_seconds": 26,
+      "input_size_bytes": 419826,
+      "device": "cpu",
+      "profile": "two-stem-vocals",
+      "iteration": 1,
+      "success": true,
+      "wall_time_seconds": 34.572,
+      "real_time_factor": 1.3297,
+      "output_file_count": 2,
+      "output_size_bytes": 2102334
+    },
+    {
+      "track_id": 95,
+      "catalog_duration_seconds": 95,
+      "input_size_bytes": 1539932,
+      "device": "cpu",
+      "profile": "two-stem-vocals",
+      "iteration": 1,
+      "success": true,
+      "wall_time_seconds": 108.464,
+      "real_time_factor": 1.1417,
+      "output_file_count": 2,
+      "output_size_bytes": 7659102
+    }
+  ]
+}

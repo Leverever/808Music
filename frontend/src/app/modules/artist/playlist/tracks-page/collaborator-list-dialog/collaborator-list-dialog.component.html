@@ -9,7 +9,7 @@
 
   <ul>
     <li *ngFor="let user of sortedCollaborators">
-      <img [src]="MyConfig.media_address + user.profilePicture" alt="Profile Picture">
+      <img [src]="MyConfig.mediaUrl(user.profilePicture, 'Images/ProfilePictures/placeholder.png')" alt="Profile Picture">
       <div class="info">
         <span class="username">{{ user.username }} <span *ngIf="user.isOwner">(you)</span></span>
         <span class="role">{{ user.isOwner ? 'Owner' : 'Collaborator' }}</span>

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { MyConfig } from '../../my-config';
 
 export interface ArtistEvents {
   id: number;
@@ -18,7 +19,7 @@ export interface ArtistEvents {
   providedIn: 'root'
 })
 export class EventGetByArtistIdService {
-  private apiUrl = 'http://localhost:7000/api/EventGetByArtistEndpoint/api/EventGetByArtist'; // Tvoj backend URL
+  private readonly apiUrl = `${MyConfig.api_address}/api/EventGetByArtistEndpoint/api/EventGetByArtist`;
 
   constructor(private http: HttpClient) {}
 ngOnInit() {}

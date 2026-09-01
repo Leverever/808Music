@@ -15,6 +15,7 @@ import { StorefrontWishlistService } from '../storefront-wishlist.service';
 export class ProductWishlistComponent implements OnInit {
   loading = true;
   readonly mediaAddress = MyConfig.media_address;
+  protected readonly MyConfig = MyConfig;
 
   constructor(
     private readonly wishlist: StorefrontWishlistService,

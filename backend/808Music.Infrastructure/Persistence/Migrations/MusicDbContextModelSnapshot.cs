@@ -957,6 +957,33 @@ namespace _808Music.Infrastructure.Persistence.Migrations
                     b.ToTable("UserTrackInteractions", (string)null);
                 });
 
+            modelBuilder.Entity("_808Music.Domain.Scheduling.RecurringTaskSchedule", b =>
+                {
+                    b.Property<string>("TaskName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("CronExpression")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("LastScheduledRunUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastStartedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NextRunUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("TaskName");
+
+                    b.HasIndex("NextRunUtc");
+
+                    b.ToTable("RecurringTaskSchedules", (string)null);
+                });
+
             modelBuilder.Entity("_808Music.Domain.Static.AlbumType", b =>
                 {
                     b.Property<int>("Id")

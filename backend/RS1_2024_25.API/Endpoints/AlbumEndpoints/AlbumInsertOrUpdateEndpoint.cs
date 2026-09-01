@@ -60,7 +60,11 @@ namespace RS1_2024_25.API.Endpoints.AlbumEndpoints
 
             if (request.CoverImage != null)
             {
-                var path = await fh.UploadFileAsync(@"wwwroot\Images\AlbumCovers", request.CoverImage, 0, cancellationToken);
+                var path = await fh.UploadFileAsync(
+                    Path.Combine("wwwroot", "Images", "AlbumCovers"),
+                    request.CoverImage,
+                    0,
+                    cancellationToken);
                 if (path == string.Empty)
                 {
                     return BadRequest("Issue with file...");
@@ -88,6 +92,7 @@ namespace RS1_2024_25.API.Endpoints.AlbumEndpoints
 
             var response = new AlbumInsertResponse
             {
+                Id = a.Id,
                 Title = a.Title,
                 IsActive = a.IsActive,
                 ReleaseDate = a.ReleaseDate,
@@ -122,6 +127,7 @@ namespace RS1_2024_25.API.Endpoints.AlbumEndpoints
 
     public class AlbumInsertResponse
     {
+        public int Id { get; set; }
         public string Title { get; set; }
         public bool IsActive { get; set; }
         public DateTime ReleaseDate { get; set; }

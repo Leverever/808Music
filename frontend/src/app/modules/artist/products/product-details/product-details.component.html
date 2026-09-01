@@ -18,7 +18,7 @@
       </div>
       <div class="product-thumbnails" *ngIf="(product.photoPaths?.length ?? 0) > 1">
         <button type="button" *ngFor="let photo of product.photoPaths; let index = index" [class.active]="index === currentSlide" (click)="changeSlide(index)" [attr.aria-label]="'View photo ' + (index + 1)">
-          <img [src]="mediaAddress + photo" alt="">
+          <img [src]="MyConfig.mediaUrl(photo)" alt="">
         </button>
       </div>
     </section>
@@ -33,7 +33,7 @@
       </div>
 
       <button type="button" class="artist-link" (click)="goToArtistPage()">
-        <span class="artist-photo" [style.background-image]="'url(' + mediaAddress + 'Images/Artistpfps/' + product.artistPhoto + ')'" aria-hidden="true"></span>
+        <span class="artist-photo" [style.background-image]="'url(' + MyConfig.mediaUrl('Images/ArtistPfps/' + product.artistPhoto, 'Images/ArtistPfps/placeholder.png') + ')'" aria-hidden="true"></span>
         <span><small>Sold by</small><strong>{{ product.artistName || '808 Music artist' }}</strong></span>
         <mat-icon>chevron_right</mat-icon>
       </button>

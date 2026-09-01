@@ -1,5 +1,12 @@
 @if (track) {
-  <div class="track-card" (click)="handleCardClick($event)" (mouseover)="showPlayButton(true)" (mouseleave)="showPlayButton(false)" [ngStyle]="cardStyle">
+  <div class="track-card" (click)="handleCardClick($event)" (mouseover)="showPlayButton(true)" (mouseleave)="showPlayButton(false)" [ngStyle]="cardStyle"
+       [matTooltip]="track.recommendationReason || ''"
+       [matTooltipDisabled]="!track.recommendationReason"
+       matTooltipTouchGestures="off"
+       appScrollSafeTooltip
+       matTooltipPosition="above"
+       matTooltipShowDelay="500"
+       matTooltipHideDelay="250">
     <div class="tc-content">
       <div class="tc-thumbnail" [ngStyle]="{'background-image': 'url('+getCoverUrl(track.coverPath)+')'}"></div>
       <div class="tc-info">
@@ -30,7 +37,7 @@
     </div>
     @if (!artistMode && isPlayingThisTrack && playingState) {
       <div class="mobile-track-playing" aria-label="Currently playing">
-        <ng-lottie [width]="'24px'" [height]="'24px'" [options]="playingAnimationOptions"></ng-lottie>
+        <ng-lottie class="playing-lottie" [width]="'24px'" [height]="'24px'" [options]="playingAnimationOptions"></ng-lottie>
       </div>
     }
   </div>

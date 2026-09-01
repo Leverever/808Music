@@ -49,7 +49,7 @@ import {
 
 })
 export class UserProfilePageComponent implements OnInit {
-  pathToPfp = MyConfig.media_address;
+  pathToPfp = MyConfig.mediaUrl(undefined, 'Images/ProfilePictures/placeholder.png');
   username = '';
   playlists: PlaylistResponse[] | null = null;
   isFollowing = false;
@@ -99,7 +99,10 @@ export class UserProfilePageComponent implements OnInit {
         if (response) {
           this.username = response.username;
           if (response.profilePicturePath) {
-            this.pathToPfp = MyConfig.media_address + response.profilePicturePath;
+            this.pathToPfp = MyConfig.mediaUrl(
+              response.profilePicturePath,
+              'Images/ProfilePictures/placeholder.png'
+            );
           }
         }
       },

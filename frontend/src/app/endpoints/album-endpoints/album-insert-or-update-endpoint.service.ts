@@ -17,6 +17,7 @@ export interface AlbumInsertRequest {
 }
 
 export interface AlbumInsertResponse {
+  id: number;
   title: string;
   releaseDate: string;
   isActive: boolean;

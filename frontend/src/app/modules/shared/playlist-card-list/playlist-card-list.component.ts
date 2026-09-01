@@ -23,6 +23,7 @@ export class PlaylistCardListComponent implements OnInit {
   @Input() queryParams: Params | null = null;
   @Input() publicOnly = false;
   @Input() playlists: PlaylistResponse[] | null = null;
+  @Input() cardTooltips: Record<number, string> = {};
   artistMode: boolean = false;
 
   @Output() deletedPlaylist = new EventEmitter<boolean>();
@@ -96,17 +97,7 @@ export class PlaylistCardListComponent implements OnInit {
   protected readonly MyConfig = MyConfig;
 
   getCoverUrl(path: string): string {
-    if(/^https?:\/\//i.test(path))
-    {
-      return path;
-    }
-
-    if(path.startsWith('/media/'))
-    {
-      return MyConfig.api_address + path;
-    }
-
-    return MyConfig.media_address + path.replace(/^\/+/, '');
+    return MyConfig.mediaUrl(path);
   }
 
   goToEditPlaylist($event: number) {

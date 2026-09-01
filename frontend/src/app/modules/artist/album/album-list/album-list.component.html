@@ -61,7 +61,7 @@
         @for(a of albums; track a.id)
         {
           <div class="album-card">
-            <div class="album-card-thumbnail"><img [src]="'http://localhost:7000'+a.coverArt" height="64" width="64"></div>
+            <div class="album-card-thumbnail"><img [src]="MyConfig.api_address + a.coverArt" height="64" width="64"></div>
             <div>{{a.title}}</div>
             <div>{{a.artist}}</div>
             <div>{{a.releaseDate}}</div>

@@ -19,7 +19,8 @@ export class RecommendationTrackMapper {
         pfpPath: this.normalizeMediaPath(artist.profilePhotoPath),
         isLead: artist.isLead
       })),
-      albumId: track.albumId
+      albumId: track.albumId,
+      recommendationReason: track.reason?.trim() || null
     };
   }
 

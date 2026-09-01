@@ -112,7 +112,7 @@
         } @else {
           @if (showAnim && playingState) {
             <div [ngStyle]="{'padding-bottom': '5px'}">
-              <ng-lottie [styles]="{'padding': '0 0 0 5px'}"  [width]="'30px'" [height]="'30px'" [options]="options"></ng-lottie>
+              <ng-lottie class="playing-lottie" [styles]="{'padding': '0 0 0 5px'}"  [width]="'30px'" [height]="'30px'" [options]="options"></ng-lottie>
             </div>
           } @else {
             <button mat-icon-button (click)="musicPlayerService.togglePlayState()" class="bold">
@@ -158,7 +158,7 @@
             @if (!inArtistMode && currentTrack?.id == track.id && playingState) {
               <div class="mobile-playing-indicator" [class.over-track-artwork]="isPlaylist"
                    aria-label="Currently playing">
-                <ng-lottie [width]="'24px'" [height]="'24px'" [options]="options"></ng-lottie>
+                <ng-lottie class="playing-lottie" [width]="'24px'" [height]="'24px'" [options]="options"></ng-lottie>
               </div>
             }
           </div>

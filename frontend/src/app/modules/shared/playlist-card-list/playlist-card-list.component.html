@@ -9,7 +9,7 @@
             [title]="playlist.title"
             [imageUrl]="getCoverUrl(playlist.coverPath)"
             [id]="playlist.id"
-            [tooltip]="playlist.title"
+            [tooltip]="cardTooltips[playlist.id] || playlist.title"
             [username]="playlist.ownerUsername"
             [subtitle]="playlist.description ?? ''"
             (onClick)="goToPlaylist($event)"

@@ -11,6 +11,10 @@
   gap: 10px;
 }
 
+.stem-mixer {
+  gap: 0;
+}
+
 .stem-mode-card {
   flex: 0 0 auto;
 }
@@ -44,6 +48,15 @@
   display: grid;
   grid-template-columns: minmax(88px, .42fr) minmax(120px, 1fr);
   min-height: 70px;
+  align-items: center;
+  gap: 11px;
+  padding: 8px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, .09);
+  box-sizing: border-box;
+}
+
+.stem-row:last-child {
+  border-bottom: 0;
 }
 
 .stem-volume {

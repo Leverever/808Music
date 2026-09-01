@@ -107,6 +107,7 @@ import {
 import {OverflowMarqueeDirective} from './directives/overflow-marquee.directive';
 import {MobileDetailScrollDirective} from './directives/mobile-detail-scroll.directive';
 import {CardRailDirective} from './directives/card-rail.directive';
+import {ScrollSafeTooltipDirective} from './directives/scroll-safe-tooltip.directive';
 
 @NgModule({
   declarations: [
@@ -162,6 +163,7 @@ import {CardRailDirective} from './directives/card-rail.directive';
     AddToPlaylistBottomSheetComponent,
     MobileDetailScrollDirective,
     CardRailDirective,
+    ScrollSafeTooltipDirective,
 // Dodajemo UnauthorizedComponent u deklaracije
   ],
     imports: [
@@ -278,6 +280,7 @@ import {CardRailDirective} from './directives/card-rail.directive';
     OverflowMarqueeDirective,
     MobileDetailScrollDirective,
     CardRailDirective,
+    ScrollSafeTooltipDirective,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

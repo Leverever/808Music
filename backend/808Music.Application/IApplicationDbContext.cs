@@ -1,4 +1,5 @@
 ﻿using _808Music.Domain.Catalog;
+using _808Music.Domain.Scheduling;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System;
@@ -30,6 +31,7 @@ namespace _808Music.Application
         DbSet<TrackStemSet> TrackStemSets { get; }
         DbSet<TrackStem> TrackStems { get; }
         DbSet<TrackStream> TrackStreams { get; }
+        DbSet<RecurringTaskSchedule> RecurringTaskSchedules { get; }
 
         DatabaseFacade Database { get; }
 

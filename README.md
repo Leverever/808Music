@@ -23,8 +23,15 @@
 - **EF CORE**
 - **Stripe API**  
 
-### **Database**  
-- **Sql** 
+### **Database**
+- **Sql**
+
+### Dockerized backend
+
+The API and its SQL Server, Redis, RabbitMQ, and MinIO dependencies can be
+started with `backend/scripts/docker-up.ps1`. Existing local database and media
+files are preserved during the initial Docker migration. See
+[`backend/README.Docker.md`](backend/README.Docker.md) for details.
 
 ## Goals for the future
 -- Make it responsive

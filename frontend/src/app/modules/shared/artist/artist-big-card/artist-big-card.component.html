@@ -1,5 +1,5 @@
 @if (!isForProfile){
-<div class="artist-card" (click)="openCardOnMobile($event)" (mouseover)="showPlayButton(true)" (mouseleave)="showPlayButton(false)" [matTooltip]="artist?.name" matTooltipTouchGestures="off" matTooltipShowDelay="500" matTooltipPosition="above">
+<div class="artist-card" (click)="openCardOnMobile($event)" (mouseover)="showPlayButton(true)" (mouseleave)="showPlayButton(false)" [matTooltip]="tooltip || artist?.name || ''" matTooltipTouchGestures="off" appScrollSafeTooltip matTooltipShowDelay="500" matTooltipPosition="above">
   <div class="thumbnail-image" [ngStyle]="{'background-image':'url('+getImageUrl(artist?.pfpPath)+')'}"></div>
   <div class="artist-info">
     <h6 class="artist-name hide-overflow" (click)="goToArtist()">{{ artist?.name }}</h6>
@@ -15,7 +15,7 @@
 }
 @else {
   <div class="artist-card" (click)="openCardOnMobile($event)" (mouseover)="showPlayButton(true)" (mouseleave)="showPlayButton(false)">
-    <div class="thumbnail-image" [ngStyle]="{'background-image':'url('+MyConfig.media_address+ '/Images/Artistpfps/' + artists?.artistPfp+')'}"></div>
+    <div class="thumbnail-image" [ngStyle]="{'background-image':'url('+MyConfig.mediaUrl('Images/ArtistPfps/' + artists?.artistPfp, 'Images/ArtistPfps/placeholder.png')+')'}"></div>
     <div class="artist-info">
       <h6 class="artist-name hide-overflow" (click)="goToArtist()">{{ artists?.artistName }}</h6>
       <p class="follow-count hide-overflow">{{getFollowCount()}}</p>

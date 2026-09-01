@@ -32,7 +32,7 @@ export class PlaylistUpdateDialogComponent implements OnInit {
   ngOnInit(): void {
     if (this.data.playlistDetails?.coverPath) {
       this.coverPath = this.data.playlistDetails.coverPath;
-      this.previewUrl = this.MyConfig.media_address + this.coverPath;
+      this.previewUrl = this.MyConfig.mediaUrl(this.coverPath);
     }
   }
 

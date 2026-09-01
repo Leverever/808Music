@@ -9,7 +9,8 @@
         @if (i < 6) {
           <app-artist-big-card [artist]="artist"
                                [numberDescription]="numberDescription"
-                               [description]="cardDescriptions[artist.id]"></app-artist-big-card>
+                               [description]="cardDescriptions[artist.id]"
+                               [tooltip]="cardTooltips[artist.id] || artist.name"></app-artist-big-card>
         }
       }
       @if (artists != null) {

@@ -22,6 +22,7 @@ export class AlbumCardListComponent implements OnInit {
   @Input() title: string = "RELEASES";
   @Input() queryParams: Params | null = null;
   @Input() cardSubtitles: Record<number, string> = {};
+  @Input() cardTooltips: Record<number, string> = {};
   @Input() showViewAll: boolean = true;
   artistMode: boolean = false;
   role = "";

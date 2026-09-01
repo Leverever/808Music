@@ -308,6 +308,8 @@ __pycache__/
 backend/RS1_2024_25.API/TrackFiles
 backend/RS1_2024_25.API/wwwroot/*/
 backend/.verify-build
+backend/.docker/seed/*
+!backend/.docker/seed/README.md
 .chrome-recap-test
 .chrome-recap-test-2
 .chrome-recap-test-3
@@ -319,3 +321,5 @@ ml-service/training/**/*.npy
 ml-service/training/**/*.npz
 ml-service/training/**/*.keras
 ml-service/training/**/*.h5
+.cover
+backend/.env

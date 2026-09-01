@@ -96,6 +96,7 @@ export class ListenerHomeComponent implements OnInit {
   recommendedArtists: ArtistSimpleDto[] | null = null;
   recommendedArtistDescriptions: Record<number, string> = {};
   recommendedPlaylists: PlaylistResponse[] | null = null;
+  recommendedPlaylistReasons: Record<number, string> = {};
   recommendedTracks: TrackGetResponse[] = [];
   dailyPlaylists: PersonalizedPlaylistSummary[] = [];
   constructor(private router: Router,
@@ -260,6 +261,10 @@ export class ListenerHomeComponent implements OnInit {
       isCollaborative: playlist.isCollaborative,
       description: playlist.reason
     }));
+    this.recommendedPlaylistReasons = response.recommendedPlaylists.reduce<Record<number, string>>((reasons, playlist) => {
+      reasons[playlist.playlistId] = playlist.reason;
+      return reasons;
+    }, {});
     this.recommendedTracks = this.recommendationTrackMapper.toPlayerTracks(response.recommendedTracks);
   }
 
@@ -345,7 +350,7 @@ export class ListenerHomeComponent implements OnInit {
   }
 
   getEventCoverBackground(event: UpcomingEvent | null): string {
-    return event ? `url("${MyConfig.media_address}${event.eventCover}")` : 'none';
+    return event ? `url("${MyConfig.mediaUrl(event.eventCover)}")` : 'none';
   }
 
   getEventSwipeTransform(): string {

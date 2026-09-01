@@ -1,0 +1,498 @@
+{
+  "tests": {
+    "backend": {
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "configuration": "Release"
+    },
+    "ml_service": {
+      "passed": 11,
+      "failed": 0
+    },
+    "frontend": {
+      "passed": 13,
+      "failed": 0,
+      "production_build": true
+    }
+  },
+  "dataset": {
+    "catalog_tracks": 181,
+    "analyzed_tracks": 178,
+    "analysis_coverage": 0.9834254143646409,
+    "interaction_users": 1,
+    "registered_users": 15,
+    "cold_start_users_without_interactions": 14,
+    "interactions": 584,
+    "interaction_period_start": "2026-07-12T21:32:10",
+    "interaction_period_end": "2026-07-27T19:11:48",
+    "evaluation_episodes": 10,
+    "evaluation_start": "2026-07-12T21:40:12",
+    "evaluation_end": "2026-07-27T18:53:08",
+    "positive_events_before_eligibility_filter": 12
+  },
+  "clustering": {
+    "representatives": [
+      {
+        "algorithm": "kmeans",
+        "parameter": 8,
+        "cluster_count": 8,
+        "noise_ratio": 0.0,
+        "silhouette_cosine": 0.2032468318939209,
+        "davies_bouldin": 2.1665208514332157,
+        "calinski_harabasz": 18.07840155157339,
+        "smallest_cluster": 6,
+        "largest_cluster": 48,
+        "tag_coherence_at_10": 0.9810861423220972,
+        "stability_ari": 0.6653450704753194,
+        "fit_time_seconds": 0.8994821999986016,
+        "selection_score": 0.5132312191463146
+      },
+      {
+        "algorithm": "agglomerative",
+        "parameter": 8,
+        "cluster_count": 8,
+        "noise_ratio": 0.0,
+        "silhouette_cosine": 0.2092762142419815,
+        "davies_bouldin": 1.909703875741518,
+        "calinski_harabasz": 18.342568117169044,
+        "smallest_cluster": 3,
+        "largest_cluster": 42,
+        "tag_coherence_at_10": 0.9707865168539328,
+        "stability_ari": 1.0,
+        "fit_time_seconds": 0.0583866000015405,
+        "selection_score": 0.5973347363344739
+      },
+      {
+        "algorithm": "hdbscan",
+        "parameter": 5,
+        "cluster_count": 3,
+        "noise_ratio": 0.101123595505618,
+        "silhouette_cosine": 0.4924666285514831,
+        "davies_bouldin": 1.0070219085485823,
+        "calinski_harabasz": 33.36682755857596,
+        "smallest_cluster": 6,
+        "largest_cluster": 129,
+        "tag_coherence_at_10": 0.9579166666666664,
+        "stability_ari": 1.0,
+        "fit_time_seconds": 0.0943891999995685,
+        "selection_score": 0.7104315820660038
+      }
+    ],
+    "selected": {
+      "algorithm": "hdbscan",
+      "parameter": 5,
+      "cluster_count": 3,
+      "noise_ratio": 0.101123595505618,
+      "silhouette_cosine": 0.4924666285514831,
+      "davies_bouldin": 1.0070219085485823,
+      "calinski_harabasz": 33.36682755857596,
+      "smallest_cluster": 6,
+      "largest_cluster": 129,
+      "tag_coherence_at_10": 0.9579166666666664,
+      "stability_ari": 1.0,
+      "fit_time_seconds": 0.0943891999995685,
+      "selection_score": 0.7104315820660038
+    }
+  },
+  "recommendations": {
+    "table": {
+      "POP": {
+        "episodes": 10.0,
+        "precision_at_5": 0.0,
+        "recall_at_5": 0.0,
+        "ndcg_at_5": 0.0,
+        "precision_at_10": 0.03,
+        "recall_at_10": 0.3,
+        "ndcg_at_10": 0.0905559698767597,
+        "precision_at_20": 0.015,
+        "recall_at_20": 0.3,
+        "ndcg_at_20": 0.0905559698767597,
+        "mrr": 0.042437402957415,
+        "catalog_coverage_at_10": 0.146067415730337,
+        "intra_list_diversity": 0.3979737759629886
+      },
+      "FRESH-POP": {
+        "episodes": 10.0,
+        "precision_at_5": 0.02,
+        "recall_at_5": 0.1,
+        "ndcg_at_5": 0.0430676558073393,
+        "precision_at_10": 0.02,
+        "recall_at_10": 0.2,
+        "ndcg_at_10": 0.0786883745181415,
+        "precision_at_20": 0.01,
+        "recall_at_20": 0.2,
+        "ndcg_at_20": 0.0786883745181415,
+        "mrr": 0.0541473737570155,
+        "catalog_coverage_at_10": 0.1292134831460674,
+        "intra_list_diversity": 0.4044907571872075
+      },
+      "CONTENT-SEED": {
+        "episodes": 10.0,
+        "precision_at_5": 0.04,
+        "recall_at_5": 0.2,
+        "ndcg_at_5": 0.1130929753571457,
+        "precision_at_10": 0.03,
+        "recall_at_10": 0.3,
+        "ndcg_at_10": 0.1487136940679479,
+        "precision_at_20": 0.025,
+        "recall_at_20": 0.5,
+        "ndcg_at_20": 0.1942477438073385,
+        "mrr": 0.1152253550861921,
+        "catalog_coverage_at_10": 0.3707865168539326,
+        "intra_list_diversity": 0.2101615353425344
+      },
+      "CONTENT-PROFILE": {
+        "episodes": 10.0,
+        "precision_at_5": 0.04,
+        "recall_at_5": 0.2,
+        "ndcg_at_5": 0.15,
+        "precision_at_10": 0.02,
+        "recall_at_10": 0.2,
+        "ndcg_at_10": 0.15,
+        "precision_at_20": 0.01,
+        "recall_at_20": 0.2,
+        "ndcg_at_20": 0.15,
+        "mrr": 0.1405641405594974,
+        "catalog_coverage_at_10": 0.1853932584269663,
+        "intra_list_diversity": 0.1416600498888227
+      },
+      "TAG-CLUSTER": {
+        "episodes": 10.0,
+        "precision_at_5": 0.02,
+        "recall_at_5": 0.1,
+        "ndcg_at_5": 0.0430676558073393,
+        "precision_at_10": 0.03,
+        "recall_at_10": 0.3,
+        "ndcg_at_10": 0.1102348621967144,
+        "precision_at_20": 0.015,
+        "recall_at_20": 0.3,
+        "ndcg_at_20": 0.1102348621967144,
+        "mrr": 0.0654594535661676,
+        "catalog_coverage_at_10": 0.2808988764044944,
+        "intra_list_diversity": 0.3308083100120226
+      },
+      "HYBRID-NODIV": {
+        "episodes": 10.0,
+        "precision_at_5": 0.0,
+        "recall_at_5": 0.0,
+        "ndcg_at_5": 0.0,
+        "precision_at_10": 0.01,
+        "recall_at_10": 0.1,
+        "ndcg_at_10": 0.0333333333333333,
+        "precision_at_20": 0.005,
+        "recall_at_20": 0.1,
+        "ndcg_at_20": 0.0333333333333333,
+        "mrr": 0.0253881912952012,
+        "catalog_coverage_at_10": 0.3089887640449438,
+        "intra_list_diversity": 0.2466374646955066
+      },
+      "HYBRID": {
+        "episodes": 10.0,
+        "precision_at_5": 0.02,
+        "recall_at_5": 0.1,
+        "ndcg_at_5": 0.0386852807234541,
+        "precision_at_10": 0.01,
+        "recall_at_10": 0.1,
+        "ndcg_at_10": 0.0386852807234541,
+        "precision_at_20": 0.02,
+        "recall_at_20": 0.4,
+        "ndcg_at_20": 0.1081310182457892,
+        "mrr": 0.0253881912952012,
+        "catalog_coverage_at_10": 0.2808988764044944,
+        "intra_list_diversity": 0.3317974191241793
+      }
+    },
+    "ablations": {
+      "bez audio-ugradnje": {
+        "delta_ndcg_at_10": -0.0053519473901207995,
+        "delta_coverage_at_10": -0.03932584269662931,
+        "delta_diversity": 0.1607438157333268
+      },
+      "bez oznaka": {
+        "delta_ndcg_at_10": 0.0,
+        "delta_coverage_at_10": 0.0,
+        "delta_diversity": 0.0
+      },
+      "bez klastera": {
+        "delta_ndcg_at_10": 0.0,
+        "delta_coverage_at_10": -0.04494382022471921,
+        "delta_diversity": -0.04741252786583361
+      },
+      "bez vremenskog slabljenja": {
+        "delta_ndcg_at_10": 0.0,
+        "delta_coverage_at_10": -0.016853932584269704,
+        "delta_diversity": 0.0281794093052547
+      },
+      "bez novosti": {
+        "delta_ndcg_at_10": 0.0,
+        "delta_coverage_at_10": 0.0,
+        "delta_diversity": 0.0
+      },
+      "bez ograničenja raznolikosti": {
+        "delta_ndcg_at_10": -0.0053519473901207995,
+        "delta_coverage_at_10": 0.028089887640449396,
+        "delta_diversity": -0.08515995442867272
+      }
+    },
+    "limitations": "Eksplorativna rolling-origin studija slučaja jednog korisnika s deset ciljnih epizoda."
+  },
+  "cold_start": {
+    "analyzed_items_without_interactions_and_streams": 67,
+    "seed_cases": 12,
+    "same_cluster_at_10": 0.6083333333333333,
+    "tag_jaccard_at_10": 0.5130555555555556,
+    "embedding_similarity_at_10": 0.6867638471225898
+  },
+  "operational": {
+    "catalog_tracks": 181,
+    "tracks_with_active_analysis": 178,
+    "analysis_coverage": 0.9834254143646409,
+    "analysis_jobs": 181,
+    "analysis_ready": 178,
+    "analysis_failed": 2,
+    "analysis_success_rate_terminal": 0.9888888888888889,
+    "analysis_latency_median_seconds": 5.0,
+    "analysis_latency_p95_seconds": 9.099999999999994,
+    "stem_jobs": 186,
+    "stem_ready": 183,
+    "stem_failed": 3,
+    "stem_success_rate_terminal": 0.9838709677419355,
+    "stem_latency_median_seconds": 45.0,
+    "stem_latency_p95_seconds": 70.0,
+    "ready_stem_sets_with_exactly_four_stems": 183,
+    "ready_stem_set_completeness": 1.0,
+    "stem_objects": 732,
+    "stem_objects_with_metadata": 8
+  },
+  "storage": {
+    "bucket": "808music-media",
+    "unique_master_keys": 181,
+    "reachable_master_keys": 180,
+    "missing_master_count": 1,
+    "unique_stem_keys": 732,
+    "reachable_stem_keys": 732,
+    "missing_stem_count": 0,
+    "stem_records_with_nonzero_recorded_size": 732,
+    "stem_size_mismatch_count": 0,
+    "missing_master_keys": [
+      "tdyyo0c4.jx1.mp3"
+    ],
+    "missing_stem_keys": [],
+    "stem_size_mismatches": []
+  },
+  "api": {
+    "testedAtUtc": "2026-08-07T17:32:51.7948064Z",
+    "trackId": 17,
+    "authentication": {
+      "loginSucceeded": true,
+      "unauthenticatedHomeStatus": 401
+    },
+    "home": {
+      "dailyPlaylists": 0,
+      "albums": 10,
+      "artists": 10,
+      "playlists": 4,
+      "tracks": 20,
+      "tracksWithReason": 20,
+      "tracksWithSourceSignals": 20,
+      "tracksWithMatchedTags": 4
+    },
+    "radio": {
+      "seedTrackId": 17,
+      "tracks": 20,
+      "tracksWithReason": 20,
+      "tracksWithSourceSignals": 20,
+      "tracksWithMatchedTags": 20
+    },
+    "stems": {
+      "stemSets": 1,
+      "activeReadyStemSets": 1,
+      "stemsInActiveSet": 4,
+      "playbackManifestStemAssets": 4,
+      "reachableStemAssets": 4
+    },
+    "playback": {
+      "masterManifestReturned": true,
+      "masterAssetHttpStatus": 206,
+      "masterAssetReachable": true,
+      "stemManifestReturned": true
+    },
+    "latency": [
+      {
+        "endpoint": "home-recommendations",
+        "samples": 5,
+        "medianMs": 500.11,
+        "meanMs": 499.31,
+        "minMs": 487.33,
+        "maxMs": 511.1
+      },
+      {
+        "endpoint": "track-radio",
+        "samples": 5,
+        "medianMs": 439.26,
+        "meanMs": 434.88,
+        "minMs": 399.08,
+        "maxMs": 477.6
+      },
+      {
+        "endpoint": "track-stems",
+        "samples": 5,
+        "medianMs": 5.71,
+        "meanMs": 7.39,
+        "minMs": 5.04,
+        "maxMs": 14.92
+      },
+      {
+        "endpoint": "playback-master",
+        "samples": 5,
+        "medianMs": 13.47,
+        "meanMs": 12.75,
+        "minMs": 9.61,
+        "maxMs": 14.53
+      },
+      {
+        "endpoint": "playback-stems",
+        "samples": 5,
+        "medianMs": 13.74,
+        "meanMs": 13.85,
+        "minMs": 13.61,
+        "maxMs": 14.16
+      }
+    ]
+  },
+  "demucs_benchmark": {
+    "model": "htdemucs",
+    "gpu": "NVIDIA GeForce RTX 3060 Ti",
+    "torch_version": "2.6.0+cu124",
+    "groups": [
+      {
+        "device": "cuda",
+        "profile": "four-stem",
+        "jobs": 2,
+        "median_seconds": 24.137,
+        "p95_seconds": 24.4457,
+        "success_rate": 1.0,
+        "median_output_mb": 9.30923080444336,
+        "median_real_time_factor": 0.58645
+      },
+      {
+        "device": "cuda",
+        "profile": "two-stem-vocals",
+        "jobs": 2,
+        "median_seconds": 14.7715,
+        "p95_seconds": 17.67265,
+        "success_rate": 1.0,
+        "median_output_mb": 4.65461540222168,
+        "median_real_time_factor": 0.31679999999999997
+      },
+      {
+        "device": "cpu",
+        "profile": "four-stem",
+        "jobs": 2,
+        "median_seconds": 76.521,
+        "p95_seconds": 110.3718,
+        "success_rate": 1.0,
+        "median_output_mb": 9.30923080444336,
+        "median_real_time_factor": 1.3489499999999999
+      },
+      {
+        "device": "cpu",
+        "profile": "two-stem-vocals",
+        "jobs": 2,
+        "median_seconds": 71.518,
+        "p95_seconds": 104.76939999999999,
+        "success_rate": 1.0,
+        "median_output_mb": 4.65461540222168,
+        "median_real_time_factor": 1.2357
+      }
+    ]
+  },
+  "stem_sync": {
+    "testedAtUtc": "2026-08-07T17:52:06.650Z",
+    "trackId": 17,
+    "stemCount": 4,
+    "implementationThresholdMs": 80,
+    "samplingIntervalMs": 50,
+    "note": "Headless Chrome; fourth scenario simulates interruption/resume, not OS background throttling.",
+    "scenarios": [
+      {
+        "scenario": "kontinuirana reprodukcija",
+        "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sampleCount": 870,
+        "startupLoadMs": 179,
+        "playPromiseMs": 0.8999999985098839,
+        "medianDriftMs": 0.017999999999851468,
+        "p95DriftMs": 0.0790000000012725,
+        "maximumDriftMs": 1.5570000000000306,
+        "corrections": 0,
+        "correctionsPerHour": 0,
+        "thresholdMs": 80,
+        "actionPerformed": false
+      },
+      {
+        "scenario": "seek i nastavak",
+        "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sampleCount": 882,
+        "startupLoadMs": 76.20000000111759,
+        "playPromiseMs": 0.900000000372529,
+        "medianDriftMs": 0.019999999999242846,
+        "p95DriftMs": 0.07399999999790907,
+        "maximumDriftMs": 2.0100000000002893,
+        "corrections": 0,
+        "correctionsPerHour": 0,
+        "thresholdMs": 80,
+        "actionPerformed": true
+      },
+      {
+        "scenario": "ograničena mreža",
+        "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sampleCount": 810,
+        "startupLoadMs": 2981.2000000011176,
+        "playPromiseMs": 67.40000000037253,
+        "medianDriftMs": 15.414999999999957,
+        "p95DriftMs": 48.351000000000255,
+        "maximumDriftMs": 72.41799999999986,
+        "corrections": 0,
+        "correctionsPerHour": 0,
+        "thresholdMs": 80,
+        "actionPerformed": false
+      },
+      {
+        "scenario": "prekid i nastavak reprodukcije",
+        "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sampleCount": 876,
+        "startupLoadMs": 93.70000000111759,
+        "playPromiseMs": 1,
+        "medianDriftMs": 0.018999999999991246,
+        "p95DriftMs": 0.23300000000014975,
+        "maximumDriftMs": 1.5330000000002286,
+        "corrections": 0,
+        "correctionsPerHour": 0,
+        "thresholdMs": 80,
+        "actionPerformed": true
+      },
+      {
+        "scenario": "kontrolirano izazvani odmak",
+        "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sampleCount": 462,
+        "startupLoadMs": 98,
+        "playPromiseMs": 0.900000000372529,
+        "medianDriftMs": 0.017999999999851468,
+        "p95DriftMs": 42.57600000000039,
+        "maximumDriftMs": 250,
+        "corrections": 1,
+        "correctionsPerHour": 450,
+        "thresholdMs": 80,
+        "actionPerformed": true
+      }
+    ]
+  },
+  "research_answers": {
+    "IP1": "Nije potvrđeno da hibrid poboljšava relevantnost: na deset epizoda ostvario je NDCG@10=0.039 i Recall@10=0.100, dok je CONTENT-PROFILE ostvario NDCG@10=0.150. Hibrid je ipak obuhvatio veći dio kataloga od CONTENT-PROFILE pristupa.",
+    "IP2": "Sadržajni signali omogućili su preporuke za 67 analiziranih pjesama bez interakcija i streamova; u 12 seed-slučajeva prosjek istog klastera u prvih deset iznosio je 60.8%.",
+    "IP3": "Odabrani HDBSCAN (min_cluster_size=5) dao je 3 klastera, 10.1% šuma, siluetu 0.492 i stabilnost ARI 1.000.",
+    "IP4": "Od 186 povijesnih poslova 183 je završilo uspješno, svih 183 spremnih setova ima četiri datoteke, a svih 732 stem objekata je dohvatljivo. U najtežem prirodnom browser-scenariju P95 odmaka ostao je ispod 80 ms.",
+    "IP5": "Korisnička studija stem-playera nije provedena; ovaj odgovor ostaje za autora rada."
+  }
+}

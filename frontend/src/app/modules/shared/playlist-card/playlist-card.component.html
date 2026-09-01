@@ -1,6 +1,7 @@
 <mat-card (click)="openPlaylist()" appearance="outlined" class="playlist-mat-card" (mouseover)="showPlayButton()" (mouseleave)="hidePlayButton()"
           [matTooltip]="tooltip"
           matTooltipTouchGestures="off"
+          appScrollSafeTooltip
           matTooltipPosition="above"
           matTooltipShowDelay="500" matTooltipHideDelay="250" >
   <div [ngStyle]="{'background-image': 'url(' + imageUrl + ')'}"

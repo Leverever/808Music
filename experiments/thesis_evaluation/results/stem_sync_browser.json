@@ -1,0 +1,80 @@
+{
+  "testedAtUtc": "2026-08-07T17:52:06.650Z",
+  "trackId": 17,
+  "stemCount": 4,
+  "implementationThresholdMs": 80,
+  "samplingIntervalMs": 50,
+  "note": "Headless Chrome; fourth scenario simulates interruption/resume, not OS background throttling.",
+  "scenarios": [
+    {
+      "scenario": "kontinuirana reprodukcija",
+      "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "sampleCount": 870,
+      "startupLoadMs": 179,
+      "playPromiseMs": 0.8999999985098839,
+      "medianDriftMs": 0.017999999999851468,
+      "p95DriftMs": 0.0790000000012725,
+      "maximumDriftMs": 1.5570000000000306,
+      "corrections": 0,
+      "correctionsPerHour": 0,
+      "thresholdMs": 80,
+      "actionPerformed": false
+    },
+    {
+      "scenario": "seek i nastavak",
+      "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "sampleCount": 882,
+      "startupLoadMs": 76.20000000111759,
+      "playPromiseMs": 0.900000000372529,
+      "medianDriftMs": 0.019999999999242846,
+      "p95DriftMs": 0.07399999999790907,
+      "maximumDriftMs": 2.0100000000002893,
+      "corrections": 0,
+      "correctionsPerHour": 0,
+      "thresholdMs": 80,
+      "actionPerformed": true
+    },
+    {
+      "scenario": "ograničena mreža",
+      "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "sampleCount": 810,
+      "startupLoadMs": 2981.2000000011176,
+      "playPromiseMs": 67.40000000037253,
+      "medianDriftMs": 15.414999999999957,
+      "p95DriftMs": 48.351000000000255,
+      "maximumDriftMs": 72.41799999999986,
+      "corrections": 0,
+      "correctionsPerHour": 0,
+      "thresholdMs": 80,
+      "actionPerformed": false
+    },
+    {
+      "scenario": "prekid i nastavak reprodukcije",
+      "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "sampleCount": 876,
+      "startupLoadMs": 93.70000000111759,
+      "playPromiseMs": 1,
+      "medianDriftMs": 0.018999999999991246,
+      "p95DriftMs": 0.23300000000014975,
+      "maximumDriftMs": 1.5330000000002286,
+      "corrections": 0,
+      "correctionsPerHour": 0,
+      "thresholdMs": 80,
+      "actionPerformed": true
+    },
+    {
+      "scenario": "kontrolirano izazvani odmak",
+      "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "sampleCount": 462,
+      "startupLoadMs": 98,
+      "playPromiseMs": 0.900000000372529,
+      "medianDriftMs": 0.017999999999851468,
+      "p95DriftMs": 42.57600000000039,
+      "maximumDriftMs": 250,
+      "corrections": 1,
+      "correctionsPerHour": 450,
+      "thresholdMs": 80,
+      "actionPerformed": true
+    }
+  ]
+}

@@ -42,7 +42,7 @@ export class PlaylistCreateDialogComponent {
     });
 
     if (playlist?.coverPath) {
-      this.previewUrl = `${MyConfig.media_address}${playlist.coverPath}`;
+      this.previewUrl = MyConfig.mediaUrl(playlist.coverPath);
     }
   }
 

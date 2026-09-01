@@ -1,11 +1,9 @@
 import {ChangeDetectorRef, Component, HostListener, OnInit} from '@angular/core';
-import {NavigationEnd, NavigationStart, Router} from '@angular/router';
+import {Router} from '@angular/router';
 import {ArtistHandlerService} from '../../../services/artist-handler.service';
 import {MyConfig} from '../../../my-config';
 import {UserProfileService} from '../../../endpoints/auth-endpoints/user-profile-endpoint.service';
 import {MyUserAuthService} from '../../../services/auth-services/my-user-auth.service';
-import {Browser} from 'leaflet';
-import win = Browser.win;
 
 @Component({
   selector: 'artist-sidenav',
@@ -16,7 +14,6 @@ export class ArtistSidenavComponent implements OnInit {
   isMenuVisible: boolean = false;
   pathToPfp: string = `${MyConfig.api_address}`;
   pathToUserPfp: string = "";
-  reloadThePage: boolean = false;
 
   constructor(private router: Router, private artistHandlerService: ArtistHandlerService,
               private auth: MyUserAuthService,
@@ -39,24 +36,6 @@ export class ArtistSidenavComponent implements OnInit {
         }
     });
     }
-
-    this.router.events.subscribe(event => {
-      if (event instanceof NavigationStart) {
-        event.url.includes("/artist");
-        if(this.router.url.includes("/listener"))
-        {
-          this.reloadThePage = true;
-          //setTimeout(() => { window.location.reload(); }, 100);
-        }
-      }
-      if(event instanceof NavigationEnd) {
-        if(this.reloadThePage)
-        {
-          this.reloadThePage = false;
-          window.location.reload();
-        }
-      }
-    })
 
     let artist = this.artistHandlerService.getSelectedArtist();
     if(artist) {
@@ -128,9 +107,7 @@ export class ArtistSidenavComponent implements OnInit {
   switchArtist() {
 
     sessionStorage.removeItem('artist');
-    this.router.navigate([`/artist/dashboard`]).then(val => {
-      window.location.reload();
-    });
+    this.router.navigate([`/artist/dashboard`]);
   }
 
     protected readonly MyConfig = MyConfig;

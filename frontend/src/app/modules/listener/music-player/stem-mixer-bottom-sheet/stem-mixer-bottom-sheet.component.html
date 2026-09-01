@@ -27,7 +27,7 @@
     @if (data.controller.stemModeRequested && data.controller.hasAvailableStems) {
       <div class="stem-mixer" aria-label="Stem volumes">
         @for (stem of data.controller.stemMixes; track stem.name) {
-          <div class="liquid-sheet-row stem-row">
+          <div class="stem-row">
             <div class="stem-copy">
               <strong>{{ data.controller.formatStemName(stem.name) }}</strong>
               <span>{{ data.controller.getStemVolumePercent(stem.name) }}%</span>

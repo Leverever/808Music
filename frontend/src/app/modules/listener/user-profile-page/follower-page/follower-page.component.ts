@@ -34,6 +34,7 @@ export class FollowersPageComponent implements OnInit {
   userId: number = 0;
   selectedColor = '#e692f8';
   readonly mediaAddress = MyConfig.media_address;
+  protected readonly MyConfig = MyConfig;
 
   constructor(
     private route: ActivatedRoute,

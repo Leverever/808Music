@@ -20,6 +20,7 @@ export class ArtistBigCardListComponent {
   @Input() numberDescription = "number"
   @Input() queryParams: Params | null = null;
   @Input() cardDescriptions: Record<number, string> = {};
+  @Input() cardTooltips: Record<number, string> = {};
   @Input() showViewAll: boolean = true;
 
   constructor(private router: Router) {

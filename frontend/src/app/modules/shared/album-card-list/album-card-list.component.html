@@ -8,7 +8,7 @@
                         [subtitle]="getSubtitle(album)"
                         [imageUrl]="getImageUrl(album.coverArt)"
                         [id]="album.id"
-                        [tooltip]="album.title"
+                        [tooltip]="cardTooltips[album.id] || album.title"
                         [artistId]="album.artistId"
                         [artistName] = "album.artist"
                         (onClick)="goToAlbum($event)"

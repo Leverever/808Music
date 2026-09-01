@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit} from '@angular/core';
-import {NavigationEnd, NavigationStart, Router} from '@angular/router';
+import {NavigationEnd, Router} from '@angular/router';
 import {ArtistHandlerService} from '../../../services/artist-handler.service';
 import {MyConfig} from "../../../my-config";
 import {UserProfileService} from '../../../endpoints/auth-endpoints/user-profile-endpoint.service';
@@ -56,7 +56,6 @@ export class SidenavComponent implements OnInit, OnDestroy {
     this.unreads.unreadNotificationsCount = Math.min(this.unreads.unreadNotificationsCount + 1, 99);
   }
   chat$ : Subscription | null = null;
-  reloadThePage = false;
   private subscriptions = new Subscription();
   private mobileRouteIndex = 0;
   private navIndicatorAnimationFrame: number | null = null;
@@ -196,24 +195,12 @@ export class SidenavComponent implements OnInit, OnDestroy {
     this.setInitialMobileNavIndicator(this.mobileRouteIndex);
 
     this.subscriptions.add(this.router.events.subscribe(event => {
-      if (event instanceof NavigationStart) {
-        if(!this.router.url.includes("/listener/"))
-        {
-          this.reloadThePage = true;
-          //setTimeout(() => { window.location.reload(); }, 100);
-        }
-      }
       if(event instanceof NavigationEnd) {
         this.isMenuVisible = false;
         this.mobileMenuVisible = false;
         this.mobileRouteIndex = this.getMobileNavIndex(event.urlAfterRedirects);
         this.moveMobileNavIndicator(this.mobileRouteIndex);
         this.getUnreadsCount();
-        if(this.reloadThePage)
-        {
-          this.reloadThePage = false;
-          window.location.reload();
-        }
       }
     }));
 

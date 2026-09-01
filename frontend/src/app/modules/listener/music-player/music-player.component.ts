@@ -54,6 +54,9 @@ import {
 import {
   StemMixerBottomSheetComponent
 } from './stem-mixer-bottom-sheet/stem-mixer-bottom-sheet.component';
+import {
+  RecommendationReasonBottomSheetComponent
+} from './recommendation-reason-bottom-sheet/recommendation-reason-bottom-sheet.component';
 
 @Component({
   selector: 'app-music-player',
@@ -211,6 +214,20 @@ export class MusicPlayerComponent implements OnInit, OnDestroy {
 
   get artistNames(): string {
     return this.track?.artists.map(artist => artist.name).join(', ') ?? '';
+  }
+
+  get recommendationReason(): string | null {
+    const reason = this.track?.recommendationReason?.trim();
+    return reason || null;
+  }
+
+  openRecommendationReason(reason: string): void {
+    this.registerPlayerActionSheet(
+      this.queueManager.open(
+        RecommendationReasonBottomSheetComponent,
+        this.playerActionSheetConfig({reason}, 'Why this track was recommended')
+      )
+    );
   }
 
   get progressPercent(): number {

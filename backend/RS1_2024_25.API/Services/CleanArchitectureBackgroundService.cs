@@ -10,8 +10,6 @@ public sealed class CleanArchitectureBackgroundService : BackgroundService
     private readonly CleanArchitectureBackgroundServiceOptions _options;
     private readonly ILogger<CleanArchitectureBackgroundService> _logger;
     private readonly RecurringTaskExecutionCoordinator _executionCoordinator;
-    private readonly Dictionary<string, DateTime> _nextRuns = new(StringComparer.OrdinalIgnoreCase);
-
     public CleanArchitectureBackgroundService(
         IServiceScopeFactory scopeFactory,
         IOptions<CleanArchitectureBackgroundServiceOptions> options,
@@ -39,17 +37,21 @@ public sealed class CleanArchitectureBackgroundService : BackgroundService
             "Clean background task scheduler started with poll interval {PollInterval}",
             pollInterval);
 
-        await RunDueTasks(stoppingToken);
+        await RunDueTasksAsync(DateTime.UtcNow, stoppingToken);
 
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
-            await RunDueTasks(stoppingToken);
+            await RunDueTasksAsync(DateTime.UtcNow, stoppingToken);
         }
     }
 
-    private async Task RunDueTasks(CancellationToken cancellationToken)
+    public async Task RunDueTasksAsync(
+        DateTime nowUtc,
+        CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
+        var scheduleStore = scope.ServiceProvider
+            .GetRequiredService<IRecurringTaskScheduleStore>();
         var tasks = scope.ServiceProvider
             .GetServices<IRecurringApplicationTask>()
             .Where(task => task.IsEnabled)
@@ -62,25 +64,33 @@ public sealed class CleanArchitectureBackgroundService : BackgroundService
             var startedTask = false;
             try
             {
-                var now = DateTime.UtcNow;
-                if (!_nextRuns.TryGetValue(task.Name, out var nextRun))
-                {
-                    nextRun = GetNextRun(task, now);
-                    _nextRuns[task.Name] = nextRun;
+                var initialNextRun = GetNextRun(task, nowUtc);
+                var nextRun = await scheduleStore.GetOrCreateNextRunAsync(
+                    task.Name,
+                    task.CronExpression,
+                    nowUtc,
+                    initialNextRun,
+                    cancellationToken);
 
-                    _logger.LogInformation(
-                        "Scheduled clean background task {TaskName} for {NextRun:u}",
-                        task.Name,
-                        nextRun);
-                }
-
-                if (nextRun > now || !_executionCoordinator.TryBegin(task.Name))
+                if (nextRun > nowUtc || !_executionCoordinator.TryBegin(task.Name))
                 {
                     continue;
                 }
 
                 startedTask = true;
-                _logger.LogInformation("Running clean background task {TaskName}", task.Name);
+                var followingRun = GetNextRun(task, nowUtc);
+                await scheduleStore.RecordRunStartedAsync(
+                    task.Name,
+                    nextRun,
+                    nowUtc,
+                    followingRun,
+                    cancellationToken);
+
+                _logger.LogInformation(
+                    "Running clean background task {TaskName} scheduled for {ScheduledRun:u}; next run is {NextRun:u}",
+                    task.Name,
+                    nextRun,
+                    followingRun);
                 await task.ExecuteAsync(cancellationToken);
                 _logger.LogInformation("Completed clean background task {TaskName}", task.Name);
             }
@@ -97,25 +107,8 @@ public sealed class CleanArchitectureBackgroundService : BackgroundService
                 if (startedTask)
                 {
                     _executionCoordinator.End(task.Name);
-                    TryScheduleNextRun(task);
                 }
             }
-        }
-    }
-
-    private void TryScheduleNextRun(IRecurringApplicationTask task)
-    {
-        try
-        {
-            _nextRuns[task.Name] = GetNextRun(task, DateTime.UtcNow);
-        }
-        catch (Exception ex)
-        {
-            _nextRuns.Remove(task.Name);
-            _logger.LogError(
-                ex,
-                "Failed to schedule next run for clean background task {TaskName}",
-                task.Name);
         }
     }
 

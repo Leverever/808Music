@@ -1,6 +1,7 @@
 using _808Music.Application;
 using _808Music.Domain.Artists;
 using _808Music.Domain.Catalog;
+using _808Music.Domain.Scheduling;
 using _808Music.Domain.Static;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -30,6 +31,7 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
     public DbSet<TrackStemSet> TrackStemSets => Set<TrackStemSet>();
     public DbSet<TrackStem> TrackStems => Set<TrackStem>();
     public DbSet<TrackStream> TrackStreams => Set<TrackStream>();
+    public DbSet<RecurringTaskSchedule> RecurringTaskSchedules => Set<RecurringTaskSchedule>();
 
     public DbSet<Artist> Artists => Set<Artist>();
     public DbSet<AlbumType> AlbumTypes => Set<AlbumType>();
@@ -607,6 +609,21 @@ public sealed class MusicDbContext(DbContextOptions<MusicDbContext> options)
                 .OnDelete(DeleteBehavior.NoAction);
 
             entity.HasIndex(x => new { x.TrackId, x.StreamedAt });
+        });
+
+        modelBuilder.Entity<RecurringTaskSchedule>(entity =>
+        {
+            entity.ToTable("RecurringTaskSchedules");
+            entity.HasKey(x => x.TaskName);
+
+            entity.Property(x => x.TaskName)
+                .HasMaxLength(200);
+
+            entity.Property(x => x.CronExpression)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.HasIndex(x => x.NextRunUtc);
         });
 
         modelBuilder.Entity<Artist>(entity =>

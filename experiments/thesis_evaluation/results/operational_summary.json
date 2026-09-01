@@ -1,0 +1,21 @@
+{
+  "catalog_tracks": 181,
+  "tracks_with_active_analysis": 178,
+  "analysis_coverage": 0.9834254143646409,
+  "analysis_jobs": 181,
+  "analysis_ready": 178,
+  "analysis_failed": 2,
+  "analysis_success_rate_terminal": 0.9888888888888889,
+  "analysis_latency_median_seconds": 5.0,
+  "analysis_latency_p95_seconds": 9.099999999999994,
+  "stem_jobs": 186,
+  "stem_ready": 183,
+  "stem_failed": 3,
+  "stem_success_rate_terminal": 0.9838709677419355,
+  "stem_latency_median_seconds": 45.0,
+  "stem_latency_p95_seconds": 70.0,
+  "ready_stem_sets_with_exactly_four_stems": 183,
+  "ready_stem_set_completeness": 1.0,
+  "stem_objects": 732,
+  "stem_objects_with_metadata": 8
+}

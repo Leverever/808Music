@@ -1,0 +1,14 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.verify-build/
+**/TestResults/
+RS1_2024_25.test/
+docker/
+.docker/
+*.user
+*.suo
+*.log
+Dockerfile*
+docker-compose*.yml
+README*.md

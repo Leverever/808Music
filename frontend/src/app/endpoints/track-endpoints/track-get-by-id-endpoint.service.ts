@@ -28,6 +28,7 @@ export interface TrackGetResponse {
   discNumber?: number;
   trackNumber?: number;
   isLegacyAssociation?: boolean;
+  recommendationReason?: string | null;
 }
 
 @Injectable({

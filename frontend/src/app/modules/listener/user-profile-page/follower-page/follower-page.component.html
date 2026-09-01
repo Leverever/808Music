@@ -14,7 +14,7 @@
     <button type="button" class="person-card" *ngFor="let user of followers" (click)="openProfile(user.id)">
       <span
         class="followage-pfp"
-        [style.background-image]="'url(' + mediaAddress + user.profilePicture + ')'">
+        [style.background-image]="'url(' + MyConfig.mediaUrl(user.profilePicture, 'Images/ProfilePictures/placeholder.png') + ')'">
       </span>
       <span class="person-copy">
         <strong>{{ user.username }}</strong>

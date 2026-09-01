@@ -61,8 +61,10 @@ export class ProductDetailsComponent implements OnInit {
 
   get currentArtwork(): string {
     const path = this.product?.photoPaths?.[this.currentSlide];
-    return path ? this.mediaAddress + path : 'assets/icons/pattern.svg';
+    return path ? MyConfig.mediaUrl(path) : 'assets/icons/pattern.svg';
   }
+
+  protected readonly MyConfig = MyConfig;
 
   nextSlide(): void {
     const count = this.product?.photoPaths?.length ?? 0;

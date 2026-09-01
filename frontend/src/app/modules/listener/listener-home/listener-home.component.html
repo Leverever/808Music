@@ -28,6 +28,7 @@
         title="Albums for you"
         [albums]="recommendedAlbums"
         [cardSubtitles]="recommendedAlbumSubtitles"
+        [cardTooltips]="recommendedAlbumSubtitles"
         [showViewAll]="false">
       </app-album-card-list>
     }
@@ -37,6 +38,7 @@
         title="Artists you may like"
         [artists]="recommendedArtists"
         [cardDescriptions]="recommendedArtistDescriptions"
+        [cardTooltips]="recommendedArtistDescriptions"
         [showViewAll]="false">
       </app-artist-big-card-list>
     }
@@ -44,7 +46,8 @@
     @if (home.recommendedPlaylists.length > 0) {
       <app-playlist-card-list
         title="Playlists for you"
-        [playlists]="recommendedPlaylists">
+        [playlists]="recommendedPlaylists"
+        [cardTooltips]="recommendedPlaylistReasons">
       </app-playlist-card-list>
     }
 

@@ -1,6 +1,6 @@
 
 <mat-dialog-content class="container">
-  <div class="playlist-cover" [ngStyle]="{'background-image': 'url(' + MyConfig.media_address + playlistDetails?.coverPath + ')'}">
+  <div class="playlist-cover" [ngStyle]="{'background-image': 'url(' + MyConfig.mediaUrl(playlistDetails?.coverPath) + ')'}">
     <div class="overlay-text">
       <img class="group" src="assets/icons/group.svg" alt="WhatsApp" width="50" height="50">
 

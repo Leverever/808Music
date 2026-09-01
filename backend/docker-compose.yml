@@ -1,4 +1,72 @@
 services:
+  sqlserver:
+    image: 808music-sqlserver:local
+    build:
+      context: ..
+      dockerfile: backend/docker/sqlserver/Dockerfile
+    container_name: 808music-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-808Music_Docker_SQL_2026!}
+    ports:
+      - "${SQLSERVER_PORT:-1433}:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/808music/scripts/sqlcmd.sh -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -b -Q \"SELECT 1\" -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+
+  database-init:
+    image: 808music-sqlserver:local
+    container_name: 808music-database-init
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-808Music_Docker_SQL_2026!}
+      DATABASE_NAME: ${DATABASE_NAME:-naziv_db_2}
+      SQLSERVER_HOST: sqlserver
+    entrypoint: ["/opt/808music/scripts/initialize-database.sh"]
+    restart: "no"
+
+  backend:
+    image: 808music-backend:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: 808music-backend
+    depends_on:
+      database-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__db1: "Server=sqlserver,1433;Database=${DATABASE_NAME:-naziv_db_2};User ID=sa;Password=${MSSQL_SA_PASSWORD:-808Music_Docker_SQL_2026!};MultipleActiveResultSets=true;TrustServerCertificate=True"
+      ConnectionStrings__Redis: redis:6379
+      Database__MigrateOnStartup: "true"
+      RabbitMq__HostName: rabbitmq
+      RabbitMq__Port: 5672
+      RabbitMq__UserName: 808music
+      RabbitMq__Password: 808music_dev_password
+      S3__ServiceUrl: http://minio:9000
+      S3__PublicUrl: ${MINIO_PUBLIC_URL:-http://localhost:9000}
+      BackendUrl: http://localhost:8080
+      LegacyTrackMigration__LegacyTrackRoot: /app/TrackFiles
+    ports:
+      - "${BACKEND_PORT:-7000}:8080"
+    volumes:
+      - backend-wwwroot:/app/wwwroot
+      - backend-track-files:/app/TrackFiles
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: 808music-rabbitmq
@@ -10,6 +78,12 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   redis:
     image: redis:7-alpine
@@ -32,6 +106,7 @@ services:
     depends_on:
       - rabbitmq
       - minio
+      - backend
     environment:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
@@ -48,7 +123,7 @@ services:
       S3_SECRET_KEY: 808music_dev_password
       S3_BUCKET: 808music-media
       S3_REGION: eu-central-1
-      BACKEND_BASE_URL: http://host.docker.internal:7000
+      BACKEND_BASE_URL: http://backend:8080
       BACKEND_INTERNAL_API_KEY: dev-internal-api-key
       WORKSPACE_ROOT: /work
     extra_hosts:
@@ -63,6 +138,7 @@ services:
     depends_on:
       - rabbitmq
       - minio
+      - backend
     environment:
       WORKER_JOB_TYPE: audio-analysis
       RABBITMQ_HOST: rabbitmq
@@ -78,7 +154,7 @@ services:
       S3_SECRET_KEY: 808music_dev_password
       S3_BUCKET: 808music-media
       S3_REGION: eu-central-1
-      BACKEND_BASE_URL: http://host.docker.internal:7000
+      BACKEND_BASE_URL: http://backend:8080
       BACKEND_INTERNAL_API_KEY: dev-internal-api-key
       WORKSPACE_ROOT: /work
       ESSENTIA_MODEL_DIR: /models/essentia
@@ -101,6 +177,7 @@ services:
     container_name: 808music-ml-clustering-worker
     depends_on:
       - rabbitmq
+      - backend
     environment:
       WORKER_JOB_TYPE: audio-clustering
       RABBITMQ_HOST: rabbitmq
@@ -111,7 +188,7 @@ services:
       RABBITMQ_QUEUE: ml.audio.clustering
       RABBITMQ_ROUTING_KEY: ml.audio.cluster
       RABBITMQ_HEARTBEAT: 0
-      BACKEND_BASE_URL: http://host.docker.internal:7000
+      BACKEND_BASE_URL: http://backend:8080
       BACKEND_INTERNAL_API_KEY: dev-internal-api-key
       WORKSPACE_ROOT: /work
     extra_hosts:
@@ -127,6 +204,7 @@ services:
     depends_on:
       - rabbitmq
       - minio
+      - backend
     gpus: all
     environment:
       NVIDIA_VISIBLE_DEVICES: all
@@ -146,7 +224,7 @@ services:
       S3_SECRET_KEY: 808music_dev_password
       S3_BUCKET: 808music-media
       S3_REGION: eu-central-1
-      BACKEND_BASE_URL: http://host.docker.internal:7000
+      BACKEND_BASE_URL: http://backend:8080
       BACKEND_INTERNAL_API_KEY: dev-internal-api-key
       WORKSPACE_ROOT: /work
       TORCH_HOME: /models/torch
@@ -183,6 +261,9 @@ services:
       "
 
 volumes:
+  sqlserver-data:
+  backend-wwwroot:
+  backend-track-files:
   minio-data:
   rabbitmq-data:
   ml-worker-work:

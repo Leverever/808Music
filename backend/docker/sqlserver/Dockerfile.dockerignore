@@ -1,0 +1,10 @@
+**
+!db-backups/
+!db-backups/**
+!backend/
+!backend/.docker/
+!backend/.docker/seed/
+!backend/.docker/seed/**
+!backend/docker/
+!backend/docker/sqlserver/
+!backend/docker/sqlserver/**

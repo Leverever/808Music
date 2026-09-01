@@ -99,16 +99,7 @@ export class PersonalizedPlaylistDetailComponent implements OnInit {
   }
 
   mediaUrl(path?: string): string {
-    const value = path || '/media/Images/ArtistPfps/placeholder.png';
-    if(/^https?:\/\//i.test(value))
-    {
-      return value;
-    }
-
-    const normalizedPath = value.startsWith('/media/')
-      ? value
-      : `/media/${value.replace(/^\/+/, '')}`;
-    return `${MyConfig.api_address}${normalizedPath}`;
+    return MyConfig.mediaUrl(path, 'Images/ArtistPfps/placeholder.png');
   }
 
   goBack(): void {

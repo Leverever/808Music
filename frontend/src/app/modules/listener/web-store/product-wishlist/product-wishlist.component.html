@@ -16,11 +16,11 @@
   <ng-container *ngIf="!loading && (items$ | async) as items">
     <section class="wishlist-list" *ngIf="items.length; else emptyWishlist">
       <article class="wishlist-row" *ngFor="let item of items" tabindex="0" role="link" (click)="openProduct(item.slug)" (keydown.enter)="openProduct(item.slug)">
-        <img [src]="mediaAddress + item.productPhoto" [alt]="item.productTitle">
+        <img [src]="MyConfig.mediaUrl(item.productPhoto)" [alt]="item.productTitle">
         <div class="wishlist-row__content">
           <h2>{{ item.productTitle }}</h2>
           <p class="wishlist-row__artist">
-            <img *ngIf="item.artistPfp" [src]="mediaAddress + 'Images/Artistpfps/' + item.artistPfp" alt="">
+            <img *ngIf="item.artistPfp" [src]="MyConfig.mediaUrl('Images/ArtistPfps/' + item.artistPfp, 'Images/ArtistPfps/placeholder.png')" alt="">
             <span>{{ item.artistName }}</span>
           </p>
           <p class="wishlist-row__date">Saved {{ item.dateAdded | date:'mediumDate' }}</p>

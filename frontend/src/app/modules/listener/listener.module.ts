@@ -67,6 +67,9 @@ import {
   StemMixerBottomSheetComponent
 } from './music-player/stem-mixer-bottom-sheet/stem-mixer-bottom-sheet.component';
 import {StoreProductCardComponent} from './web-store/store-product-card/store-product-card.component';
+import {
+  RecommendationReasonBottomSheetComponent
+} from './music-player/recommendation-reason-bottom-sheet/recommendation-reason-bottom-sheet.component';
 
 
 @NgModule({
@@ -108,6 +111,7 @@ import {StoreProductCardComponent} from './web-store/store-product-card/store-pr
         RadioDetailComponent,
         StemMixerBottomSheetComponent,
         StoreProductCardComponent,
+        RecommendationReasonBottomSheetComponent,
     ],
   imports: [
     CommonModule,

@@ -18,7 +18,7 @@
       (click)="user.artistId ? openArtistProfile(user.artistId) : openProfile(user.userId)">
       <span
         class="followage-pfp"
-        [style.background-image]="'url(' + mediaAddress + (user.artistId ? '/Images/Artistpfps/' + user.profilePicture : user.profilePicture) + ')'">
+        [style.background-image]="'url(' + MyConfig.mediaUrl(user.artistId ? 'Images/ArtistPfps/' + user.profilePicture : user.profilePicture, user.artistId ? 'Images/ArtistPfps/placeholder.png' : 'Images/ProfilePictures/placeholder.png') + ')'">
       </span>
       <span class="person-copy">
         <strong>{{ user.username }}</strong>

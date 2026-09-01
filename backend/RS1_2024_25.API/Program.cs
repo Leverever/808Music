@@ -25,19 +25,15 @@ using FluentValidation.AspNetCore;
 using Amazon.S3;
 
 
-var config = new ConfigurationBuilder()
-.AddJsonFile("appsettings.json", false)
-.Build();
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(config.GetConnectionString("db1")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("db1")));
 
 builder.Services.AddDbContext<MusicDbContext>(options =>
-    options.UseSqlServer(config.GetConnectionString("db1"), sql =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("db1"), sql =>
     {
         sql.MigrationsAssembly(typeof(MusicDbContext).Assembly.FullName);
         sql.MigrationsHistoryTable("__EFMigrationsHistory_808MusicClean");
@@ -159,7 +155,7 @@ builder.Services.AddSignalR();
 
 builder.Services.AddStackExchangeRedisCache(opt =>
 {
-    opt.Configuration = config.GetConnectionString("Redis");
+    opt.Configuration = builder.Configuration.GetConnectionString("Redis");
 });
 
 // Custom services
@@ -187,6 +183,19 @@ builder.Services.AddValidatorsFromAssemblyContaining<MyAppUser>();
 
 var app = builder.Build();
 
+if (builder.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var logger = scope.ServiceProvider
+        .GetRequiredService<ILoggerFactory>()
+        .CreateLogger("DatabaseMigration");
+
+    logger.LogInformation("Applying pending 808Music database migrations.");
+    var dbContext = scope.ServiceProvider.GetRequiredService<MusicDbContext>();
+    await dbContext.Database.MigrateAsync();
+    logger.LogInformation("Database migrations are up to date.");
+}
+
 // Configure the HTTP request pipeline.
 app.UseSwagger();
 app.UseSwaggerUI(options =>
@@ -205,6 +214,11 @@ app.UseCors(
 
 app.UseCors("AllowAll"); // CORS should be used before static files
 
+app.Use(async (context, next) =>
+{
+    context.Request.Path = NormalizeMediaRequestPath(context.Request.Path);
+    await next();
+});
 
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -237,6 +251,49 @@ static string GetSwaggerTag(ApiDescription apiDescription)
         : "Legacy";
 
     return $"{versionLabel} - {GetResourceName(controllerName)}";
+}
+
+static PathString NormalizeMediaRequestPath(PathString requestPath)
+{
+    const string mediaPrefix = "/media/";
+    var path = requestPath.Value;
+
+    if (string.IsNullOrEmpty(path) ||
+        !path.StartsWith(mediaPrefix, StringComparison.OrdinalIgnoreCase))
+    {
+        return requestPath;
+    }
+
+    var segments = path[mediaPrefix.Length..]
+        .Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+    if (segments.Length == 0)
+    {
+        return new PathString(mediaPrefix);
+    }
+
+    if (segments[0].Equals("images", StringComparison.OrdinalIgnoreCase))
+    {
+        segments[0] = "Images";
+    }
+
+    if (segments.Length > 1 && segments[0] == "Images")
+    {
+        segments[1] = segments[1].ToLowerInvariant() switch
+        {
+            "albumcovers" => "AlbumCovers",
+            "artistbgs" => "ArtistBgs",
+            "artistpfps" => "ArtistPfps",
+            "playlists" => "Playlists",
+            "profilepictures" => "ProfilePictures",
+            "events" => "events",
+            "logo" => "logo",
+            "products" => "products",
+            _ => segments[1]
+        };
+    }
+
+    return new PathString(mediaPrefix + string.Join('/', segments));
 }
 
 static string GetResourceName(string? controllerName)

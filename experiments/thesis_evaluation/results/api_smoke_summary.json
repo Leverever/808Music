@@ -1,0 +1,80 @@
+﻿{
+    "testedAtUtc":  "2026-08-07T17:32:51.7948064Z",
+    "trackId":  17,
+    "authentication":  {
+                           "loginSucceeded":  true,
+                           "unauthenticatedHomeStatus":  401
+                       },
+    "home":  {
+                 "dailyPlaylists":  0,
+                 "albums":  10,
+                 "artists":  10,
+                 "playlists":  4,
+                 "tracks":  20,
+                 "tracksWithReason":  20,
+                 "tracksWithSourceSignals":  20,
+                 "tracksWithMatchedTags":  4
+             },
+    "radio":  {
+                  "seedTrackId":  17,
+                  "tracks":  20,
+                  "tracksWithReason":  20,
+                  "tracksWithSourceSignals":  20,
+                  "tracksWithMatchedTags":  20
+              },
+    "stems":  {
+                  "stemSets":  1,
+                  "activeReadyStemSets":  1,
+                  "stemsInActiveSet":  4,
+                  "playbackManifestStemAssets":  4,
+                  "reachableStemAssets":  4
+              },
+    "playback":  {
+                     "masterManifestReturned":  true,
+                     "masterAssetHttpStatus":  206,
+                     "masterAssetReachable":  true,
+                     "stemManifestReturned":  true
+                 },
+    "latency":  [
+                    {
+                        "endpoint":  "home-recommendations",
+                        "samples":  5,
+                        "medianMs":  500.11,
+                        "meanMs":  499.31,
+                        "minMs":  487.33,
+                        "maxMs":  511.1
+                    },
+                    {
+                        "endpoint":  "track-radio",
+                        "samples":  5,
+                        "medianMs":  439.26,
+                        "meanMs":  434.88,
+                        "minMs":  399.08,
+                        "maxMs":  477.6
+                    },
+                    {
+                        "endpoint":  "track-stems",
+                        "samples":  5,
+                        "medianMs":  5.71,
+                        "meanMs":  7.39,
+                        "minMs":  5.04,
+                        "maxMs":  14.92
+                    },
+                    {
+                        "endpoint":  "playback-master",
+                        "samples":  5,
+                        "medianMs":  13.47,
+                        "meanMs":  12.75,
+                        "minMs":  9.61,
+                        "maxMs":  14.53
+                    },
+                    {
+                        "endpoint":  "playback-stems",
+                        "samples":  5,
+                        "medianMs":  13.74,
+                        "meanMs":  13.85,
+                        "minMs":  13.61,
+                        "maxMs":  14.16
+                    }
+                ]
+}

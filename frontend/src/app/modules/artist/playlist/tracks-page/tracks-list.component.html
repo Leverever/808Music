@@ -11,7 +11,7 @@
       <div class="playlist-info">
         <div class="cover-more">
           <div class="playlist-cover detail-artwork"
-               [ngStyle]="{'background-image': 'url(' + MyConfig.media_address + playlistDetails?.coverPath + ')'}"></div>
+               [ngStyle]="{'background-image': 'url(' + MyConfig.mediaUrl(playlistDetails?.coverPath) + ')'}"></div>
         </div>
 
         <div class="playlist-details detail-copy">
@@ -25,7 +25,7 @@
               <div class="playlist-users">
                 <div class="user-row" *ngFor="let user of playlistDetails?.users">
                   <button type="button" (click)="openProfile(user.userId)" class="user-pfp"
-                          [ngStyle]="{'background-image': 'url(' + MyConfig.media_address + user.profilePicture + ')'}"
+                          [ngStyle]="{'background-image': 'url(' + MyConfig.mediaUrl(user.profilePicture, 'Images/ProfilePictures/placeholder.png') + ')'}"
                           [matTooltip]="user.username" matTooltipPosition="above"
                           [attr.aria-label]="'Open ' + user.username + ' profile'"></button>
                 </div>
