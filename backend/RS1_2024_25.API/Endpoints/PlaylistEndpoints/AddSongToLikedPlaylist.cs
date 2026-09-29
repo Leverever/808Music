@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 namespace RS1_2024_25.API.Endpoints.PlaylistEndpoints
 {
+    [ApiController]
+    [Route("api/playlists")]
     public class AddTrackToLikedSongsEndpoint : ControllerBase
     {
         private readonly ApplicationDbContext _db;
@@ -17,8 +19,7 @@ namespace RS1_2024_25.API.Endpoints.PlaylistEndpoints
             _db = db;
         }
 
-        [HttpPost]
-        [Route("api/playlists/add-to-liked-songs")]
+        [HttpPost("add-to-liked-songs")]
         public async Task<ActionResult> HandleAsync([FromBody] AddTrackToLikedSongsRequest request, CancellationToken cancellationToken = default)
         {
             int userId;
