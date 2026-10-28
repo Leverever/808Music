@@ -36,6 +36,10 @@
   color: #A9A9A9;
 }
 
+.artist-unavailable {
+  flex: 0 0 auto;
+}
+
 .artist-separator {
   flex: 0 0 auto;
 }

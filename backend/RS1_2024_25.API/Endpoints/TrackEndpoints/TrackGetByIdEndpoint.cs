@@ -41,6 +41,8 @@ namespace RS1_2024_25.API.Endpoints.TrackEndpoints
                 AlbumId = track.Album.Id
             };
 
+            await TrackArtistResponseEnricher.AddAlbumArtistFallbacksAsync(db, [response], cancellationToken);
+
             return Ok(response);
         }
     }

@@ -12,26 +12,10 @@
   min-height: 100%;
   padding: clamp(24px, 3vw, 44px);
   overflow: hidden;
-  border-radius: 0 0 28px 28px;
-  background:
-    radial-gradient(circle at 12% 7%, rgba(230, 146, 248, .17), transparent 30%),
-    radial-gradient(circle at 94% 22%, rgba(119, 83, 137, .13), transparent 34%),
-    linear-gradient(180deg, #27212a 0%, #1b171d 62%, #151217 100%);
+  /* The listener layout supplies one continuous background behind the routed
+     content, scrollbar gutter, column gap, and player. */
+  background: transparent;
   color: #f6eef7;
-}
-
-.notifications-page::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(125deg, rgba(255, 255, 255, .035), transparent 35%);
-  pointer-events: none;
-}
-
-.notifications-page > * {
-  position: relative;
-  z-index: 1;
 }
 
 .notifications-hero {
@@ -257,7 +241,6 @@
     min-height: 100dvh;
     margin-inline: -14px;
     padding: 24px 14px calc(var(--listener-mobile-overlay-bottom, 110px) + 28px);
-    border-radius: 0;
   }
 
   .notifications-hero {

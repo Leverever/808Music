@@ -1,4 +1,4 @@
-import {Component, EventEmitter, HostListener, OnDestroy, OnInit, Output} from '@angular/core';
+import {Component, ElementRef, EventEmitter, HostListener, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {TrackGetResponse} from '../../../../endpoints/track-endpoints/track-get-by-id-endpoint.service';
 import {SecondsToDurationStringPipe} from '../../../../services/pipes/seconds-to-string.pipe';
 import {MatSliderDragEvent} from '@angular/material/slider';
@@ -14,6 +14,7 @@ import {
 import {MatSlideToggleChange} from '@angular/material/slide-toggle';
 import {PlaybackInteractionTrackerService} from '../../../../services/personalization/playback-interaction-tracker.service';
 import {TrackInteractionContext} from '../../../../endpoints/personalization-endpoints/track-interaction-endpoint.service';
+import {Subscription} from 'rxjs';
 
 export interface StemMix {
   name: string;
@@ -37,6 +38,7 @@ interface StemAudioPlayer {
   styleUrl: './music-controller.component.css'
 })
 export class MusicControllerComponent implements OnInit, OnDestroy {
+  @ViewChild('player', {static: true}) private playerElement!: ElementRef<HTMLAudioElement>;
   @Output() stemMixerRequested = new EventEmitter<void>();
   @Output() skipNextRequested = new EventEmitter<void>();
   @Output() skipPreviousRequested = new EventEmitter<void>();
@@ -81,6 +83,8 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
   private readonly stemSyncThresholdSeconds = 0.08;
   private readonly stemSortOrder = ["Vocals", "Drums", "Bass", "Other", "Instrumental"];
   private pendingPlaybackRestoreTime: number | null = null;
+  private playbackGeneration = 0;
+  private readonly subscriptions = new Subscription();
 
   constructor(private musicPlayerService: MusicPlayerService,
               private httpClient : HttpClient,
@@ -90,7 +94,7 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-      this.player = document.getElementById("player") as HTMLAudioElement;
+      this.player = this.playerElement.nativeElement;
       this.jwt = this.auth.getAuthToken()?.token ?? "";
       this.stemModeRequested = window.localStorage.getItem(this.stemModeStorageKey) === "true";
       let previousVolume = this.clampVolume(Number.parseFloat(window.localStorage.getItem("music-volume") ?? "0.5"));
@@ -115,10 +119,13 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
           this.getInteractionContext());
         this.initializeMediaSession();
         this.updateMediaSessionMetadata();
-        this.loadPlaybackForTrack(this.track.id, false, this.currentPlaybackTime);
+        this.loadPlaybackForTrack(
+          this.track.id,
+          this.musicPlayerService.getPlayState(),
+          this.currentPlaybackTime);
       }
 
-      this.musicPlayerService.trackEvent.subscribe({
+      this.subscriptions.add(this.musicPlayerService.trackEvent.subscribe({
         next: value => {
           this.playbackInteractionTracker.beginTrack(
             value.id,
@@ -133,24 +140,24 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
           this.updateMediaSessionMetadata();
           this.loadPlaybackForTrack(value.id, true, 0);
         }
-      })
+      }));
 
       this.initializeMediaSession();
 
       this.isShuffled = this.musicPlayerService.isShuffled;
 
-      this.musicPlayerService.shuffleToggled.subscribe({
+      this.subscriptions.add(this.musicPlayerService.shuffleToggled.subscribe({
         next: value => {
           this.isShuffled = value;
         }
-      })
+      }));
 
-      this.musicPlayerService.playStateChange.subscribe(state => {
+      this.subscriptions.add(this.musicPlayerService.playStateChange.subscribe(state => {
         if(state != this.playingState)
         {
           this.setPlaybackState(state, false);
         }
-      })
+      }));
 
       this.streamIntervalId = window.setInterval(() => {
         if(this.playingState)
@@ -186,7 +193,9 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
     this.persistCurrentPlaybackPosition();
+    this.pauseAllAudio();
 
     if(this.streamIntervalId !== undefined)
     {
@@ -531,7 +540,7 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
   }
 
   handleMasterPlaybackError() {
-    if(this.track == null || this.usingLegacyMasterStream)
+    if(this.track == null || this.usingLegacyMasterStream || this.masterAudioSource === "" || this.stemModeActive)
     {
       return;
     }
@@ -631,7 +640,7 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
 
   private activateMasterMode(playWhenReady: boolean) {
     const resumeTime = this.getPlaybackResumeTime();
-    this.pauseStemPlayers();
+    this.pauseAllAudio();
     this.teardownStemPlayers();
     this.stemModeActive = false;
     this.ensureMasterAudioSource();
@@ -726,15 +735,38 @@ export class MusicControllerComponent implements OnInit, OnDestroy {
 
     audioElements.forEach(audio => this.restoreAudioPosition(audio));
     const trackId = this.track?.id;
+    const playbackGeneration = ++this.playbackGeneration;
     this.resumeAudioContext()
-      .then(() => Promise.all(audioElements.map(audio => audio.play())))
-      .then(() => this.playbackInteractionTracker.playbackStarted(trackId))
+      .then(() => {
+        if(playbackGeneration !== this.playbackGeneration || !this.playingState)
+        {
+          return false;
+        }
+
+        return Promise.all(audioElements.map(audio => audio.play())).then(() => true);
+      })
+      .then(started => {
+        if(started && playbackGeneration === this.playbackGeneration)
+        {
+          this.playbackInteractionTracker.playbackStarted(trackId);
+        }
+      })
       .catch((error: Error) => {
         console.log(error);
+        if(playbackGeneration !== this.playbackGeneration)
+        {
+          return;
+        }
+
+        this.playingState = false;
+        this.pauseAllAudio();
+        this.updateMediaSessionPlaybackState();
+        this.musicPlayerService.setPlayState(false);
       });
   }
 
   private pauseAllAudio() {
+    this.playbackGeneration++;
     if(this.player != null)
     {
       this.player.pause();

@@ -65,16 +65,16 @@
         <section class="card stems-card">
           <div class="card-title"><div><p>SEPARATION</p><h2>Stem sets</h2></div><mat-icon>multitrack_audio</mat-icon></div>
           <div class="toggle-row">
-            <div><strong>Use AI separated stems</strong><span>{{ isAiActive ? 'AI set active' : activeStemSet ? 'Manual set active' : 'No active set' }}</span></div>
+            <div><strong>Use automatically separated stems</strong><span>{{ isAiActive ? 'Automatic set active' : activeStemSet ? 'Manual set active' : 'No active set' }}</span></div>
             <mat-slide-toggle [checked]="isAiActive" [disabled]="!canEdit || (isAiActive && !latestManualStemSet)" (change)="changeAiSource($event)"></mat-slide-toggle>
           </div>
           @for (set of stemSets; track set.id) {
             @if (set.status !== 'Ready') {
-              <div class="job-status" [class.failed]="set.status === 'Failed'"><mat-icon>{{ set.status === 'Failed' ? 'error' : 'hourglass_top' }}</mat-icon><span>{{ set.source }}: {{ set.status }}<small>{{ set.errorMessage }}</small></span></div>
+              <div class="job-status" [class.failed]="set.status === 'Failed'"><mat-icon>{{ set.status === 'Failed' ? 'error' : 'hourglass_top' }}</mat-icon><span>{{ stemSetSourceLabel(set.source) }}: {{ set.status }}<small>{{ set.errorMessage }}</small></span></div>
             }
           }
           @if (activeStemSet) {
-            <div class="set-heading"><div><strong>{{ activeStemSet.source === 'AiGenerated' ? 'AI generated' : 'Artist uploaded' }}</strong><span>{{ activeStemSet.stemProfile }}</span></div>
+            <div class="set-heading"><div><strong>{{ activeStemSet.source === 'AiGenerated' ? 'Automatically generated' : 'Artist uploaded' }}</strong><span>{{ activeStemSet.stemProfile }}</span></div>
               @if (canEdit) { <button mat-icon-button (click)="deleteStemSet(activeStemSet)"><mat-icon>delete</mat-icon></button> }
             </div>
             <div class="stem-list">
@@ -120,7 +120,7 @@
           @if (!details.analysis) { <p class="empty-copy">Analysis has not started.</p> }
           @else if (details.analysis.status !== 'Ready') { <p class="empty-copy">Analysis {{ details.analysis.status | lowercase }}. {{ details.analysis.errorMessage }}</p> }
           @else {
-            <div class="tag-list">@for (tag of details.analysis.tags; track tag.namespace + tag.label) { <span [title]="tag.namespace + ' · ' + (tag.score | number:'1.2-2')">{{ tag.label }}</span> }</div>
+            <div class="tag-list">@for (tag of deduplicatedAnalysisTags; track tag.label.toLowerCase()) { <span [title]="tag.namespace + ' · ' + (tag.score | number:'1.2-2')">{{ tag.label }}</span> }</div>
           }
           <mat-divider></mat-divider>
           <div class="card-title stats-title"><div><p>PERFORMANCE</p><h2>Statistics</h2></div><mat-icon>query_stats</mat-icon></div>

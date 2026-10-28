@@ -506,6 +506,10 @@ export class MusicPlayerService {
   }
 
   private emitTrack(track: TrackGetResponse): void {
+    // A controller is created lazily when the first queue becomes visible. Keep
+    // the intended playback state in the service so that controller can start
+    // the track even when it was not mounted in time to receive trackEvent.
+    this.setPlayState(true);
     this.currentTrackState.next(track);
     this.playbackProgressState.next({currentTime: 0, duration: track.length});
     this.trackPlayEvent.next(track);

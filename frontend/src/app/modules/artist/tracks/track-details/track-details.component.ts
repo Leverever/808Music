@@ -20,6 +20,28 @@ import {TrackPlaybackManifestEndpointService} from '../../../../endpoints/track-
 import {ConfirmDialogComponent} from '../../../shared/dialogs/confirm-dialog/confirm-dialog.component';
 import {HttpEventType} from '@angular/common/http';
 
+export interface AnalysisTag {
+  namespace: string;
+  label: string;
+  score: number;
+}
+
+export function deduplicateTagsByLabel(tags: AnalysisTag[]): AnalysisTag[] {
+  const tagsByLabel = new Map<string, AnalysisTag>();
+
+  for (const tag of tags) {
+    const label = tag.label.trim();
+    const key = label.toLowerCase();
+    const existing = tagsByLabel.get(key);
+
+    if (!existing || tag.score > existing.score) {
+      tagsByLabel.set(key, {...tag, label});
+    }
+  }
+
+  return [...tagsByLabel.values()];
+}
+
 @Component({
   selector: 'app-featured-artist-settings-dialog',
   template: `
@@ -243,6 +265,10 @@ export class TrackDetailsComponent implements OnInit, OnDestroy {
     return ((this.details?.lengthSeconds ?? 0) * (this.details?.streams ?? 0)) / 3600;
   }
 
+  get deduplicatedAnalysisTags(): AnalysisTag[] {
+    return deduplicateTagsByLabel(this.details?.analysis?.tags ?? []);
+  }
+
   loadDetails(): void {
     this.loading = true;
     this.endpoint.getDetails(this.trackId).subscribe({
@@ -410,7 +436,7 @@ export class TrackDetailsComponent implements OnInit, OnDestroy {
       else {
         this.endpoint.separateStems(this.trackId).subscribe({
           next: () => {
-            this.snackBar.open('AI stem separation queued.', 'Dismiss', {duration: 3000});
+            this.snackBar.open('Automatic stem separation queued.', 'Dismiss', {duration: 3000});
             this.startStemPolling();
           },
           error: error => this.failSave(error)
@@ -426,6 +452,12 @@ export class TrackDetailsComponent implements OnInit, OnDestroy {
       next: () => this.endpoint.getStems(this.trackId).subscribe(result => this.stemSets = result.stemSets),
       error: error => this.failSave(error)
     });
+  }
+
+  stemSetSourceLabel(source: TrackStemSetV2['source']): string {
+    if (source === 'AiGenerated') return 'Automatic separation';
+    if (source === 'ArtistUploaded') return 'Artist uploaded';
+    return source;
   }
 
   refreshStemUrls(): void {

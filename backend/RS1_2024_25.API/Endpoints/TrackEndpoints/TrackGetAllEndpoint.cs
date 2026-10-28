@@ -76,7 +76,9 @@ namespace RS1_2024_25.API.Endpoints.TrackEndpoints
                 AlbumId = t.AlbumId
             });
 
-            return await MyPagedList<TrackGetResponse>.CreateAsync(filteredTracks, request, cancellationToken);
+            var response = await MyPagedList<TrackGetResponse>.CreateAsync(filteredTracks, request, cancellationToken);
+            await TrackArtistResponseEnricher.AddAlbumArtistFallbacksAsync(db, response.DataItems, cancellationToken);
+            return response;
         }
     }
 

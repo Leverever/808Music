@@ -2,9 +2,13 @@
   <div class="clickable-artists"
        [appOverflowMarquee]="scrollWhenOverflow"
        (contextmenu)="handleRightClick($event)">
-    @for (artist of artists; track artist.id; let i = $index) {
-      <span *ngIf="i != 0" class="artist-separator">{{ separator }}</span>
-      <span class="clickable-artist" (click)="emitArtist(artist)">{{ artist.name }}</span>
+    @if (artists?.length) {
+      @for (artist of artists; track artist.id; let i = $index) {
+        <span *ngIf="i != 0" class="artist-separator">{{ separator }}</span>
+        <span class="clickable-artist" (click)="emitArtist(artist)">{{ artist.name }}</span>
+      }
+    } @else {
+      <span class="artist-unavailable">Unknown artist</span>
     }
   </div>
 </div>

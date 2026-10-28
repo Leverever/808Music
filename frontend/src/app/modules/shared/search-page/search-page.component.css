@@ -11,37 +11,9 @@
   padding: clamp(18px, 2.4vw, 34px);
   overflow: hidden;
   color: #f8f2f8;
-  background:
-    radial-gradient(circle at 8% 4%, rgba(234, 126, 247, .18), transparent 32rem),
-    radial-gradient(circle at 92% 22%, rgba(123, 71, 151, .17), transparent 35rem),
-    linear-gradient(160deg, #29242b 0%, #211b23 48%, #171318 100%);
-  isolation: isolate;
-}
-
-.search-page::before,
-.search-page::after {
-  position: absolute;
-  z-index: -1;
-  border-radius: 50%;
-  content: '';
-  pointer-events: none;
-  filter: blur(80px);
-}
-
-.search-page::before {
-  top: 18%;
-  right: -10rem;
-  width: 30rem;
-  height: 30rem;
-  background: rgba(236, 137, 245, .09);
-}
-
-.search-page::after {
-  bottom: 2%;
-  left: -8rem;
-  width: 24rem;
-  height: 24rem;
-  background: rgba(115, 93, 165, .11);
+  /* The listener layout owns the ambient surface. Keeping routed pages
+     transparent prevents a second gradient from ending at the player gap. */
+  background: transparent;
 }
 
 .search-area {
@@ -369,10 +341,7 @@
   .search-page {
     min-height: 100dvh;
     padding: 10px 14px var(--search-safe-bottom);
-    background:
-      radial-gradient(circle at 15% 2%, rgba(237, 133, 247, .2), transparent 24rem),
-      radial-gradient(circle at 88% 42%, rgba(113, 75, 147, .14), transparent 28rem),
-      linear-gradient(165deg, #2a242c 0%, #201a22 44%, #171317 100%);
+    background: transparent;
   }
 
   .search-area {

@@ -154,6 +154,26 @@ public sealed class ReleaseTrackHandlerTests
     }
 
     [Fact]
+    public async Task ListFallsBackToReleaseArtistWhenTrackCreditsAreMissing()
+    {
+        await using var dbContext = CreateDbContext();
+        var (release, track) = await SeedCatalog(dbContext);
+        track.AlbumId = release.Id;
+        dbContext.ArtistTracks.RemoveRange(dbContext.ArtistTracks);
+        await dbContext.SaveChangesAsync();
+        var handler = new ReleaseTrackHandler(dbContext);
+
+        var result = await handler.List(new ReleaseTrackListQuery(release.Id));
+
+        Assert.NotNull(result);
+        var listedTrack = Assert.Single(result.Items);
+        var fallbackArtist = Assert.Single(listedTrack.Artists);
+        Assert.Equal(release.ArtistId, fallbackArtist.Id);
+        Assert.Equal(release.Artist!.Name, fallbackArtist.Name);
+        Assert.True(fallbackArtist.IsLead);
+    }
+
+    [Fact]
     public async Task ListPaginatesAssociatedAndLegacyTracksOnTheBackend()
     {
         await using var dbContext = CreateDbContext();

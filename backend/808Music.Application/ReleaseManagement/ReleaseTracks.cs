@@ -190,6 +190,7 @@ public sealed class ReleaseTrackHandler : IReleaseTrackHandler
 
         var artistsByTrack = await GetArtistsByTrackId(
             rows.Select(x => x.TrackId).ToArray(),
+            query.ReleaseId,
             cancellationToken);
 
         var responses = rows.Select(row => ToResponse(
@@ -253,7 +254,7 @@ public sealed class ReleaseTrackHandler : IReleaseTrackHandler
             return null;
         }
 
-        var artistsByTrack = await GetArtistsByTrackId([trackId], cancellationToken);
+        var artistsByTrack = await GetArtistsByTrackId([trackId], releaseId, cancellationToken);
         return ToResponse(
             row,
             release.Id,
@@ -607,7 +608,10 @@ public sealed class ReleaseTrackHandler : IReleaseTrackHandler
         Album release,
         CancellationToken cancellationToken)
     {
-        var artistsByTrack = await GetArtistsByTrackId([track.Id], cancellationToken);
+        var artistsByTrack = await GetArtistsByTrackId(
+            [track.Id],
+            release.Id,
+            cancellationToken);
 
         return new ReleaseTrackResponse(
             association.Id,
@@ -629,6 +633,7 @@ public sealed class ReleaseTrackHandler : IReleaseTrackHandler
 
     private async Task<IReadOnlyDictionary<int, IReadOnlyList<ReleaseTrackArtistResponse>>> GetArtistsByTrackId(
         int[] trackIds,
+        int fallbackReleaseId,
         CancellationToken cancellationToken)
     {
         if (trackIds.Length == 0)
@@ -647,7 +652,7 @@ public sealed class ReleaseTrackHandler : IReleaseTrackHandler
                 x.IsLead))
             .ToListAsync(cancellationToken);
 
-        return credits
+        var artistsByTrack = credits
             .GroupBy(x => x.TrackId)
             .ToDictionary(
                 group => group.Key,
@@ -660,6 +665,38 @@ public sealed class ReleaseTrackHandler : IReleaseTrackHandler
                         x.ProfilePhotoPath,
                         x.IsLead))
                     .ToList());
+
+        var missingTrackIds = trackIds
+            .Distinct()
+            .Where(trackId => !artistsByTrack.ContainsKey(trackId))
+            .ToArray();
+
+        if (missingTrackIds.Length == 0)
+        {
+            return artistsByTrack;
+        }
+
+        var fallbackArtist = await _dbContext.Albums
+            .AsNoTracking()
+            .Where(album => album.Id == fallbackReleaseId && album.Artist != null)
+            .Select(album => new ReleaseTrackArtistResponse(
+                album.ArtistId,
+                album.Artist!.Name,
+                album.Artist.ProfilePhotoPath,
+                IsLead: true))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (fallbackArtist is null)
+        {
+            return artistsByTrack;
+        }
+
+        foreach (var trackId in missingTrackIds)
+        {
+            artistsByTrack[trackId] = [fallbackArtist];
+        }
+
+        return artistsByTrack;
     }
 
     private static ReleaseTrackResponse ToResponse(

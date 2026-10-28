@@ -31,8 +31,8 @@ mat-card-header,
   right: 9px;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 8px;
+  justify-content: center;
+  padding: 5px;
   border: 1px solid #f2b4ff;
   border-radius: 14px;
   background: rgba(22, 18, 21, .92);
@@ -73,7 +73,7 @@ mat-card-header,
   }
 
   .ai-generated-badge {
-    padding: 4px 6px;
+    padding: 4px;
     font-size: 10px;
   }
 }
